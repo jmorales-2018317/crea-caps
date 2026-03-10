@@ -1,8 +1,8 @@
 
 interface Category {
   id: string
-  label: string
-  href: string
+  name: string
+  value: string;
   icon: string
 }
 

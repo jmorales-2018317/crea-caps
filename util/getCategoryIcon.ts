@@ -15,7 +15,7 @@ import {
   
   export type CategoryIconName = keyof typeof CATEGORY_ICONS
   
-  export function getCategoryIcon(name: string): LucideIcon | null {
+  export function getCategoryIcon(name: CategoryIconName): LucideIcon | null {
     return CATEGORY_ICONS[name] ?? null
   }
   

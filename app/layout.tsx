@@ -6,7 +6,7 @@ import { ReactNode, useState } from "react";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
+import { BottomNav, Footer } from "@/components/bottom-nav";
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -42,9 +42,8 @@ export default function RootLayout({
         className={`${poppins.variable} font-sans antialiased`}
       >
         <QueryClientProvider client={queryClient}>
-          <Navbar />
           {children}
-          <Footer />
+          <BottomNav />
         </QueryClientProvider>
       </body>
     </html>

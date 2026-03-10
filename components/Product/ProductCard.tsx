@@ -3,16 +3,17 @@
 import { Product } from "@/services/Product"
 import { ShoppingCartIcon } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
 export function ProductCard({ product }: { product: Product }) {
 	return (
-		<div className="group relative overflow-hidden rounded-xl border border-border bg-card">
+		<Link href={`/productos/${product.id}`} className="group relative overflow-hidden rounded-xl border border-border bg-card">
 			<div className="relative aspect-square bg-muted/50">
 				<Image
-					src={product.image}
+					src={product.images[0]}
 					alt={product.name}
 					fill
-					className="object-cover"
+					className="object-contain"
 				/>
 			</div>
 			<button
@@ -24,8 +25,8 @@ export function ProductCard({ product }: { product: Product }) {
 			</button>
 			<div className="px-3 py-2	">
 				<p className="text-sm font-medium text-foreground">{product.name}</p>
-				<p className="text-xs text-muted-foreground">Precio —</p>
+				<p className="text-xs text-muted-foreground">Q{product.price}</p>
 			</div>
-		</div>
+		</Link>
 	)
 }

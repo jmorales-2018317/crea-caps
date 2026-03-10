@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/command"
 import { Button } from "./ui/button"
 import { useState } from "react"
-import { HomeIcon, MenuIcon, SearchIcon, ShoppingBagIcon, ShoppingCartIcon, TagsIcon } from "lucide-react"
+import { HomeIcon, MenuIcon, SearchIcon, ShoppingBagIcon, ShoppingCartIcon, TagsIcon, UserIcon } from "lucide-react"
 import {
 	Sheet,
 	SheetContent,
@@ -24,7 +24,7 @@ import Link from "next/link"
 export function Navbar() {
 	const [open, setOpen] = useState(false)
 	return (
-		<header className="sticky top-0 z-50 border-border border-b rounded-3xl bg-card p-4">
+		<header className="border-border border-b rounded-3xl bg-card p-4">
 			<div className="flex items-start justify-between gap-2">
 				<h1 className="text-3xl font-bold bg-linear-to-tr from-primary to-primary/60 bg-clip-text text-transparent">
 					Crea Caps
@@ -44,6 +44,12 @@ export function Navbar() {
 							<SheetTitle className="text-2xl font-bold">Menú</SheetTitle>
 						</SheetHeader>
 						<div className="flex flex-col gap-2 px-4">
+							<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+								<Link href="/perfil" className="flex items-center justify-start gap-2">
+									<UserIcon className="size-4" />
+									Perfil
+								</Link>
+							</Button>
 							<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
 								<Link href="/" className="flex items-center justify-start gap-2">
 									<HomeIcon className="size-4" />

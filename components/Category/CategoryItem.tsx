@@ -1,5 +1,6 @@
 "use client"
 
+import { createElement, useMemo } from "react"
 import Link from "next/link"
 import { HelpCircle } from "lucide-react"
 
@@ -12,8 +13,13 @@ type CategoryItemProps = {
 }
 
 export function CategoryItem({ category }: CategoryItemProps) {
-  const { label, href, icon: iconName } = category
-  const Icon = getCategoryIcon(iconName) ?? HelpCircle
+  const { name, value, icon: iconName } = category
+  const iconElement = useMemo(() => {
+    const IconComponent = getCategoryIcon(iconName) ?? HelpCircle
+    return createElement(IconComponent, { className: "size-6" })
+  }, [iconName])
+
+  const href = `/productos?category=${value}`
 
   return (
     <Link
@@ -26,10 +32,10 @@ export function CategoryItem({ category }: CategoryItemProps) {
           "transition-colors hover:bg-primary/10"
         )}
       >
-        <Icon className="size-6" />
+        {iconElement}
       </span>
       <span className="text-center text-xs font-medium text-foreground">
-        {label}
+        {name}
       </span>
     </Link>
   )
