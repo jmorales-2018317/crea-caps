@@ -5,7 +5,7 @@ interface Product {
     name: string
     price: number
     images: string[]
-    category: Category[]
+    categories: Category[]
 }
 
 export type { Product }

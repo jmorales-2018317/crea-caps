@@ -1,12 +1,10 @@
-"use client";
-
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Poppins, DM_Sans } from "next/font/google";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { Navbar } from "@/components/navbar";
-import { BottomNav, Footer } from "@/components/bottom-nav";
+import { BottomNav } from "@/components/bottom-nav";
+import { Toaster } from "sonner";
+import ReactQueryProvider from "@/util/providers/react-query-provider";
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -21,17 +19,6 @@ export default function RootLayout({
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000,
-          },
-        },
-      })
-  );
-
   return (
     <html lang="en" className={cn("font-sans", dmSans.variable)}>
       <head>
@@ -41,10 +28,11 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} font-sans antialiased`}
       >
-        <QueryClientProvider client={queryClient}>
+        <ReactQueryProvider>
           {children}
           <BottomNav />
-        </QueryClientProvider>
+          <Toaster position="top-center" />
+        </ReactQueryProvider>
       </body>
     </html>
   );

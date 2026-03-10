@@ -38,7 +38,7 @@ export const PLACEHOLDER_PRODUCTS: Product[] = [
             "https://img.pikbest.com/origin/10/52/11/48IpIkbEsThqg.png!sw800",
             "https://img.pikbest.com/origin/10/52/11/48IpIkbEsThqg.png!sw800"
         ],
-        category: CATEGORIES,
+        categories: CATEGORIES,
     },
     {
         id: "2",
@@ -49,7 +49,7 @@ export const PLACEHOLDER_PRODUCTS: Product[] = [
             "https://img.pikbest.com/origin/10/52/11/48IpIkbEsThqg.png!sw800",
             "https://img.pikbest.com/origin/10/52/11/48IpIkbEsThqg.png!sw800"
         ],
-        category: [],
+        categories: [],
     },
     {
         id: "3",
@@ -60,7 +60,7 @@ export const PLACEHOLDER_PRODUCTS: Product[] = [
             "https://img.pikbest.com/origin/10/52/11/48IpIkbEsThqg.png!sw800",
             "https://img.pikbest.com/origin/10/52/11/48IpIkbEsThqg.png!sw800"
         ],
-        category: CATEGORIES,
+        categories: CATEGORIES,
     },
     {
         id: "4",
@@ -71,6 +71,6 @@ export const PLACEHOLDER_PRODUCTS: Product[] = [
             "https://img.pikbest.com/origin/10/52/11/48IpIkbEsThqg.png!sw800",
             "https://img.pikbest.com/origin/10/52/11/48IpIkbEsThqg.png!sw800"
         ],
-        category: CATEGORIES,
+        categories: CATEGORIES,
     },
 ]

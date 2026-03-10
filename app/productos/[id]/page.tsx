@@ -1,11 +1,12 @@
-import { Button } from "@/components/ui/button"
-import { ProductCard, ProductCarousel } from "@/components/Product"
+import { ProductCard, ProductCarousel, ProductPrice } from "@/components/Product"
 import { PLACEHOLDER_PRODUCTS } from "@/util/constants"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import GoBack from "@/components/go-back"
 
 export default function ProductDetail() {
+  const product = PLACEHOLDER_PRODUCTS[0]
+
   return (
     <div className="bg-background flex flex-col items-center justify-center space-y-5 pb-25">
       <section className="w-full bg-zinc-100 py-5 px-4 space-y-4">
@@ -20,7 +21,7 @@ export default function ProductDetail() {
       </section>
       <div className="px-4 space-y-2">
         <div className="flex items-center gap-2 text-xs text-gray-400">
-          {PLACEHOLDER_PRODUCTS[0].category.map((category) => (
+          {PLACEHOLDER_PRODUCTS[0].categories.map((category) => (
             <Badge key={category.id} variant="secondary">
               {category.name}
             </Badge>
@@ -38,15 +39,7 @@ export default function ProductDetail() {
         </p>
       </div>
 
-      <div className="w-full flex items-center justify-between px-4">
-        <div className="text-xs">
-          <p className="text-[11px] text-gray-400">Precio total</p>
-          <p className="text-lg font-semibold text-gray-900">Q120.00</p>
-        </div>
-        <Button size="default" className="rounded-full text-sm px-6 h-10">
-          Añadir al carrito
-        </Button>
-      </div>
+      <ProductPrice product={product} />
 
       <Separator />
 
