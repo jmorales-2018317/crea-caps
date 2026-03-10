@@ -5,8 +5,10 @@ import { Poppins, DM_Sans } from "next/font/google";
 import { ReactNode, useState } from "react";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 
-const dmSans = DM_Sans({subsets:['latin'],variable:'--font-sans'});
+const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' });
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -40,7 +42,9 @@ export default function RootLayout({
         className={`${poppins.variable} font-sans antialiased`}
       >
         <QueryClientProvider client={queryClient}>
+          <Navbar />
           {children}
+          <Footer />
         </QueryClientProvider>
       </body>
     </html>
