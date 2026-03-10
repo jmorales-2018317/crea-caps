@@ -17,7 +17,7 @@ export default function Home() {
             <h2 className="text-lg font-bold text-foreground">Categorías</h2>
             <Link
               href="/productos"
-              className="text-sm font-medium text-primary hover:underline"
+              className="text-sm font-medium"
             >
               Ver todo
             </Link>

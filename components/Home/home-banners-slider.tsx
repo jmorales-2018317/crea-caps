@@ -55,7 +55,7 @@ export function HomeBannersSlider() {
             className={cn(
               "size-2 rounded-full transition-colors",
               index === current
-                ? "bg-primary w-5"
+                ? "bg-black w-5"
                 : "bg-muted-foreground/30"
             )}
           />

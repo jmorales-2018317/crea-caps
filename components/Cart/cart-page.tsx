@@ -102,12 +102,15 @@ export default function CartPage() {
               <div className="flex items-center justify-between">
                 <div className="flex flex-col">
                   <span className="text-muted-foreground">Total</span>
-                  <span className="text-lg font-semibold text-foreground">
+                  <span className="text-xl font-semibold text-foreground">
                     ${totalCost.toFixed(2)}
                   </span>
                 </div>
 
-                <Button className="h-10 px-6 rounded-full text-base font-semibold">
+                <Button
+                  size="lg"
+                  className="h-10 px-6 rounded-full text-base font-semibold bg-black"
+                >
                   Ir a caja
                 </Button>
               </div>

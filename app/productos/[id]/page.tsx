@@ -19,7 +19,7 @@ export default function ProductDetail() {
         </div>
         <ProductCarousel products={PLACEHOLDER_PRODUCTS} />
       </section>
-      <div className="px-4 space-y-2">
+      <div className="px-4">
         <div className="flex items-center gap-2 text-xs text-gray-400">
           {PLACEHOLDER_PRODUCTS[0].categories.map((category) => (
             <Badge key={category.id} variant="secondary">
@@ -28,10 +28,10 @@ export default function ProductDetail() {
           ))}
         </div>
 
-        <h2 className="text-sm font-semibold text-gray-900">
+        <h2 className="text-base font-semibold text-gray-900 mt-4">
           Detalles del producto
         </h2>
-        <p className="text-xs leading-relaxed text-gray-500">
+        <p className="text-sm leading-relaxed text-gray-500 mt-1">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
           eiusmod tempor incididunt ut labore et dolore magna aliqua
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do

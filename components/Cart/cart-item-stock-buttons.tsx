@@ -20,7 +20,6 @@ export default function CartItemStockButtons({
 			className="h-fit shrink-0"
 		>
 			<Button
-				type="button"
 				disabled={quantity === 1}
 				onClick={() => onQuantityChange(id, -1)}
 				variant="outline"
@@ -30,7 +29,6 @@ export default function CartItemStockButtons({
 			</Button>
 			<ButtonGroupText className="bg-background min-w-8 justify-center">{quantity}</ButtonGroupText>
 			<Button
-				type="button"
 				onClick={() => onQuantityChange(id, 1)}
 				size="icon"
 			>

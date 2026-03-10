@@ -1,5 +1,6 @@
 import { Category } from "@/services/Category";
 import { Product } from "@/services/Product";
+import { DiscountType } from "@/services/Discounts";
 
 export const CATEGORIES: Category[] = [
     {
@@ -39,6 +40,16 @@ export const PLACEHOLDER_PRODUCTS: Product[] = [
             "https://img.pikbest.com/origin/10/52/11/48IpIkbEsThqg.png!sw800"
         ],
         categories: CATEGORIES,
+        discounts: [
+            {
+                id: "1",
+                name: "Descuento 1",
+                value: 10,
+                type: DiscountType.PERCENTAGE,
+                startDate: new Date(),
+                endDate: new Date(),
+            },
+        ],
     },
     {
         id: "2",

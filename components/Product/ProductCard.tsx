@@ -6,8 +6,8 @@ import { ShoppingCartIcon } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "../ui/button"
-import { getCartItems, handleAddToCart, handleRemoveFromCart } from "@/util"
-import { cn } from "@/lib/utils"
+import { getCartItems, handleAddToCart, handleRemoveFromCart, getDiscountedPrice } from "@/util"
+import { Badge } from "../ui/badge"
 
 export function ProductCard({ product }: { product: Product }) {
 	const [isInCart, setIsInCart] = useState(false)
@@ -40,6 +40,10 @@ export function ProductCard({ product }: { product: Product }) {
 		setIsLoading(false)
 	}
 
+	const hasDiscounts = !!product.discounts?.length
+	const priceWithDiscount = getDiscountedPrice(product.price, product.discounts)
+
+
 	return (
 		<Link href={`/productos/${product.id}`} className="group relative overflow-hidden rounded-xl border border-border bg-card">
 			<div className="relative aspect-square bg-muted/50">
@@ -50,18 +54,31 @@ export function ProductCard({ product }: { product: Product }) {
 					className="object-contain"
 				/>
 			</div>
-			<Button
-				variant="outline"
-				size="icon-lg"
-				disabled={isLoading}
-				className={cn("absolute z-index-2 right-2 top-2 rounded-lg bg-card/80 p-1.5 hover:text-primary", isInCart && "text-primary border-primary")}
-				onClick={handleToggleCart}
-			>
-				<ShoppingCartIcon className="size-4" />
-			</Button>
-			<div className="px-3 py-2	">
-				<p className="text-sm font-medium text-foreground">{product.name}</p>
-				<p className="text-xs text-muted-foreground">Q{product.price}</p>
+			{hasDiscounts && (
+				<Badge variant="outline" className="absolute z-index-2 left-2 top-2 bg-background text-xs">
+					Oferta
+				</Badge>
+			)}
+			<div className="flex flex-col gap-1 p-3">
+				<p className="text-sm text-foreground line-clamp-2">{product.name}</p>
+				<div className="flex items-center gap-2">
+					<p className="text-sm font-semibold text-foreground">
+						Q{priceWithDiscount.toFixed(2)}
+					</p>
+					{hasDiscounts && (
+						<p className="line-through text-muted-foreground text-xs">
+							Q{product.price.toFixed(2)}
+						</p>
+					)}
+				</div>
+				<Button
+					size="lg"
+					disabled={isLoading}
+					className="w-full gap-2 bg-black mt-2"
+					onClick={handleToggleCart}
+				>
+					<ShoppingCartIcon className="size-4" /> Agregar
+				</Button>
 			</div>
 		</Link>
 	)
