@@ -1,2 +1,2 @@
-export { SearchContent } from "./SearchContent"
-export { FilterDrawer } from "./FilterDrawer"
+export { SearchContent } from "./search-content"
+export { FilterDrawer } from "./filter-drawer"

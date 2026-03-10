@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/command"
 import { Button } from "./ui/button"
 import { useState } from "react"
-import { HomeIcon, MenuIcon, SearchIcon, ShoppingBagIcon, ShoppingCartIcon, TagsIcon, UserIcon } from "lucide-react"
+import { HomeIcon, MenuIcon, SearchIcon, SettingsIcon, ShoppingCartIcon, UserIcon } from "lucide-react"
 import {
 	Sheet,
 	SheetContent,
@@ -20,6 +20,7 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet"
 import Link from "next/link"
+import { Separator } from "./ui/separator"
 
 export function Navbar() {
 	const [open, setOpen] = useState(false)
@@ -45,37 +46,42 @@ export function Navbar() {
 							<SheetHeader>
 								<SheetTitle className="text-2xl font-bold">Menú</SheetTitle>
 							</SheetHeader>
-							<div className="flex flex-col gap-2 px-4">
-								<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-									<Link href="/perfil" className="flex items-center justify-start gap-2">
-										<UserIcon className="size-4" />
-										Perfil
-									</Link>
-								</Button>
-								<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-									<Link href="/" className="flex items-center justify-start gap-2">
-										<HomeIcon className="size-4" />
-										Inicio
-									</Link>
-								</Button>
-								<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-									<Link href="/carrito" className="flex items-center justify-start gap-2">
-										<ShoppingCartIcon className="size-4" />
-										Carrito
-									</Link>
-								</Button>
-								<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-									<Link href="/productos" className="flex items-center justify-start gap-2">
-										<ShoppingBagIcon className="size-4" />
-										Productos
-									</Link>
-								</Button>
-								<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-									<Link href="/categorias" className="flex items-center justify-start gap-2">
-										<TagsIcon className="size-4" />
-										Categorías
-									</Link>
-								</Button>
+							<div className="flex flex-col justify-between h-full gap-2 px-4 py-5">
+								<div className="flex flex-col gap-2">
+									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+										<Link href="/" className="flex items-center justify-start gap-2">
+											<HomeIcon className="size-4" />
+											Inicio
+										</Link>
+									</Button>
+									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+										<Link href="/buscar" className="flex items-center justify-start gap-2">
+											<SearchIcon className="size-4" />
+											Búsqueda
+										</Link>
+									</Button>
+									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+										<Link href="/carrito" className="flex items-center justify-start gap-2">
+											<ShoppingCartIcon className="size-4" />
+											Carrito
+										</Link>
+									</Button>
+									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+										<Link href="/perfil" className="flex items-center justify-start gap-2">
+											<UserIcon className="size-4" />
+											Perfil
+										</Link>
+									</Button>
+								</div>
+								<div className="flex flex-col gap-4">
+									<Separator />
+									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+										<Link href="/settings" className="flex items-center justify-start gap-2">
+											<SettingsIcon className="size-4" />
+											Ajustes
+										</Link>
+									</Button>
+								</div>
 							</div>
 						</SheetContent>
 					</Sheet>

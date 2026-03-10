@@ -6,7 +6,7 @@ import { ProductCard } from "@/components/Product"
 import { PLACEHOLDER_PRODUCTS } from "@/util/constants"
 import { Input } from "@/components/ui/input"
 import { SearchIcon } from "lucide-react"
-import { FilterDrawer } from "@/components/Search/FilterDrawer"
+import { FilterDrawer } from "@/components/Search/filter-drawer"
 import { type SearchFilters } from "@/services/Search"
 
 export function SearchContent() {

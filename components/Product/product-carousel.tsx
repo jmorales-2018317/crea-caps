@@ -63,7 +63,7 @@ export function ProductCarousel({ products }: { products: Product[] }) {
               variant="outline"
               key={`${image}-${index}`}
               onClick={() => scrollToIndex(index)}
-              className={cn("relative size-12 shrink-0 overflow-hidden rounded-lg", isActive && "border-primary ring-2 ring-primary/20")}
+              className={cn("relative size-12 shrink-0 overflow-hidden rounded-lg", isActive && "border-black ring-2 ring-black/20")}
             >
               <Image
                 src={image}

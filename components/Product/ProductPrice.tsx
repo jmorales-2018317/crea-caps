@@ -56,7 +56,7 @@ export function ProductPrice({ product }: { product: Product }) {
 				<Button
 					isLoading={isLoading}
 					loadingLabel="Cargando"
-					className="rounded-full text-sm px-6 h-10 gap-2"
+					className="rounded-full text-sm px-6 h-10 gap-2 bg-black text-white"
 					onClick={handleButtonPress}
 				>
 					{buttonContent}
