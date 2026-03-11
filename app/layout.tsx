@@ -2,7 +2,6 @@ import { Poppins, DM_Sans } from "next/font/google";
 import { ReactNode } from "react";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { BottomNav } from "@/components/bottom-nav";
 import { Toaster } from "sonner";
 import ReactQueryProvider from "@/util/providers/react-query-provider";
 
@@ -30,7 +29,6 @@ export default function RootLayout({
       >
         <ReactQueryProvider>
           {children}
-          <BottomNav />
           <Toaster position="top-center" />
         </ReactQueryProvider>
       </body>
