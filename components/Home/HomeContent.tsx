@@ -8,15 +8,16 @@ import { Navbar } from "@/components/navbar";
 import { useCategories } from "@/hooks/api/useCategories";
 import { useProducts } from "@/hooks/api/useProducts";
 import { useProductsOnSale } from "@/hooks/api/useProductsOnSale";
+import { User } from "@supabase/supabase-js";
 
-export function HomeContent() {
+export function HomeContent({ initialUser }: { initialUser: User | null }) {
   const { data: categories = [] } = useCategories();
   const { data: products = [] } = useProducts();
   const { data: productsOnSale = [] } = useProductsOnSale();
-
+  
   return (
     <main className="bg-background pb-24">
-      <Navbar />
+      <Navbar initialUser={initialUser} />
       <div className="bg-background space-y-5 pt-5">
         <HomeBannersSlider />
         {(categories.length > 0 && (

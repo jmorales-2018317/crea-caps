@@ -10,7 +10,7 @@ import {
 	CommandList,
 } from "@/components/ui/command"
 import { Button } from "./ui/button"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { HomeIcon, LayoutDashboardIcon, MenuIcon, SearchIcon, SettingsIcon, ShoppingCartIcon, UserIcon } from "lucide-react"
 import {
 	Sheet,
@@ -21,9 +21,30 @@ import {
 } from "@/components/ui/sheet"
 import Link from "next/link"
 import { Separator } from "./ui/separator"
+import { createClient } from "@/lib/supabase/client"
+import type { User } from "@supabase/supabase-js"
 
-export function Navbar() {
+type NavbarProps = {
+	initialUser: User | null
+}
+
+export function Navbar({ initialUser }: NavbarProps) {
 	const [open, setOpen] = useState(false)
+	const supabase = useMemo(() => createClient(), [])
+	const [user, setUser] = useState<User | null>(initialUser)
+
+	useEffect(() => {
+		const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+			setUser(session?.user ?? null)
+		})
+
+		return () => {
+			sub.subscription.unsubscribe()
+		}
+	}, [supabase])
+
+	const role = user?.app_metadata?.role
+	const isAdmin = role === "admin"
 	return (
 		<header className="sticky top-0 z-50 border-border border-b rounded-b-2xl bg-card p-4 shadow-sm">
 			<div className="flex items-start justify-between gap-2">
@@ -74,12 +95,16 @@ export function Navbar() {
 									</Button>
 								</div>
 								<div className="flex flex-col gap-4">
-									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-										<Link href="/dashboard" className="flex items-center justify-start gap-2">
-											<LayoutDashboardIcon className="size-4" />
-											Ir al Dashboard
-										</Link>
-									</Button>
+									{
+										isAdmin && (
+											<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+												<Link href="/dashboard" className="flex items-center justify-start gap-2">
+													<LayoutDashboardIcon className="size-4" />
+													Ir al Dashboard
+												</Link>
+											</Button>
+										)
+									}
 									<Separator />
 									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
 										<Link href="/settings" className="flex items-center justify-start gap-2">
