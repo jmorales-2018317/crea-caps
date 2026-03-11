@@ -31,5 +31,5 @@ export async function searchProducts({
 
   const products = await getProductsByIds(ids)
   const byId = new Map(products.map((p) => [p.id, p]))
-  return ids.map((id) => byId.get(id)).filter((p): p is Product => p != null)
+  return ids.map((id: string) => byId.get(id)).filter((p: Product): p is Product => p != null)
 }
