@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { createClient as createBrowserClient } from "@/lib/supabase/client"
 import { getProductsByIds } from "@/services/Product"
 import type { Product } from "@/services/Product"
 import type { SearchFilters } from "./types"
@@ -17,6 +17,7 @@ export async function searchProducts({
   query = "",
   filters,
 }: SearchProductsParams): Promise<Product[]> {
+  const supabase = createBrowserClient()
   const { data: rows, error } = await supabase.rpc("search_products", {
     p_query: query.trim() || null,
     p_category_id: filters.categoryId ?? null,
@@ -29,7 +30,7 @@ export async function searchProducts({
   const ids = (rows ?? []).map((r: { product_id: string }) => r.product_id)
   if (ids.length === 0) return []
 
-  const products = await getProductsByIds(ids)
+  const products = await getProductsByIds(ids, supabase)
   const byId = new Map(products.map((p) => [p.id, p]))
   return ids.map((id: string) => byId.get(id)).filter((p: Product): p is Product => p != null)
 }

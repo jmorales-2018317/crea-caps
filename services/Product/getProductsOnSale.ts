@@ -1,8 +1,10 @@
-import { supabase } from "@/lib/supabase/client"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import { createClient as createBrowserClient } from "@/lib/supabase/client"
 import { getProductsByIds } from "./getProductsByIds"
 import type { Product } from "./types"
 
-export async function getProductsOnSale(): Promise<Product[]> {
+export async function getProductsOnSale(supabaseClient?: SupabaseClient): Promise<Product[]> {
+  const supabase = supabaseClient ?? createBrowserClient()
   const now = new Date().toISOString()
 
   const { data: activeDiscounts, error: discountsError } = await supabase
@@ -24,5 +26,5 @@ export async function getProductsOnSale(): Promise<Product[]> {
   const productIds = [...new Set((productDiscounts ?? []).map((r) => r.product_id))]
   if (productIds.length === 0) return []
 
-  return getProductsByIds(productIds)
+  return getProductsByIds(productIds, supabase)
 }

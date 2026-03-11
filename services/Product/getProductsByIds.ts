@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabase/client"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import { createClient as createBrowserClient } from "@/lib/supabase/client"
 import type { Product } from "./types"
 import type { Category } from "@/services/Category"
 import type { Discount } from "@/services/Discounts/types"
@@ -8,8 +9,12 @@ import type {
   ProductDiscountRow,
 } from "@/lib/supabase/database.types"
 
-export async function getProductsByIds(ids: string[]): Promise<Product[]> {
+export async function getProductsByIds(
+  ids: string[],
+  supabaseClient?: SupabaseClient
+): Promise<Product[]> {
   if (ids.length === 0) return []
+  const supabase = supabaseClient ?? createBrowserClient()
 
   const [productsRes, productCategoriesRes, productDiscountsRes] = await Promise.all([
     supabase

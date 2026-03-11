@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabase/client"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import { createClient as createBrowserClient } from "@/lib/supabase/client"
 import type { Product } from "./types"
 import type { Category } from "@/services/Category"
 import type { Discount } from "@/services/Discounts/types"
@@ -11,7 +12,8 @@ import type {
 /**
  * Obtiene todos los productos con sus categorías y descuentos desde Supabase.
  */
-export async function getProducts(): Promise<Product[]> {
+export async function getProducts(supabaseClient?: SupabaseClient): Promise<Product[]> {
+  const supabase = supabaseClient ?? createBrowserClient()
   const [productsRes, productCategoriesRes, productDiscountsRes] = await Promise.all([
     supabase.from("products").select("id, name, price, images").order("created_at", { ascending: false }),
     supabase.from("product_categories").select("product_id, category_id"),

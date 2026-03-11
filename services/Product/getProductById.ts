@@ -1,9 +1,14 @@
-import { supabase } from "@/lib/supabase/client"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import { createClient as createBrowserClient } from "@/lib/supabase/client"
 import type { Product } from "./types"
 import type { Category } from "@/services/Category"
 import type { Discount } from "@/services/Discounts/types"
 
-export async function getProductById(id: string): Promise<Product | null> {
+export async function getProductById(
+  id: string,
+  supabaseClient?: SupabaseClient
+): Promise<Product | null> {
+  const supabase = supabaseClient ?? createBrowserClient()
   const { data: product, error: productError } = await supabase
     .from("products")
     .select("id, name, description, price, images")
