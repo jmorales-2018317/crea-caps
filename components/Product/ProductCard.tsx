@@ -8,6 +8,7 @@ import Link from "next/link"
 import { Button } from "../ui/button"
 import { getCartItems, handleAddToCart, handleRemoveFromCart, getDiscountedPrice } from "@/util"
 import { Badge } from "../ui/badge"
+import { Skeleton } from "../ui/skeleton"
 
 export function ProductCard({ product }: { product: Product }) {
 	const [isInCart, setIsInCart] = useState(false)
@@ -77,9 +78,21 @@ export function ProductCard({ product }: { product: Product }) {
 					className="w-full gap-2 bg-black mt-2"
 					onClick={handleToggleCart}
 				>
-					<ShoppingCartIcon className="size-4" /> Agregar
+					<ShoppingCartIcon className="size-4" />
+					{isInCart ? "Quitar del carrito" : "Agregar al carrito"}
 				</Button>
 			</div>
 		</Link>
+	)
+}
+
+export function ProductCardSkeleton() {
+	return (
+		<div className="flex flex-col gap-2">
+			<Skeleton className="aspect-square w-full rounded-lg" />
+			<Skeleton className="h-5 w-3/4 mt-1" />
+			<Skeleton className="h-5 w-1/2" />
+			<Skeleton className="h-6 w-full mt-1" />
+		</div>
 	)
 }

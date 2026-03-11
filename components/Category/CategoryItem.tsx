@@ -13,18 +13,17 @@ type CategoryItemProps = {
 }
 
 export function CategoryItem({ category }: CategoryItemProps) {
-  const { name, value, icon: iconName } = category
   const iconElement = useMemo(() => {
-    const IconComponent = getCategoryIcon(iconName) ?? HelpCircle
+    const IconComponent = getCategoryIcon(category.icon) ?? HelpCircle
     return createElement(IconComponent, { className: "size-6" })
-  }, [iconName])
+  }, [category.icon])
 
-  const href = `/productos?category=${value}`
+  const href = `/buscar?categoryId=${category.id}`
 
   return (
     <Link
       href={href}
-      className="flex flex-1 flex-col items-center gap-2"
+      className="flex flex-col items-center gap-2"
     >
       <span
         className={cn(
@@ -35,7 +34,7 @@ export function CategoryItem({ category }: CategoryItemProps) {
         {iconElement}
       </span>
       <span className="text-center text-xs font-medium text-foreground">
-        {name}
+        {category.name}
       </span>
     </Link>
   )

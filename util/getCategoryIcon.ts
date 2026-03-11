@@ -3,6 +3,7 @@ import {
     LaptopIcon,
     ShirtIcon,
     WatchIcon,
+    TrophyIcon,
   } from "lucide-react"
   import type { LucideIcon } from "lucide-react"
   
@@ -11,6 +12,7 @@ import {
     LaptopIcon,
     FootprintsIcon,
     WatchIcon,
+    TrophyIcon,
   } as const
   
   export type CategoryIconName = keyof typeof CATEGORY_ICONS

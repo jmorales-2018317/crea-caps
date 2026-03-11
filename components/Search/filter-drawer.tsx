@@ -20,10 +20,10 @@ import { useMediaQuery } from "@/hooks/use-media-query"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { CATEGORIES } from "@/util/constants"
 import { cn } from "@/lib/utils"
 import { SlidersHorizontalIcon } from "lucide-react"
 import { SearchFilters, SortEnum } from "@/services/Search"
+import type { Category } from "@/services/Category"
 
 const PRICE_MIN = 0
 const PRICE_MAX = 1000
@@ -48,11 +48,13 @@ function getActiveFiltersCount(filters: Partial<SearchFilters> | null | undefine
 type FilterDrawerProps = {
   initialFilters?: Partial<SearchFilters>
   handleApply: (filters: SearchFilters) => void
+  categories?: Category[]
 }
 
 export function FilterDrawer({
   initialFilters,
   handleApply,
+  categories,
 }: FilterDrawerProps) {
   const [open, setOpen] = useState(false)
   const [categoryId, setCategoryId] = useState<string | null>(
@@ -163,7 +165,7 @@ export function FilterDrawer({
             >
               Todas
             </Button>
-            {CATEGORIES.map((cat) => (
+            {categories?.map((cat) => (
               <Button
                 key={cat.id}
                 size="lg"

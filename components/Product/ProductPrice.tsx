@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { ArrowRight, ShoppingCart } from "lucide-react"
 import { Product } from "@/services/Product"
 import { Button } from "../ui/button"
-import { getCartItems, handleAddToCart } from "@/util"
+import { getCartItems, getDiscountedPrice, handleAddToCart } from "@/util"
 import { useRouter } from "next/navigation"
 
 const iconSize = "size-3.5"
@@ -46,12 +46,20 @@ export function ProductPrice({ product }: { product: Product }) {
 		</>
 	)
 
+	const hasDiscounts = !!product.discounts?.length
+	const priceWithDiscount = getDiscountedPrice(product.price, product.discounts)
+
 	return (
 		<section className="w-full px-4 space-y-2">
 			<div className="w-full flex items-center justify-between">
 				<div className="text-xs">
 					<p className="text-[11px] text-gray-400">Precio total</p>
-					<p className="text-lg font-semibold text-gray-900">Q120.00</p>
+					<p className="text-lg font-semibold text-gray-900">Q{priceWithDiscount.toFixed(2)}</p>
+					{hasDiscounts && (
+						<p className="line-through text-muted-foreground text-xs">
+							Q{product.price.toFixed(2)}
+						</p>
+					)}
 				</div>
 				<Button
 					isLoading={isLoading}

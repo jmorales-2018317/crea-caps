@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/command"
 import { Button } from "./ui/button"
 import { useState } from "react"
-import { HomeIcon, MenuIcon, SearchIcon, SettingsIcon, ShoppingCartIcon, UserIcon } from "lucide-react"
+import { HomeIcon, LayoutDashboardIcon, MenuIcon, SearchIcon, SettingsIcon, ShoppingCartIcon, UserIcon } from "lucide-react"
 import {
 	Sheet,
 	SheetContent,
@@ -74,6 +74,12 @@ export function Navbar() {
 									</Button>
 								</div>
 								<div className="flex flex-col gap-4">
+									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+										<Link href="/dashboard" className="flex items-center justify-start gap-2">
+											<LayoutDashboardIcon className="size-4" />
+											Ir al Dashboard
+										</Link>
+									</Button>
 									<Separator />
 									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
 										<Link href="/settings" className="flex items-center justify-start gap-2">

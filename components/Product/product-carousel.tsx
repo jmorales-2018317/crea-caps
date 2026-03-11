@@ -8,13 +8,12 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel"
-import { Product } from "@/services/Product"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { Button } from "../ui/button"
 import { cn } from "@/lib/utils"
 
-export function ProductCarousel({ products }: { products: Product[] }) {
+export function ProductCarousel({ productImages }: { productImages: string[] }) {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
 
@@ -32,18 +31,16 @@ export function ProductCarousel({ products }: { products: Product[] }) {
     api?.scrollTo(index)
   }
 
-  const product = products[0]
-
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       <Carousel setApi={setApi} className="w-full max-w-xs">
         <CarouselContent className="-ml-2">
-          {product.images.map((image, index) => (
+          {productImages.map((image, index) => (
             <CarouselItem key={`${image}-${index}`} className="pl-4">
               <div className="relative h-60 overflow-hidden rounded-2xl p-4">
                 <Image
                   src={image}
-                  alt={product.name}
+                  alt="Product Image"
                   fill
                   className="object-contain"
                 />
@@ -56,7 +53,7 @@ export function ProductCarousel({ products }: { products: Product[] }) {
       </Carousel>
 
       <div className="no-scrollbar flex gap-2 w-fit justify-center bg-white p-1.5 rounded-lg">
-        {product.images.map((image, index) => {
+        {productImages.map((image, index) => {
           const isActive = index === current
           return (
             <Button
@@ -67,7 +64,7 @@ export function ProductCarousel({ products }: { products: Product[] }) {
             >
               <Image
                 src={image}
-                alt={product.name}
+                alt="Product Image"
                 fill
                 sizes="48px"
                 className="object-contain"

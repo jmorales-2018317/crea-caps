@@ -1,18 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import CartItem, { type CartItemData } from "@/components/Cart/cart-item"
 import { getCartItems, changeCartItemQuantity, removeCartItem, type StoredCartItem } from "@/util"
-import { PLACEHOLDER_PRODUCTS } from "@/util/constants"
 import type { Product } from "@/services/Product"
 import { Spinner } from "@/components/ui/spinner"
+import { useProductsByIds } from "@/hooks/api/useProductsByIds"
 
-const productIndex: Record<string, Product> = Object.fromEntries(
-  PLACEHOLDER_PRODUCTS.map((p) => [p.id, p])
-)
-
-function hydrateCartItems(snapshot: StoredCartItem[]): CartItemData[] {
+function hydrateCartItems(
+  snapshot: StoredCartItem[],
+  productIndex: Record<string, Product>
+): CartItemData[] {
   return snapshot
     .map((entry) => {
       const product = productIndex[entry.id]
@@ -29,17 +28,29 @@ function hydrateCartItems(snapshot: StoredCartItem[]): CartItemData[] {
     .filter((item): item is CartItemData => item !== null)
 }
 
-export default function CartPage() {
-  const [items, setItems] = useState<CartItemData[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+function getInitialCartSnapshot(): StoredCartItem[] {
+  if (typeof window === "undefined") return []
+  return getCartItems()
+}
 
-  useEffect(() => {
-    queueMicrotask(() => {
-      const snapshot = getCartItems()
-      setItems(hydrateCartItems(snapshot))
-      setIsLoading(false)
-    })
-  }, [])
+export default function CartPage() {
+  const [cartSnapshot, setCartSnapshot] = useState<StoredCartItem[]>(getInitialCartSnapshot)
+
+  const cartIds = useMemo(
+    () => cartSnapshot.map((s) => s.id),
+    [cartSnapshot]
+  )
+  const { data: products = [], isLoading: productsLoading } = useProductsByIds(cartIds)
+  const productIndex = useMemo(
+    () => Object.fromEntries(products.map((p) => [p.id, p])),
+    [products]
+  )
+  const items = useMemo(
+    () => hydrateCartItems(cartSnapshot, productIndex),
+    [cartSnapshot, productIndex]
+  )
+
+  const isLoading = cartIds.length > 0 && productsLoading
 
   if (isLoading) {
     return (
@@ -51,13 +62,11 @@ export default function CartPage() {
   }
 
   const handleQuantityChange = (id: string, delta: number) => {
-    const snapshot = changeCartItemQuantity(id, delta)
-    setItems(hydrateCartItems(snapshot))
+    setCartSnapshot(changeCartItemQuantity(id, delta))
   }
 
   const handleRemove = (id: string) => {
-    const snapshot = removeCartItem(id)
-    setItems(hydrateCartItems(snapshot))
+    setCartSnapshot(removeCartItem(id))
   }
 
   const subtotal = items.reduce((acc, i) => acc + i.price * i.quantity, 0)

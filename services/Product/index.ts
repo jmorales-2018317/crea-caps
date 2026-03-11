@@ -1,1 +1,5 @@
 export * from "./types"
+export * from "./getProducts"
+export * from "./getProductById"
+export * from "./getProductsByIds"
+export * from "./getProductsOnSale"

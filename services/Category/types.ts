@@ -1,10 +1,10 @@
-
-interface Category {
+/** Coincide con la tabla `categories` en Supabase */
+export type Category = {
   id: string
   name: string
-  value: string;
+  value: string
   icon: string
+  created_at?: string
+  updated_at?: string
 }
-
-export type { Category }
 

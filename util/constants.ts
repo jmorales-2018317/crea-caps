@@ -1,6 +1,6 @@
 import { Category } from "@/services/Category";
 import { Product } from "@/services/Product";
-import { DiscountType } from "@/services/Discounts";
+import { DiscountTypeEnum } from "@/services/Discounts";
 
 export const CATEGORIES: Category[] = [
     {
@@ -45,9 +45,9 @@ export const PLACEHOLDER_PRODUCTS: Product[] = [
                 id: "1",
                 name: "Descuento 1",
                 value: 10,
-                type: DiscountType.PERCENTAGE,
-                startDate: new Date(),
-                endDate: new Date(),
+                type: DiscountTypeEnum.PERCENTAGE,
+                start_date: new Date().toISOString(),
+                end_date: new Date().toISOString(),
             },
         ],
     },
