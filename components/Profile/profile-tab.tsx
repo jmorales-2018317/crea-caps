@@ -53,7 +53,7 @@ export function ProfileTab() {
       <div className="px-1">
         {loading ? (
           <ProfileSkeleton />
-        ) : !user ? (
+        ) : user ? (
           <div className="mt-4 flex items-center gap-2">
             <UserRoundIcon className="size-12" />
             <div className="px-1 space-y-2">
