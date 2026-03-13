@@ -52,7 +52,7 @@ export function ProductDetailContent({ productId }: ProductDetailContentProps) {
 
       <section className="w-full px-4">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-bold text-foreground">
+          <h2 className="text-base font-bold text-foreground">
             Productos relacionados
           </h2>
         </div>

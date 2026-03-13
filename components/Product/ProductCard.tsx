@@ -7,8 +7,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "../ui/button"
 import { getCartItems, handleAddToCart, handleRemoveFromCart, getDiscountedPrice } from "@/util"
-import { Badge } from "../ui/badge"
 import { Skeleton } from "../ui/skeleton"
+import { DiscountBadge } from "../Discounts"
 
 export function ProductCard({ product }: { product: Product }) {
 	const [isInCart, setIsInCart] = useState(false)
@@ -56,9 +56,7 @@ export function ProductCard({ product }: { product: Product }) {
 				/>
 			</div>
 			{hasDiscounts && (
-				<Badge variant="outline" className="absolute z-index-2 left-2 top-2 bg-background text-xs">
-					Oferta
-				</Badge>
+				<DiscountBadge />
 			)}
 			<div className="flex flex-col gap-1 p-3">
 				<p className="text-sm text-foreground line-clamp-2">{product.name}</p>
@@ -79,7 +77,7 @@ export function ProductCard({ product }: { product: Product }) {
 					onClick={handleToggleCart}
 				>
 					<ShoppingCartIcon className="size-4" />
-					{isInCart ? "Quitar del carrito" : "Agregar al carrito"}
+					{isInCart ? "Remover" : "Agregar"}
 				</Button>
 			</div>
 		</Link>
