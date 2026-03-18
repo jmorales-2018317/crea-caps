@@ -116,7 +116,7 @@ export function Navbar({ initialUser }: NavbarProps) {
 							</div>
 						</SheetContent>
 					</Sheet>
-					<Button onClick={() => setOpen(true)} size="icon-lg" className="flex items-center rounded-xl p-4 bg-black">
+					<Button onClick={() => setOpen(true)} size="icon-lg" className="flex items-center rounded-xl p-4">
 						<SearchIcon className="size-4" />
 					</Button>
 					<CommandDialog open={open} onOpenChange={setOpen}>

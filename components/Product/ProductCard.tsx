@@ -73,7 +73,7 @@ export function ProductCard({ product }: { product: Product }) {
 				<Button
 					size="lg"
 					disabled={isLoading}
-					className="w-full gap-2 bg-black mt-2"
+					className="w-full gap-2 mt-2"
 					onClick={handleToggleCart}
 				>
 					<ShoppingCartIcon className="size-4" />

@@ -31,7 +31,6 @@ export default function CartItemStockButtons({
 			<Button
 				onClick={() => onQuantityChange(id, 1)}
 				size="icon"
-				className="bg-black text-white"
 			>
 				<PlusIcon />
 			</Button>

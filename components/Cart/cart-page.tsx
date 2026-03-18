@@ -118,7 +118,7 @@ export default function CartPage() {
 
                 <Button
                   size="lg"
-                  className="h-10 px-6 rounded-full text-base font-semibold bg-black"
+                  className="h-10 px-6 rounded-full text-base font-semibold"
                 >
                   Ir a caja
                 </Button>

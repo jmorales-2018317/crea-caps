@@ -138,7 +138,7 @@ export function FilterDrawer({
     <Button variant="outline" size="icon-lg" className="rounded-lg p-5 relative">
       <SlidersHorizontalIcon className="size-4" />
       {activeCount > 0 && (
-        <span className="absolute -top-2 -right-2 bg-black text-white rounded-full px-1.5 py-0.5 text-xs min-w-5 text-center">
+        <span className="absolute -top-2 -right-2 rounded-full px-1.5 py-0.5 text-xs min-w-5 text-center">
           {activeCount}
         </span>
       )}
@@ -159,7 +159,7 @@ export function FilterDrawer({
               className={cn(
                 "rounded-full",
                 categoryId === null
-                  ? "border-primary bg-black text-white"
+                  ? "border-primary"
                   : "border-border bg-muted/50 text-muted-foreground"
               )}
             >
@@ -173,7 +173,7 @@ export function FilterDrawer({
                 className={cn(
                   "rounded-full",
                   categoryId === cat.id
-                    ? "border-primary bg-black text-white"
+                    ? "border-primary"
                     : "border-border bg-muted/50 text-muted-foreground"
                 )}
               >
@@ -233,11 +233,11 @@ export function FilterDrawer({
             onValueChange={(value) => setSort(value as SortEnum)}
             className="flex flex-col gap-2"
           >
-            <label className="flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-3 py-2 hover:bg-muted/50 [&:has([data-state=checked])]:border-black [&:has([data-state=checked])]:bg-black/5">
+            <label className="flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-3 py-2 hover:bg-muted/50 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5">
               <RadioGroupItem value={SortEnum.RECENT} id="sort-reciente" />
               <span className="text-sm font-medium">Reciente</span>
             </label>
-            <label className="flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-3 py-2 hover:bg-muted/50 [&:has([data-state=checked])]:border-black [&:has([data-state=checked])]:bg-black/5">
+            <label className="flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-3 py-2 hover:bg-muted/50 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5">
               <RadioGroupItem value={SortEnum.POPULAR} id="sort-popular" />
               <span className="text-sm font-medium">Popular</span>
             </label>
@@ -256,7 +256,7 @@ export function FilterDrawer({
         </Button>
         <Button
           size="xl"
-          className="flex-1 rounded-full bg-black text-white"
+          className="flex-1 rounded-full"
           onClick={handleApplyFilters}
         >
           Aplicar

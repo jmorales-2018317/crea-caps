@@ -25,8 +25,8 @@ const Slider = React.forwardRef<
       defaultValue={defaultValue}
       {...props}
     >
-      <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-black/20">
-        <SliderPrimitive.Range className="absolute h-full bg-black" />
+      <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-muted/20">
+        <SliderPrimitive.Range className="absolute h-full bg-primary" />
       </SliderPrimitive.Track>
       {Array.from({ length: count }).map((_, i) => (
         <SliderPrimitive.Thumb

@@ -51,11 +51,10 @@ export function HomeBannersSlider() {
           <Button
             key={index}
             onClick={() => api?.scrollTo(index)}
-            variant="outline"
             className={cn(
-              "size-2 rounded-full transition-colors",
+              "size-2 rounded-full transition-colors shadow-none",
               index === current
-                ? "bg-black w-5"
+                ? "w-6"
                 : "bg-muted-foreground/30"
             )}
           />

@@ -28,7 +28,7 @@ export function CategoryItem({ category }: CategoryItemProps) {
       <span
         className={cn(
           "flex size-14 items-center justify-center rounded-full border border-border bg-card text-black",
-          "transition-colors hover:bg-black/10"
+          "transition-color"
         )}
       >
         {iconElement}
