@@ -5,6 +5,7 @@ import { Button } from "./ui/button"
 import { HomeIcon, LayoutDashboardIcon, MenuIcon, SearchIcon, SettingsIcon, ShoppingCartIcon, UserIcon } from "lucide-react"
 import {
 	Sheet,
+	SheetClose,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
@@ -75,49 +76,61 @@ export function Navbar({ profileId }: NavbarProps) {
 							</SheetHeader>
 							<div className="flex flex-col justify-between h-full gap-2 px-4 py-5">
 								<div className="flex flex-col gap-2">
-									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-										<Link href="/" className="flex items-center justify-start gap-2">
-											<HomeIcon className="size-4" />
-											Inicio
-										</Link>
-									</Button>
-									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-										<Link href="/buscar" className="flex items-center justify-start gap-2">
-											<SearchIcon className="size-4" />
-											Búsqueda
-										</Link>
-									</Button>
-									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-										<Link href="/carrito" className="flex items-center justify-start gap-2">
-											<ShoppingCartIcon className="size-4" />
-											Carrito
-										</Link>
-									</Button>
-									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-										<Link href="/perfil" className="flex items-center justify-start gap-2">
-											<UserIcon className="size-4" />
-											Perfil
-										</Link>
-									</Button>
+									<SheetClose asChild>
+										<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+											<Link href="/" className="flex items-center justify-start gap-2">
+												<HomeIcon className="size-4" />
+												Inicio
+											</Link>
+										</Button>
+									</SheetClose>
+									<SheetClose asChild>
+										<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+											<Link href="/buscar" className="flex items-center justify-start gap-2">
+												<SearchIcon className="size-4" />
+												Búsqueda
+											</Link>
+										</Button>
+									</SheetClose>
+									<SheetClose asChild>
+										<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+											<Link href="/carrito" className="flex items-center justify-start gap-2">
+												<ShoppingCartIcon className="size-4" />
+												Carrito
+											</Link>
+										</Button>
+									</SheetClose>
+									<SheetClose asChild>
+										<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+											<Link href="/perfil" className="flex items-center justify-start gap-2">
+												<UserIcon className="size-4" />
+												Perfil
+											</Link>
+										</Button>
+									</SheetClose>
 								</div>
 								<div className="flex flex-col gap-4">
 									{
 										isAdmin && (
-											<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-												<Link href="/dashboard" className="flex items-center justify-start gap-2">
-													<LayoutDashboardIcon className="size-4" />
-													Ir al Dashboard
-												</Link>
-											</Button>
+											<SheetClose asChild>
+												<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+													<Link href="/dashboard" className="flex items-center justify-start gap-2">
+														<LayoutDashboardIcon className="size-4" />
+														Ir al Dashboard
+													</Link>
+												</Button>
+											</SheetClose>
 										)
 									}
 									<Separator />
-									<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
-										<Link href="/settings" className="flex items-center justify-start gap-2">
-											<SettingsIcon className="size-4" />
-											Ajustes
-										</Link>
-									</Button>
+									<SheetClose asChild>
+										<Button variant="ghost" size="icon-lg" className="w-full px-4" asChild>
+											<Link href="/settings" className="flex items-center justify-start gap-2">
+												<SettingsIcon className="size-4" />
+												Ajustes
+											</Link>
+										</Button>
+									</SheetClose>
 								</div>
 							</div>
 						</SheetContent>

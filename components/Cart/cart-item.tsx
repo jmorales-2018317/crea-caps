@@ -6,6 +6,7 @@ import Link from "next/link"
 import CartItemStockButtons from "./cart-item-stock-buttons"
 import { Product } from "@/services/Product"
 import { getDiscountedPrice } from "@/util"
+import { DiscountsBadgesList } from "../Discounts/DiscountBadge"
 
 export default function CartItem({
 	product,
@@ -76,9 +77,12 @@ export default function CartItem({
 					<h3 className="text-sm font-semibold text-foreground line-clamp-2">{product.name}</h3>
 					<div className="flex flex-col">
 						{hasDiscounts && (
-							<p className="line-through text-muted-foreground text-xs">
-								Q{product.price.toFixed(2)}
-							</p>
+							<div className="flex items-center gap-1">
+								<p className="line-through text-muted-foreground text-xs">
+									Q{product.price.toFixed(2)}
+								</p>
+								<DiscountsBadgesList discounts={product.discounts ?? []} />
+							</div>
 						)}
 						<p className="text-base font-semibold text-foreground">
 							Q{priceWithDiscount.toFixed(2)}

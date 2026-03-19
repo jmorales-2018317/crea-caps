@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "../ui/button"
 import { getDiscountedPrice } from "@/util"
 import { Skeleton } from "../ui/skeleton"
-import { DiscountBadge } from "../Discounts"
+import { DiscountBadge, DiscountsBadgesList } from "../Discounts"
 import { useCart } from "react-use-cart"
 import { toast } from "sonner"
 
@@ -43,9 +43,7 @@ export function ProductCard({ product }: { product: Product }) {
 				/>
 			</div>
 			{hasDiscounts && (
-				<DiscountBadge
-					discounts={product.discounts}
-				/>
+				<DiscountsBadgesList className="absolute top-2 left-2" discounts={product.discounts ?? []} />
 			)}
 			<div className="flex flex-col p-3 gap-2">
 				<p className="text-sm text-foreground line-clamp-2">{product.name}</p>
