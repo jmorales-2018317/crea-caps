@@ -1,17 +1,20 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ProfileSkeleton } from "./profile-skeleton"
-import { UserRoundIcon } from "lucide-react"
+import { LayoutDashboardIcon, LogOutIcon, PencilIcon, ShoppingCartIcon, UserRoundIcon, SettingsIcon } from "lucide-react"
 import { useGetProfileById } from "@/hooks/api"
+import { Badge } from "../ui/badge"
+import { Spinner } from "../ui/spinner"
 
 export function ProfileTab({ profileId }: { profileId: string }) {
   const router = useRouter()
   const supabase = createClient()
+  const [isClosingSession, setIsClosingSession] = useState(false)
 
   const { data: profile, isLoading } = useGetProfileById(profileId)
 
@@ -24,7 +27,9 @@ export function ProfileTab({ profileId }: { profileId: string }) {
   }
 
   const handleLogout = async () => {
+    setIsClosingSession(true)
     await supabase.auth.signOut()
+    setIsClosingSession(false)
     router.push("/")
   }
 
@@ -32,19 +37,19 @@ export function ProfileTab({ profileId }: { profileId: string }) {
   const isAdmin = role === "admin"
 
   return (
-    <div className="mt-4 space-y-6">
+    <div className="p-4">
       <div className="px-1">
-        <div className="mt-4 flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <UserRoundIcon className="size-12" />
           <div className="px-1 space-y-2">
             <div className="flex items-center gap-2">
-              <p className="text-base font-semibold">
+              <p className="font-semibold">
                 {profile?.name || "Usuario"}
               </p>
               {isAdmin && (
-                <p className="mt-1 inline-flex rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <Badge variant="secondary">
                   Admin
-                </p>
+                </Badge>
               )}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -54,43 +59,57 @@ export function ProfileTab({ profileId }: { profileId: string }) {
         </div>
       </div>
 
-      <Separator className="my-2" />
+      <Separator className="mt-4 mb-2" />
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Button
           variant="ghost"
-          className="w-full justify-start"
+          size="lg"
+          className="w-full gap-2 justify-start"
           onClick={() => router.push("/perfil/editar")}
         >
+          <PencilIcon className="size-4" />
           Editar perfil
         </Button>
         <Button
           variant="ghost"
-          className="w-full justify-start"
+          size="lg"
+          className="w-full gap-2 justify-start"
           onClick={() => router.push("/carrito")}
         >
+          <ShoppingCartIcon className="size-4" />
           Ver carrito
         </Button>
         <Button
           variant="ghost"
-          className="w-full justify-start"
+          size="lg"
+          className="w-full gap-2 justify-start"
           onClick={() => router.push("/settings")}
         >
+          <SettingsIcon className="size-4" />
           Ajustes
         </Button>
         <Button
           variant="ghost"
-          className="w-full justify-start"
+          size="lg"
+          className="w-full gap-2 justify-start"
           onClick={() => router.push("/dashboard")}
         >
+          <LayoutDashboardIcon className="size-4" />
           Ir al dashboard
         </Button>
+
+        <Separator className="mb-3" />
+
         <Button
-          variant="outline"
-          className="w-full justify-center"
+          variant="destructive"
+          size="lg"
+          className="w-full gap-2 justify-start"
           onClick={handleLogout}
+          disabled={isClosingSession}
         >
-          Cerrar sesión
+          {isClosingSession ? <Spinner className="size-4" /> : <LogOutIcon className="size-4" />}
+          {isClosingSession ? "Cerrando sesión..." : "Cerrar sesión"}
         </Button>
       </div>
     </div>

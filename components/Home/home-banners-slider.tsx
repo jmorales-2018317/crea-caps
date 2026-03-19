@@ -37,7 +37,7 @@ export function HomeBannersSlider() {
         <CarouselContent className="-ml-4">
           {Array.from({ length: 5 }).map((_, index) => (
             <CarouselItem key={index} className="pl-4">
-              <div className="relative overflow-hidden bg-accent p-4 text-primary-foreground min-h-60 sm:min-h-[500px]" />
+              <div className="relative overflow-hidden bg-accent p-4 text-primary-foreground min-h-72 sm:min-h-[500px]" />
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -52,7 +52,7 @@ export function HomeBannersSlider() {
             className={cn(
               "size-2 rounded-full transition-colors shadow-none",
               index === current
-                ? "w-6"
+                ? "bg-secondary w-6"
                 : "bg-muted-foreground/30"
             )}
           />

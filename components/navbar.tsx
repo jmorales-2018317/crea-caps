@@ -123,39 +123,46 @@ export function Navbar({ profileId }: NavbarProps) {
 						</SheetContent>
 					</Sheet>
 
-					<Link href="/" className="text-xl font-bold tracking-tighter">Crea Caps</Link>
+					<Link href="/" className="text-2xl font-bold tracking-tighter text-golden">Crea Caps</Link>
 				</div>
 
 				<form onSubmit={handleSearch} className="flex-1 max-w-lg">
 					<InputGroup className="h-8">
 						<InputGroupInput
+							className="text-xs"
 							name="query"
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}
 							placeholder="Buscar gorras..."
 						/>
-						<InputGroupAddon align="inline-end">
-							<InputGroupButton type="submit" variant="secondary">
-								Buscar
+						<InputGroupAddon align="inline-end" className="py-0 pr-1">
+							<InputGroupButton type="submit" variant="default" size="icon-sm" className="rounded-l-none size-8">
+								<SearchIcon />
 							</InputGroupButton>
 						</InputGroupAddon>
 					</InputGroup>
 				</form>
 			</section>
 
-			<section className="bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-around px-4 py-2.5 gap-4 shadow-sm">
-				<Link href="/" className="text-primary-foreground flex items-center gap-1.5">
-					<HomeIcon className="size-4" />
-					Inicio
-				</Link>
-				<Link href="/carrito" className="text-primary-foreground flex items-center gap-1.5">
-					<ShoppingCartIcon className="size-4" />
-					Carrito
-				</Link>
-				<Link href="/perfil" className="text-primary-foreground flex items-center gap-1.5">
-					<UserIcon className="size-4" />
-					Perfil
-				</Link>
+			<section className="bg-secondary text-secondary-foreground font-medium text-sm flex items-center justify-around px-4 py-1 gap-4 shadow-sm">
+				<Button variant="ghost" className="px-4" asChild>
+					<Link href="/">
+						<HomeIcon className="size-4" />
+						Inicio
+					</Link>
+				</Button>
+				<Button variant="ghost" className="px-4" asChild>
+					<Link href="/">
+						<HomeIcon className="size-4" />
+						Inicio
+					</Link>
+				</Button>
+				<Button variant="ghost" className="px-4" asChild>
+					<Link href="/">
+						<HomeIcon className="size-4" />
+						Inicio
+					</Link>
+				</Button>
 			</section >
 		</header>
 	)

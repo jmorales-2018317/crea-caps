@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowRight, ShoppingCart } from "lucide-react"
+import { ShoppingCart } from "lucide-react"
 import { Product } from "@/services/Product"
 import { Button } from "../ui/button"
 import { getCartItems, getDiscountedPrice, handleAddToCart } from "@/util"
@@ -34,32 +34,20 @@ export function ProductPrice({ product }: { product: Product }) {
 		})
 	}, [product.id])
 
-	const buttonContent = isOnCart ? (
-		<>
-			Ir al carrito
-			<ArrowRight className={iconSize} />
-		</>
-	) : (
-		<>
-			Añadir al carrito
-			<ShoppingCart className={iconSize} />
-		</>
-	)
-
 	const hasDiscounts = !!product.discounts?.length
 	const priceWithDiscount = getDiscountedPrice(product.price, product.discounts)
 
 	return (
 		<section className="w-full px-4 space-y-2">
-			<div className="w-full flex items-center justify-between">
+			<div className="w-full flex items-end justify-between">
 				<div className="text-xs">
-					<p className="text-[11px] text-gray-400">Precio total</p>
-					<p className="text-lg font-semibold text-gray-900">Q{priceWithDiscount.toFixed(2)}</p>
+					<p className="text-[11px] text-gray-400 mb-1">Precio total</p>
 					{hasDiscounts && (
 						<p className="line-through text-muted-foreground text-xs">
 							Q{product.price.toFixed(2)}
 						</p>
 					)}
+					<p className="text-lg font-semibold text-gray-900">Q{priceWithDiscount.toFixed(2)}</p>
 				</div>
 				<Button
 					isLoading={isLoading}
@@ -67,7 +55,8 @@ export function ProductPrice({ product }: { product: Product }) {
 					className="rounded-full text-sm px-6 h-10 gap-2"
 					onClick={handleButtonPress}
 				>
-					{buttonContent}
+					<ShoppingCart className={iconSize} />
+					Añadir al carrito
 				</Button>
 			</div>
 		</section>

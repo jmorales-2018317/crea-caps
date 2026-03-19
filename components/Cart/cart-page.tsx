@@ -74,67 +74,62 @@ export default function CartPage() {
   const discount = items.length > 0 ? 35 : 0
   const totalCost = Math.max(0, subtotal + deliveryFee - discount)
 
+  if (items.length === 0) {
+    return (
+      <div className="w-full h-[calc(100vh-10rem)] flex gap-2 items-center justify-center">
+        <p className="text-sm text-muted-foreground">Tu carrito está vacío.</p>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full">
-
-      <div className="divide-y divide-border">
+      <div className="divide-y divide-border space-y-4">
         {items.map((item) => (
           <CartItem key={item.id} item={item} onQuantityChange={handleQuantityChange} onRemove={handleRemove} />
         ))}
       </div>
 
-      {
-        items.length > 0 && (
-          <div className="sticky bottom-20 flex flex-col gap-4 border-t border-border bg-background p-4 pb-6">
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Sub-Total</span>
-                <span className="font-semibold text-foreground">
-                  ${subtotal.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Envío</span>
-                <span className="font-semibold text-foreground">
-                  ${deliveryFee.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Descuento</span>
-                <span className="font-semibold text-foreground">
-                  -${discount.toFixed(2)}
-                </span>
-              </div>
-
-              <div className="border-t border-dashed border-border pt-3" />
-
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground">Total</span>
-                  <span className="text-xl font-semibold text-foreground">
-                    ${totalCost.toFixed(2)}
-                  </span>
-                </div>
-
-                <Button
-                  size="lg"
-                  className="h-10 px-6 rounded-full text-base font-semibold"
-                >
-                  Ir a caja
-                </Button>
-              </div>
-            </div>
+      <div className="sticky bottom-20 flex flex-col gap-4 border-t border-border bg-background mt-4 pt-4 pb-6">
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Sub-Total</span>
+            <span className="font-semibold text-foreground">
+              ${subtotal.toFixed(2)}
+            </span>
           </div>
-        )
-      }
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Envío</span>
+            <span className="font-semibold text-foreground">
+              ${deliveryFee.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Descuento</span>
+            <span className="font-semibold text-foreground">
+              -${discount.toFixed(2)}
+            </span>
+          </div>
 
-      {
-        items.length === 0 && (
-          <p className="py-12 text-center text-sm text-muted-foreground px-4">
-            Tu carrito está vacío.
-          </p>
-        )
-      }
+          <div className="border-t border-dashed border-border pt-3" />
+
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground">Total</span>
+              <span className="text-xl font-semibold text-foreground">
+                ${totalCost.toFixed(2)}
+              </span>
+            </div>
+
+            <Button
+              size="xl"
+              className="font-semibold rounded-xl px-4"
+            >
+              Ir a caja
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

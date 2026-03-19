@@ -47,7 +47,7 @@ export function ProductCard({ product }: { product: Product }) {
 
 	return (
 		<Link href={`/productos/${product.id}`} className="group relative overflow-hidden rounded-xl border border-border bg-card">
-			<div className="relative aspect-square bg-muted/50">
+			<div className="relative aspect-square">
 				<Image
 					src={product.images[0]}
 					alt={product.name}
@@ -58,27 +58,27 @@ export function ProductCard({ product }: { product: Product }) {
 			{hasDiscounts && (
 				<DiscountBadge />
 			)}
-			<div className="flex flex-col gap-1 p-3">
+			<div className="flex flex-col p-3 gap-2">
 				<p className="text-sm text-foreground line-clamp-2">{product.name}</p>
-				<div className="flex items-center gap-2">
-					<p className="text-sm font-semibold text-foreground">
-						Q{priceWithDiscount.toFixed(2)}
-					</p>
-					{hasDiscounts && (
-						<p className="line-through text-muted-foreground text-xs">
-							Q{product.price.toFixed(2)}
+				<div className="flex justify-between gap-2 items-end">
+					<div className="flex flex-col">
+						{hasDiscounts && (
+							<p className="line-through text-muted-foreground text-xs">
+								Q{product.price.toFixed(2)}
+							</p>
+						)}
+						<p className="text-lg font-semibold text-foreground">
+							Q{priceWithDiscount.toFixed(2)}
 						</p>
-					)}
+					</div>
+					<Button
+						disabled={isLoading}
+						onClick={handleToggleCart}
+						className="size-9"
+					>
+						<ShoppingCartIcon className="size-4" />
+					</Button>
 				</div>
-				<Button
-					size="lg"
-					disabled={isLoading}
-					className="w-full gap-2 mt-2"
-					onClick={handleToggleCart}
-				>
-					<ShoppingCartIcon className="size-4" />
-					{isInCart ? "Remover" : "Agregar"}
-				</Button>
 			</div>
 		</Link>
 	)

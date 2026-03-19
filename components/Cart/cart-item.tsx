@@ -27,7 +27,7 @@ export default function CartItem({
 }) {
 
 	return (
-		<div className="flex gap-2 p-4 border-b border-border last:border-0 items-center">
+		<div className="flex gap-2 border-b border-border last:border-0 items-center">
 			<Dialog>
 				<DialogTrigger asChild>
 					<Button
