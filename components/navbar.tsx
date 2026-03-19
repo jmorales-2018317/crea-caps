@@ -1,16 +1,7 @@
 "use client"
 
-import {
-	Command,
-	CommandDialog,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@/components/ui/command"
+import { SubmitEvent, useEffect, useState } from "react"
 import { Button } from "./ui/button"
-import { useEffect, useMemo, useState } from "react"
 import { HomeIcon, LayoutDashboardIcon, MenuIcon, SearchIcon, SettingsIcon, ShoppingCartIcon, UserIcon } from "lucide-react"
 import {
 	Sheet,
@@ -21,49 +12,64 @@ import {
 } from "@/components/ui/sheet"
 import Link from "next/link"
 import { Separator } from "./ui/separator"
-import { createClient } from "@/lib/supabase/client"
-import type { User } from "@supabase/supabase-js"
+import { useGetProfileById } from "@/hooks/api"
+import { useRouter, useSearchParams } from "next/navigation"
+import { SortEnum } from "@/services/Search"
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "./ui/input-group"
 
 type NavbarProps = {
-	initialUser: User | null
+	profileId: string
 }
 
-export function Navbar({ initialUser }: NavbarProps) {
-	const [open, setOpen] = useState(false)
-	const supabase = useMemo(() => createClient(), [])
-	const [user, setUser] = useState<User | null>(initialUser)
+export function Navbar({ profileId }: NavbarProps) {
+	const { data: profile } = useGetProfileById(profileId)
+
+	const role = profile?.role
+	const isAdmin = role === "admin"
+
+	const router = useRouter()
+	const searchParams = useSearchParams()
+
+	const queryParam = searchParams.get("query") ?? ""
+	const [query, setQuery] = useState(queryParam)
 
 	useEffect(() => {
-		const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-			setUser(session?.user ?? null)
-		})
+		setQuery(queryParam)
+	}, [queryParam])
 
-		return () => {
-			sub.subscription.unsubscribe()
-		}
-	}, [supabase])
+	const categoryId = searchParams.get("categoryId") ?? null
+	const priceMin = searchParams.get("priceMin") ?? "0"
+	const priceMax = searchParams.get("priceMax") ?? "1000"
+	const sort = searchParams.get("sort") ?? SortEnum.RECENT
 
-	const role = user?.app_metadata?.role
-	const isAdmin = role === "admin"
+	const handleSearch = (e: SubmitEvent) => {
+		e.preventDefault()
+
+		const params = new URLSearchParams()
+		params.set("query", query.trim())
+		if (categoryId) params.set("categoryId", categoryId)
+		params.set("priceMin", priceMin)
+		params.set("priceMax", priceMax)
+		params.set("sort", sort)
+
+		router.push(`/buscar?${params.toString()}`)
+	}
+
 	return (
-		<header className="sticky top-0 z-50 border-border border-b rounded-b-2xl bg-card px-4 py-2.5 shadow-sm">
-			<div className="flex items-start justify-between gap-2">
-				<h1 className="text-2xl font-bold">
-					Crea Caps
-				</h1>
-
+		<header className="flex flex-col sticky min-h-16 top-0 z-50">
+			<section className="flex items-center justify-between min-h-16 bg-card px-4 py-2 gap-4 shadow-sm">
 				<div className="flex items-center gap-2">
 					<Sheet>
 						<SheetTrigger asChild>
 							<Button
 								variant="ghost"
-								size="icon"
-								suppressHydrationWarning
+								size="icon-lg"
+								className="w-fit"
 							>
-								<MenuIcon className="size-4" />
+								<MenuIcon />
 							</Button>
 						</SheetTrigger>
-						<SheetContent>
+						<SheetContent side="left">
 							<SheetHeader>
 								<SheetTitle className="text-2xl font-bold">Menú</SheetTitle>
 							</SheetHeader>
@@ -116,24 +122,41 @@ export function Navbar({ initialUser }: NavbarProps) {
 							</div>
 						</SheetContent>
 					</Sheet>
-					<Button onClick={() => setOpen(true)} size="icon-lg" className="flex items-center rounded-xl p-4">
-						<SearchIcon className="size-4" />
-					</Button>
-					<CommandDialog open={open} onOpenChange={setOpen}>
-						<Command>
-							<CommandInput placeholder="Buscar productos, categorías, etc." />
-							<CommandList>
-								<CommandEmpty>No se encontraron resultados.</CommandEmpty>
-								<CommandGroup heading="Sugerencias">
-									<CommandItem>Producto 1</CommandItem>
-									<CommandItem>Producto 2</CommandItem>
-									<CommandItem>Producto 3</CommandItem>
-								</CommandGroup>
-							</CommandList>
-						</Command>
-					</CommandDialog>
+
+					<Link href="/" className="text-xl font-bold tracking-tighter">Crea Caps</Link>
 				</div>
-			</div>
+
+				<form onSubmit={handleSearch} className="flex-1 max-w-lg">
+					<InputGroup className="h-8">
+						<InputGroupInput
+							name="query"
+							value={query}
+							onChange={(e) => setQuery(e.target.value)}
+							placeholder="Buscar gorras..."
+						/>
+						<InputGroupAddon align="inline-end">
+							<InputGroupButton type="submit" variant="secondary">
+								Buscar
+							</InputGroupButton>
+						</InputGroupAddon>
+					</InputGroup>
+				</form>
+			</section>
+
+			<section className="bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-around px-4 py-2.5 gap-4 shadow-sm">
+				<Link href="/" className="text-primary-foreground flex items-center gap-1.5">
+					<HomeIcon className="size-4" />
+					Inicio
+				</Link>
+				<Link href="/carrito" className="text-primary-foreground flex items-center gap-1.5">
+					<ShoppingCartIcon className="size-4" />
+					Carrito
+				</Link>
+				<Link href="/perfil" className="text-primary-foreground flex items-center gap-1.5">
+					<UserIcon className="size-4" />
+					Perfil
+				</Link>
+			</section >
 		</header>
 	)
 }

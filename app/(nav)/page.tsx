@@ -8,6 +8,7 @@ import { queryKeys } from "@/lib/queries/keys"
 import { getCategories } from "@/services/Category"
 import { getProducts, getProductsOnSale } from "@/services/Product"
 import { createClient as createServerClient } from "@/lib/supabase/server"
+import { getProfileById } from "@/services/Profile"
 
 export default async function Home() {
   const queryClient = new QueryClient()
@@ -32,9 +33,14 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  await queryClient.prefetchQuery({
+    queryKey: ["get-profile-by-id", user?.id],
+    queryFn: () => getProfileById(user?.id ?? "", supabase),
+  });
+
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <HomeContent initialUser={user ?? null} />
+      <HomeContent />
     </HydrationBoundary>
   )
 }

@@ -4,6 +4,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel"
 import { cn } from "@/lib/utils"
@@ -22,7 +24,7 @@ export function HomeBannersSlider() {
   }, [api, setCurrent])
 
   return (
-    <section className="px-4">
+    <section className="">
       <Carousel
         setApi={setApi}
         opts={{ align: "start", loop: true }}
@@ -34,17 +36,13 @@ export function HomeBannersSlider() {
       >
         <CarouselContent className="-ml-4">
           {Array.from({ length: 5 }).map((_, index) => (
-            <CarouselItem key={index} className="basis-[90%] pl-4">
-              <div
-                className={cn(
-                  "relative overflow-hidden rounded-2xl bg-accent p-4 text-primary-foreground",
-                  "min-h-[180px]"
-                )}
-              >
-              </div>
+            <CarouselItem key={index} className="pl-4">
+              <div className="relative overflow-hidden bg-accent p-4 text-primary-foreground min-h-60 sm:min-h-[500px]" />
             </CarouselItem>
           ))}
         </CarouselContent>
+        <CarouselPrevious size="icon-sm" className="left-2 sm:left-4 sm:size-8" />
+        <CarouselNext size="icon-sm" className="right-2 sm:right-4 sm:size-8" />
       </Carousel>
       <div className="mt-3 flex justify-center gap-2">
         {Array.from({ length: 5 }).map((_, index) => (

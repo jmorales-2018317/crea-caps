@@ -135,10 +135,11 @@ export function FilterDrawer({
   const isDesktop = useMediaQuery("(min-width: 768px)")
 
   const triggerButton = (
-    <Button variant="outline" size="icon-lg" className="rounded-lg p-5 relative">
+    <Button variant="outline" size="lg" className="rounded-lg relative gap-2">
       <SlidersHorizontalIcon className="size-4" />
+      Filtros
       {activeCount > 0 && (
-        <span className="absolute -top-2 -right-2 rounded-full px-1.5 py-0.5 text-xs min-w-5 text-center">
+        <span className="flex items-center justify-center bg-primary text-primary-foreground absolute -top-2 -right-2 rounded-full size-5 text-[10px] text-center">
           {activeCount}
         </span>
       )}

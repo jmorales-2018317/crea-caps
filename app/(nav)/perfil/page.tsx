@@ -1,19 +1,30 @@
-import GoBack from "@/components/go-back"
 import { ProfileTab } from "@/components/Profile"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import { getProfileById } from "@/services/Profile"
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const queryClient = new QueryClient()
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const profileId = user?.id
+  if (!profileId) {
+    return redirect("/auth/iniciar-sesion")
+  }
+
+  await queryClient.prefetchQuery({
+    queryKey: ["get-profile-by-id", profileId],
+    queryFn: () => getProfileById(profileId, supabase),
+  });
+
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <section className="w-full py-5 px-4 space-y-4">
-        <div className="relative flex items-center justify-center">
-          <h1 className="text-lg font-semibold text-gray-900">
-            Perfil
-          </h1>
-          <GoBack />
-        </div>
-
-        <ProfileTab />
-      </section>
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <ProfileTab profileId={profileId} />
+    </HydrationBoundary>
   )
 }

@@ -1,91 +1,57 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import type { User } from "@supabase/supabase-js"
-
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ProfileSkeleton } from "./profile-skeleton"
 import { UserRoundIcon } from "lucide-react"
-import Link from "next/link"
+import { useGetProfileById } from "@/hooks/api"
 
-export function ProfileTab() {
+export function ProfileTab({ profileId }: { profileId: string }) {
   const router = useRouter()
-  const supabase = useMemo(() => createClient(), [])
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  const { data: profile, isLoading } = useGetProfileById(profileId)
 
   useEffect(() => {
-    let mounted = true
+    if (!profile) router.replace("/auth/iniciar-sesion")
+  }, [profile, router])
 
-    supabase.auth.getUser().then(({ data }) => {
-      if (!mounted) return
-      setUser(data.user ?? null)
-      setLoading(false)
-    })
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => {
-      mounted = false
-      sub.subscription.unsubscribe()
-    }
-  }, [supabase])
+  if (isLoading) {
+    return <ProfileSkeleton />
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push("/")
   }
 
-  const handleLogin = () => {
-    router.push("/auth/iniciar-sesion")
-  }
-
-  const role = user?.app_metadata?.role as string | undefined
+  const role = profile?.role
   const isAdmin = role === "admin"
 
   return (
     <div className="mt-4 space-y-6">
       <div className="px-1">
-        {loading ? (
-          <ProfileSkeleton />
-        ) : user ? (
-          <div className="mt-4 flex items-center gap-2">
-            <UserRoundIcon className="size-12" />
-            <div className="px-1 space-y-2">
-              <div className="flex items-center gap-2">
-                <p className="text-base font-semibold">
-                  {user.user_metadata?.name || "Usuario"}
-                </p>
-                {isAdmin && (
-                  <p className="mt-1 inline-flex rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                    Admin
-                  </p>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {user.email}
+        <div className="mt-4 flex items-center gap-2">
+          <UserRoundIcon className="size-12" />
+          <div className="px-1 space-y-2">
+            <div className="flex items-center gap-2">
+              <p className="text-base font-semibold">
+                {profile?.name || "Usuario"}
               </p>
+              {isAdmin && (
+                <p className="mt-1 inline-flex rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Admin
+                </p>
+              )}
             </div>
+            <p className="text-xs text-muted-foreground">
+              {profile?.email}
+            </p>
           </div>
-        ) : (
-          <div className="flex gap-4">
-            <Button variant="outline" className="flex-1 rounded-xl" asChild>
-              <Link href="/auth/iniciar-sesion">
-                Iniciar sesion
-              </Link>
-            </Button>
-            <Button className="flex-1 rounded-xl" asChild>
-              <Link href="/auth/registrarse">
-                Registrarse
-              </Link>
-            </Button>
-          </div>
-        )}
+        </div>
       </div>
 
       <Separator className="my-2" />
@@ -119,24 +85,13 @@ export function ProfileTab() {
         >
           Ir al dashboard
         </Button>
-
-        {user ? (
-          <Button
-            variant="outline"
-            className="w-full justify-center"
-            onClick={handleLogout}
-          >
-            Cerrar sesión
-          </Button>
-        ) : (
-          <Button
-            variant="outline"
-            className="w-full justify-center"
-            onClick={handleLogin}
-          >
-            Iniciar sesión
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          className="w-full justify-center"
+          onClick={handleLogout}
+        >
+          Cerrar sesión
+        </Button>
       </div>
     </div>
   )
