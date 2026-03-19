@@ -5,13 +5,13 @@ import { ButtonGroup, ButtonGroupText } from "../ui/button-group"
 export type CartItemStockButtonsProps = {
 	id: string
 	quantity: number
-	onQuantityChange: (id: string, delta: number) => void
+	updateItemQuantity: (id: string, delta: number) => void
 }
 
 export default function CartItemStockButtons({
 	id,
 	quantity,
-	onQuantityChange,
+	updateItemQuantity,
 }: CartItemStockButtonsProps) {
 
 	return (
@@ -21,7 +21,7 @@ export default function CartItemStockButtons({
 		>
 			<Button
 				disabled={quantity === 1}
-				onClick={() => onQuantityChange(id, -1)}
+				onClick={() => updateItemQuantity(id, -1)}
 				variant="outline"
 				size="icon"
 			>
@@ -29,7 +29,7 @@ export default function CartItemStockButtons({
 			</Button>
 			<ButtonGroupText className="bg-background min-w-8 justify-center">{quantity}</ButtonGroupText>
 			<Button
-				onClick={() => onQuantityChange(id, 1)}
+				onClick={() => updateItemQuantity(id, 1)}
 				size="icon"
 				className="shadow-none border border-primary"
 			>

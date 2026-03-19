@@ -1,78 +1,34 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import CartItem, { type CartItemData } from "@/components/Cart/cart-item"
-import { getCartItems, changeCartItemQuantity, removeCartItem, type StoredCartItem } from "@/util"
-import type { Product } from "@/services/Product"
+import { CartItem } from "@/components/Cart"
 import { Spinner } from "@/components/ui/spinner"
 import { useProductsByIds } from "@/hooks/api/useProductsByIds"
+import { useCart } from "react-use-cart"
+import { buildCartLines, getCartSubtotal, getCartTotal } from "@/util"
 
-function hydrateCartItems(
-  snapshot: StoredCartItem[],
-  productIndex: Record<string, Product>
-): CartItemData[] {
-  return snapshot
-    .map((entry) => {
-      const product = productIndex[entry.id]
-      if (!product) return null
-      return {
-        id: product.id,
-        name: product.name,
-        categories: product.categories ?? [],
-        price: product.price,
-        image: product.images?.[0] ?? "",
-        quantity: entry.quantity,
-      } satisfies CartItemData
-    })
-    .filter((item): item is CartItemData => item !== null)
-}
-
-function getInitialCartSnapshot(): StoredCartItem[] {
-  if (typeof window === "undefined") return []
-  return getCartItems()
-}
+const DELIVERY_FEE = 25
 
 export default function CartPage() {
-  const [cartSnapshot, setCartSnapshot] = useState<StoredCartItem[]>(getInitialCartSnapshot)
+  const { items, removeItem, updateItemQuantity } = useCart()
 
   const cartIds = useMemo(
-    () => cartSnapshot.map((s) => s.id),
-    [cartSnapshot]
-  )
-  const { data: products = [], isLoading: productsLoading } = useProductsByIds(cartIds)
-  const productIndex = useMemo(
-    () => Object.fromEntries(products.map((p) => [p.id, p])),
-    [products]
-  )
-  const items = useMemo(
-    () => hydrateCartItems(cartSnapshot, productIndex),
-    [cartSnapshot, productIndex]
+    () => items.map((i) => String(i.id)),
+    [items]
   )
 
-  const isLoading = cartIds.length > 0 && productsLoading
+  const { data: products = [], isLoading } = useProductsByIds(cartIds)
 
-  if (isLoading) {
-    return (
-      <div className="w-full h-[calc(100vh-10rem)] flex gap-2 items-center justify-center">
-        <Spinner className="size-5" />
-        <p className="text-sm text-muted-foreground">Cargando carrito...</p>
-      </div>
-    )
-  }
+  const lines = useMemo(() => buildCartLines(items, products), [items, products])
 
-  const handleQuantityChange = (id: string, delta: number) => {
-    setCartSnapshot(changeCartItemQuantity(id, delta))
-  }
-
-  const handleRemove = (id: string) => {
-    setCartSnapshot(removeCartItem(id))
-  }
-
-  const subtotal = items.reduce((acc, i) => acc + i.price * i.quantity, 0)
-  const deliveryFee = items.length > 0 ? 25 : 0
-  const discount = items.length > 0 ? 35 : 0
-  const totalCost = Math.max(0, subtotal + deliveryFee - discount)
+  const handleQuantityChange = useCallback(
+    (id: string, delta: number) => {
+      const current = items.find((i) => String(i.id) === id)?.quantity ?? 1
+      updateItemQuantity(id, Math.max(1, current + delta))
+    },
+    [items, updateItemQuantity]
+  )
 
   if (items.length === 0) {
     return (
@@ -82,11 +38,32 @@ export default function CartPage() {
     )
   }
 
+  if (isLoading) {
+    return (
+      <div className="w-full h-[calc(100vh-10rem)] flex gap-2 items-center justify-center">
+        <Spinner className="size-5" />
+        <p className="text-sm text-muted-foreground">Cargando carrito...</p>
+      </div>
+    )
+  }
+  
+  const subtotal = getCartSubtotal(lines)
+  const grandTotal = getCartTotal({
+    lines,
+    deliveryFee: DELIVERY_FEE,
+  })
+
   return (
     <div className="w-full">
       <div className="divide-y divide-border space-y-4">
-        {items.map((item) => (
-          <CartItem key={item.id} item={item} onQuantityChange={handleQuantityChange} onRemove={handleRemove} />
+        {products.map((item) => (
+          <CartItem
+            key={item.id}
+            product={item}
+            quantity={items.find((i) => String(i.id) === item.id)?.quantity ?? 0}
+            updateItemQuantity={handleQuantityChange}
+            removeItem={removeItem}
+          />
         ))}
       </div>
 
@@ -95,36 +72,26 @@ export default function CartPage() {
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Sub-Total</span>
             <span className="font-semibold text-foreground">
-              ${subtotal.toFixed(2)}
+              Q{subtotal.toFixed(2)}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Envío</span>
             <span className="font-semibold text-foreground">
-              ${deliveryFee.toFixed(2)}
+              Q{DELIVERY_FEE.toFixed(2)}
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Descuento</span>
-            <span className="font-semibold text-foreground">
-              -${discount.toFixed(2)}
-            </span>
-          </div>
-
           <div className="border-t border-dashed border-border pt-3" />
 
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
               <span className="text-muted-foreground">Total</span>
               <span className="text-xl font-semibold text-foreground">
-                ${totalCost.toFixed(2)}
+                Q{grandTotal.toFixed(2)}
               </span>
             </div>
 
-            <Button
-              size="xl"
-              className="font-semibold rounded-xl px-4"
-            >
+            <Button size="xl" className="font-semibold rounded-xl px-4">
               Ir a caja
             </Button>
           </div>

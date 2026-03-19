@@ -1,5 +1,6 @@
 import type { Discount } from "@/services/Discounts"
 import { DiscountTypeEnum } from "@/services/Discounts"
+import { Product } from "@/services/Product"
 
 function toNumber(x: unknown): number {
   const n = Number(x)
@@ -25,5 +26,9 @@ export function getDiscountedPrice(
 
   const result = Math.max(0, discounted)
   return Number.isFinite(result) ? result : basePrice
+}
+
+export function getProductsDiscounts(products: Product[]): Discount[] {
+  return products.flatMap((product) => product.discounts ?? [])
 }
 

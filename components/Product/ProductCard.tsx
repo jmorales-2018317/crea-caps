@@ -1,47 +1,34 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Product } from "@/services/Product"
 import { ShoppingCartIcon } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "../ui/button"
-import { getCartItems, handleAddToCart, handleRemoveFromCart, getDiscountedPrice } from "@/util"
+import { getDiscountedPrice } from "@/util"
 import { Skeleton } from "../ui/skeleton"
 import { DiscountBadge } from "../Discounts"
+import { useCart } from "react-use-cart"
+import { toast } from "sonner"
 
 export function ProductCard({ product }: { product: Product }) {
-	const [isInCart, setIsInCart] = useState(false)
-	const [isLoading, setIsLoading] = useState(true)
-
-	useEffect(() => {
-		queueMicrotask(() => {
-			const cartItem = getCartItems().find((item) => item.id === product.id)
-			setIsInCart(!!cartItem)
-			setIsLoading(false)
-		})
-	}, [product.id])
+	const { addItem } = useCart()
 
 	const handleToggleCart = (event: React.MouseEvent) => {
 		event.preventDefault()
 		event.stopPropagation()
-
-		setIsLoading(true)
-		if (isInCart) {
-			handleRemoveFromCart({
-				product,
-				setQuantity: () => setIsInCart(false),
-			})
-		} else {
-			handleAddToCart({
-				product,
-				setQuantity: () => setIsInCart(true),
-			})
-		}
-		setIsLoading(false)
+		addItem({ id: product.id, price: product.price }, 1)
+		toast.success("Producto agregado al carrito", {
+			action: {
+				label: "Ver carrito",
+				onClick: () => {
+					window.location.href = "/carrito"
+				},
+			},
+		})
 	}
 
-	const hasDiscounts = !!product.discounts?.length
+	const hasDiscounts = !!product.discounts && product.discounts.length > 0
 	const priceWithDiscount = getDiscountedPrice(product.price, product.discounts)
 
 
@@ -56,7 +43,9 @@ export function ProductCard({ product }: { product: Product }) {
 				/>
 			</div>
 			{hasDiscounts && (
-				<DiscountBadge />
+				<DiscountBadge
+					discounts={product.discounts}
+				/>
 			)}
 			<div className="flex flex-col p-3 gap-2">
 				<p className="text-sm text-foreground line-clamp-2">{product.name}</p>
@@ -72,7 +61,6 @@ export function ProductCard({ product }: { product: Product }) {
 						</p>
 					</div>
 					<Button
-						disabled={isLoading}
 						onClick={handleToggleCart}
 						className="size-9"
 					>

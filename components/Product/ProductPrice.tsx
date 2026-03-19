@@ -1,38 +1,26 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { ShoppingCart } from "lucide-react"
 import { Product } from "@/services/Product"
 import { Button } from "../ui/button"
-import { getCartItems, getDiscountedPrice, handleAddToCart } from "@/util"
-import { useRouter } from "next/navigation"
-
-const iconSize = "size-3.5"
+import { getDiscountedPrice } from "@/util"
+import { useCart } from "react-use-cart"
+import { toast } from "sonner"
 
 export function ProductPrice({ product }: { product: Product }) {
-	const router = useRouter()
-	const [quantity, setQuantity] = useState(0)
-	const [isLoading, setIsLoading] = useState(true)
-
-	const isOnCart = quantity > 0
+	const { addItem } = useCart()
 
 	const handleButtonPress = () => {
-		setIsLoading(true)
-		if (isOnCart) {
-			router.push("/carrito")
-		} else {
-			handleAddToCart({ product, setQuantity })
-		}
-		setIsLoading(false)
-	}
-
-	useEffect(() => {
-		queueMicrotask(() => {
-			const cartItem = getCartItems().find((item) => item.id === product.id)
-			setQuantity(cartItem?.quantity ?? 0)
-			setIsLoading(false)
+		addItem({ id: product.id, price: product.price }, 1)
+		toast.success("Producto agregado al carrito", {
+			action: {
+				label: "Ver carrito",
+				onClick: () => {
+					window.location.href = "/carrito"
+				},
+			},
 		})
-	}, [product.id])
+	}
 
 	const hasDiscounts = !!product.discounts?.length
 	const priceWithDiscount = getDiscountedPrice(product.price, product.discounts)
@@ -50,12 +38,11 @@ export function ProductPrice({ product }: { product: Product }) {
 					<p className="text-lg font-semibold text-gray-900">Q{priceWithDiscount.toFixed(2)}</p>
 				</div>
 				<Button
-					isLoading={isLoading}
 					loadingLabel="Cargando"
 					className="rounded-full text-sm px-6 h-10 gap-2"
 					onClick={handleButtonPress}
 				>
-					<ShoppingCart className={iconSize} />
+					<ShoppingCart className="size-3.5" />
 					Añadir al carrito
 				</Button>
 			</div>

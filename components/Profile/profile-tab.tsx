@@ -47,7 +47,7 @@ export function ProfileTab({ profileId }: { profileId: string }) {
                 {profile?.name || "Usuario"}
               </p>
               {isAdmin && (
-                <Badge variant="secondary">
+                <Badge className="bg-muted text-secondary-foreground">
                   Admin
                 </Badge>
               )}

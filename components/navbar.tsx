@@ -58,7 +58,7 @@ export function Navbar({ profileId }: NavbarProps) {
 	return (
 		<header className="flex flex-col sticky min-h-16 top-0 z-50">
 			<section className="flex items-center justify-between min-h-16 bg-card px-4 py-2 gap-4 shadow-sm">
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-1">
 					<Sheet>
 						<SheetTrigger asChild>
 							<Button
@@ -144,7 +144,7 @@ export function Navbar({ profileId }: NavbarProps) {
 				</form>
 			</section>
 
-			<section className="bg-secondary text-secondary-foreground font-medium text-sm flex items-center justify-around px-4 py-1 gap-4 shadow-sm">
+			<section className="bg-secondary text-white font-medium text-sm flex items-center justify-around px-4 py-1 gap-4 shadow-sm">
 				<Button variant="ghost" className="px-4" asChild>
 					<Link href="/">
 						<HomeIcon className="size-4" />
@@ -152,15 +152,15 @@ export function Navbar({ profileId }: NavbarProps) {
 					</Link>
 				</Button>
 				<Button variant="ghost" className="px-4" asChild>
-					<Link href="/">
-						<HomeIcon className="size-4" />
-						Inicio
+					<Link href="/carrito">
+						<ShoppingCartIcon className="size-4" />
+						Carrito
 					</Link>
 				</Button>
 				<Button variant="ghost" className="px-4" asChild>
-					<Link href="/">
-						<HomeIcon className="size-4" />
-						Inicio
+					<Link href="/perfil">
+						<UserIcon className="size-4" />
+						Perfil
 					</Link>
 				</Button>
 			</section >

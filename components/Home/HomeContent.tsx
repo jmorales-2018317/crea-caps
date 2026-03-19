@@ -14,7 +14,7 @@ export function HomeContent() {
   const { data: productsOnSale = [] } = useProductsOnSale();
 
   return (
-    <main className="bg-background py-4">
+    <main className="bg-background pb-4">
       <div className="bg-background space-y-5">
         <HomeBannersSlider />
         {productsOnSale.length > 0 && (

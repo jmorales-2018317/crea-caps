@@ -139,7 +139,7 @@ export function FilterDrawer({
       <SlidersHorizontalIcon className="size-4" />
       Filtros
       {activeCount > 0 && (
-        <span className="flex items-center justify-center bg-primary text-primary-foreground absolute -top-2 -right-2 rounded-full size-5 text-[10px] text-center">
+        <span className="flex items-center justify-center bg-golden absolute -top-2 -right-2 rounded-full size-5 text-[10px] text-center">
           {activeCount}
         </span>
       )}
@@ -234,11 +234,11 @@ export function FilterDrawer({
             onValueChange={(value) => setSort(value as SortEnum)}
             className="flex flex-col gap-2"
           >
-            <label className="flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-3 py-2 hover:bg-muted/50 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5">
+            <label className="flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-3 py-2 hover:bg-muted/50 [&:has([data-state=checked])]:border-(--golden-to)! [&:has([data-state=checked])]:[background:linear-gradient(135deg,color-mix(in_srgb,var(--golden-from)_15%,transparent),color-mix(in_srgb,var(--golden-to)_15%,transparent))]">
               <RadioGroupItem value={SortEnum.RECENT} id="sort-reciente" />
               <span className="text-sm font-medium">Reciente</span>
             </label>
-            <label className="flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-3 py-2 hover:bg-muted/50 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5">
+            <label className="flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-3 py-2 hover:bg-muted/50 [&:has([data-state=checked])]:border-(--golden-to)! [&:has([data-state=checked])]:[background:linear-gradient(135deg,color-mix(in_srgb,var(--golden-from)_15%,transparent),color-mix(in_srgb,var(--golden-to)_15%,transparent))]">
               <RadioGroupItem value={SortEnum.POPULAR} id="sort-popular" />
               <span className="text-sm font-medium">Popular</span>
             </label>

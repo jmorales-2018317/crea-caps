@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 import ReactQueryProvider from "@/util/providers/react-query-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import CartProvider from "@/util/providers/cart-provider";
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -29,9 +30,11 @@ export default function RootLayout({
         className={`${poppins.variable} font-sans antialiased`}
       >
         <ReactQueryProvider>
-          <TooltipProvider>
-            {children}
-          </TooltipProvider>
+          <CartProvider>
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
+          </CartProvider>
           <Toaster position="top-center" />
         </ReactQueryProvider>
       </body>

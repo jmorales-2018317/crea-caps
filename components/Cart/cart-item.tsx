@@ -4,27 +4,22 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import Image from "next/image"
 import Link from "next/link"
 import CartItemStockButtons from "./cart-item-stock-buttons"
-import { Category } from "@/services/Category"
-
-
-export type CartItemData = {
-	id: string
-	name: string
-	categories: Category[]
-	price: number
-	image: string
-	quantity: number
-}
+import { Product } from "@/services/Product"
+import { getDiscountedPrice } from "@/util"
 
 export default function CartItem({
-	item,
-	onQuantityChange,
-	onRemove,
+	product,
+	quantity,
+	updateItemQuantity,
+	removeItem,
 }: {
-	item: CartItemData
-	onQuantityChange: (id: string, delta: number) => void
-	onRemove: (id: string) => void
+	product: Product
+	quantity: number
+	updateItemQuantity: (id: string, delta: number) => void
+	removeItem: (productId: string) => void
 }) {
+	const hasDiscounts = !!product.discounts && product.discounts.length > 0
+	const priceWithDiscount = getDiscountedPrice(product.price, product.discounts)
 
 	return (
 		<div className="flex gap-2 border-b border-border last:border-0 items-center">
@@ -56,7 +51,7 @@ export default function CartItem({
 						<DialogClose asChild>
 							<Button
 								variant="destructive"
-								onClick={() => onRemove(item.id)}
+								onClick={() => removeItem(product.id)}
 							>
 								Eliminar
 							</Button>
@@ -65,32 +60,36 @@ export default function CartItem({
 				</DialogContent>
 			</Dialog>
 			<Link
-				href={`/productos/${item.id}`}
-				className="flex min-w-0 flex-1 items-center gap-2"
+				href={`/productos/${product.id}`}
+				className="flex min-w-0 flex-1 gap-2"
 			>
 				<div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-muted/50">
 					<Image
-						src={item.image}
-						alt={item.name}
+						src={product.images[0]}
+						alt={product.name}
 						fill
 						sizes="80px"
 						className="object-contain"
 					/>
 				</div>
-				<div className="flex min-w-0 flex-1 flex-col justify-between">
-					<div>
-						<h3 className="text-sm font-semibold text-foreground line-clamp-1">{item.name}</h3>
-						<p className="text-xs text-muted-foreground line-clamp-1">{item.categories.map((category) => category.name).join(", ")}</p>
-						<p className="mt-0.5 text-sm font-semibold text-foreground">
-							${item.price.toFixed(2)}
+				<div className="flex min-w-0 flex-1 flex-col justify-between gap-1 py-1">
+					<h3 className="text-sm font-semibold text-foreground line-clamp-2">{product.name}</h3>
+					<div className="flex flex-col">
+						{hasDiscounts && (
+							<p className="line-through text-muted-foreground text-xs">
+								Q{product.price.toFixed(2)}
+							</p>
+						)}
+						<p className="text-base font-semibold text-foreground">
+							Q{priceWithDiscount.toFixed(2)}
 						</p>
 					</div>
 				</div>
 			</Link>
 			<CartItemStockButtons
-				id={item.id}
-				quantity={item.quantity}
-				onQuantityChange={onQuantityChange}
+				id={product.id}
+				quantity={quantity}
+				updateItemQuantity={updateItemQuantity}
 			/>
 		</div>
 	)

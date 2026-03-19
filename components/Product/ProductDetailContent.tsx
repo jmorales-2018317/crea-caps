@@ -21,24 +21,23 @@ export function ProductDetailContent({ productId }: ProductDetailContentProps) {
   }
 
   return (
-    <div className="bg-background flex flex-col items-center justify-center space-y-5 pb-25">
+    <div className="bg-background flex flex-col items-center justify-center space-y-5 pb-4">
       <section className="w-full bg-zinc-100 py-5 px-4 space-y-4">
         <div className="relative flex items-center justify-center">
-          <h1 className="text-lg font-semibold text-gray-900">{product.name}</h1>
-          <GoBack />
+          <h1 className="text-lg text-center font-semibold text-gray-900">{product.name}</h1>
         </div>
         <ProductCarousel productImages={product.images} />
       </section>
       <div className="w-full px-4">
         <div className="flex items-center gap-2 text-xs text-gray-400">
           {product.categories.map((category) => (
-            <Badge key={category.id} variant="secondary">
+            <Badge key={category.id} variant="default" className="bg-muted text-secondary-foreground">
               {category.name}
             </Badge>
           ))}
         </div>
 
-        <h2 className="text-base font-semibold text-gray-900 mt-4">
+        <h2 className="text-base font-semibold text-gray-900 mt-3">
           Detalles del producto
         </h2>
         <p className="text-sm leading-relaxed text-gray-500 mt-1">
