@@ -2,18 +2,14 @@
 
 import * as React from "react"
 import {
-  BookOpen,
-  Bot,
   Package2,
   Percent,
   ReceiptText,
-  Settings2,
   Tags,
-  SquareTerminal,
   Users,
 } from "lucide-react"
 
-import { NavAdmin, NavMain, NavUser } from "@/components/Dashboard"
+import { NavAdmin, NavUser } from "@/components/Dashboard"
 import {
   Sidebar,
   SidebarContent,
@@ -24,7 +20,6 @@ import {
 import Link from "next/link"
 import { useGetProfileById } from "@/hooks/api/useGetProfileById"
 
-// Datos de navegación (lado admin / dashboard).
 const data = {
   administration: [
     {
