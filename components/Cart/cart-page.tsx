@@ -11,7 +11,7 @@ import { buildCartLines, getCartSubtotal, getCartTotal } from "@/util"
 const DELIVERY_FEE = 25
 
 export default function CartPage() {
-  const { items, removeItem, updateItemQuantity } = useCart()
+  const { items, removeItem, updateItemQuantity, isEmpty } = useCart()
 
   const cartIds = useMemo(
     () => items.map((i) => String(i.id)),
@@ -30,23 +30,23 @@ export default function CartPage() {
     [items, updateItemQuantity]
   )
 
-  if (items.length === 0) {
-    return (
-      <div className="w-full h-[calc(100vh-10rem)] flex gap-2 items-center justify-center">
-        <p className="text-sm text-muted-foreground">Tu carrito está vacío.</p>
-      </div>
-    )
-  }
-
   if (isLoading) {
     return (
-      <div className="w-full h-[calc(100vh-10rem)] flex gap-2 items-center justify-center">
+      <div className="w-full flex gap-2 items-center justify-center py-10">
         <Spinner className="size-5" />
         <p className="text-sm text-muted-foreground">Cargando carrito...</p>
       </div>
     )
   }
-  
+
+  if (isEmpty) {
+    return (
+      <div className="w-full flex gap-2 items-center justify-center py-10">
+        <p className="text-sm text-muted-foreground">Tu carrito está vacío.</p>
+      </div>
+    )
+  }
+
   const subtotal = getCartSubtotal(lines)
   const grandTotal = getCartTotal({
     lines,
@@ -91,7 +91,7 @@ export default function CartPage() {
               </span>
             </div>
 
-            <Button size="xl" className="font-semibold rounded-xl px-4">
+            <Button size="xl" className="font-medium px-5">
               Ir a caja
             </Button>
           </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { ShoppingCart } from "lucide-react"
+import { DiscountDescription } from "@/components/Discounts"
 import { Product } from "@/services/Product"
 import { Button } from "../ui/button"
 import { getDiscountedPrice } from "@/util"
@@ -24,7 +25,6 @@ export function ProductPrice({ product }: { product: Product }) {
 
 	const hasDiscounts = !!product.discounts?.length
 	const priceWithDiscount = getDiscountedPrice(product.price, product.discounts)
-
 	return (
 		<section className="w-full px-4 space-y-2">
 			<div className="w-full flex items-end justify-between">
@@ -46,6 +46,9 @@ export function ProductPrice({ product }: { product: Product }) {
 					Añadir al carrito
 				</Button>
 			</div>
+			{hasDiscounts && (
+				<DiscountDescription discounts={product.discounts ?? []} />
+			)}
 		</section>
 	)
 }
