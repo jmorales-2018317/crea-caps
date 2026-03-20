@@ -14,8 +14,6 @@ export default async function ProfilePage() {
 
   const profileId = user?.id
 
-  console.log("profileId", profileId)
-
   if (!profileId) {
     return redirect("/auth/iniciar-sesion")
   }

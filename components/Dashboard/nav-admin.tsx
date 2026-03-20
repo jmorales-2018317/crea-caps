@@ -1,18 +1,20 @@
 "use client"
 
 import {
-  Folder,
-  Forward,
+  Eye,
+  Plus,
   MoreHorizontal,
-  Trash2,
   type LucideIcon,
+  LayoutDashboardIcon,
 } from "lucide-react"
+
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -25,28 +27,48 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-export function NavProjects({
-  projects,
-}: {
-  projects: {
+type NavAdminProps = {
+  administration: {
     name: string
     url: string
     icon: LucideIcon
+    hasCreate: boolean
   }[]
-}) {
+}
+
+export function NavAdmin({
+  administration,
+}: NavAdminProps) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+
+  const handleView = (item: { url: string }) => {
+    router.push(item.url)
+  }
+
+  const handleCreate = (item: { url: string }) => {
+    router.push(`${item.url}/nuevo`)
+  }
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <Link href="/dashboard">
+            <LayoutDashboardIcon className="text-sidebar-foreground/70" />
+            <span>Dashboard</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarGroupLabel>Administración</SidebarGroupLabel>
       <SidebarMenu>
-        {projects.map((item) => (
+        {administration.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
+              <Link href={item.url}>
                 <item.icon />
                 <span>{item.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -60,29 +82,22 @@ export function NavProjects({
                 side={isMobile ? "bottom" : "right"}
                 align={isMobile ? "end" : "start"}
               >
-                <DropdownMenuItem>
-                  <Folder className="text-muted-foreground" />
-                  <span>View Project</span>
+                <DropdownMenuItem onSelect={() => handleView(item)}>
+                  <Eye className="text-muted-foreground" />
+                  <span>Ver</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Forward className="text-muted-foreground" />
-                  <span>Share Project</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Trash2 className="text-muted-foreground" />
-                  <span>Delete Project</span>
-                </DropdownMenuItem>
+                {item.hasCreate ? (
+                  <>
+                    <DropdownMenuItem onSelect={() => handleCreate(item)}>
+                      <Plus className="text-muted-foreground" />
+                      <span>Crear</span>
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <MoreHorizontal className="text-sidebar-foreground/70" />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   )

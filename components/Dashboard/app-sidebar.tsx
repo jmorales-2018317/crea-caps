@@ -2,19 +2,18 @@
 
 import * as React from "react"
 import {
-  AudioWaveform,
   BookOpen,
   Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
+  Package2,
+  Percent,
+  ReceiptText,
   Settings2,
+  Tags,
   SquareTerminal,
+  Users,
 } from "lucide-react"
 
-import { NavMain, NavProjects, NavUser, TeamSwitcher } from "@/components/Dashboard"
+import { NavAdmin, NavMain, NavUser } from "@/components/Dashboard"
 import {
   Sidebar,
   SidebarContent,
@@ -22,149 +21,66 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
+import { useGetProfileById } from "@/hooks/api/useGetProfileById"
 
-// This is sample data.
+// Datos de navegación (lado admin / dashboard).
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
+  administration: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      name: "Productos",
+      url: "/dashboard/productos",
+      hasCreate: true,
+      icon: Package2,
     },
     {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
+      name: "Descuentos",
+      url: "/dashboard/descuentos",
+      hasCreate: true,
+      icon: Percent,
     },
     {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
-  navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
+      name: "Categorías",
+      url: "/dashboard/categorias",
+      hasCreate: true,
+      icon: Tags,
     },
     {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
+      name: "Perfiles",
+      url: "/dashboard/perfiles",
+      hasCreate: false,
+      icon: Users,
     },
     {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      name: "Órdenes",
+      url: "/dashboard/ordenes",
+      hasCreate: false,
+      icon: ReceiptText,
     },
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type AppSidebarProps = {
+  profileId: string
+} & React.ComponentProps<typeof Sidebar>
+
+export function AppSidebar({ profileId, ...props }: AppSidebarProps) {
+  const { data: profile } = useGetProfileById(profileId)
+
+  if (!profile) {
+    return null
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <Link href="/dashboard" className="text-xl font-bold tracking-tighter text-golden">Crea Caps</Link>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavAdmin administration={data.administration} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser profile={profile} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
