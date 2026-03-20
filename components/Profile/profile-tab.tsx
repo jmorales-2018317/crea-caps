@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -17,10 +17,6 @@ export function ProfileTab({ profileId }: { profileId: string }) {
   const [isClosingSession, setIsClosingSession] = useState(false)
 
   const { data: profile, isLoading } = useGetProfileById(profileId)
-
-  useEffect(() => {
-    if (!profile) router.replace("/auth/iniciar-sesion")
-  }, [profile, router])
 
   if (isLoading) {
     return <ProfileSkeleton />

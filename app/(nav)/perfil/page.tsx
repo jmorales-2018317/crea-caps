@@ -13,6 +13,9 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser()
 
   const profileId = user?.id
+
+  console.log("profileId", profileId)
+
   if (!profileId) {
     return redirect("/auth/iniciar-sesion")
   }
