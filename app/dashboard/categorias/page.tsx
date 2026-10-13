@@ -1,12 +1,5 @@
-import { Tags } from "lucide-react";
-import { ModulePlaceholder } from "@/components/dashboard/module-placeholder";
+import { CategoriesAdmin } from "@/components/dashboard/categories-admin";
 
 export default function CategoriasPage() {
-  return (
-    <ModulePlaceholder
-      title="Categorías"
-      description="Organización del catálogo por categorías."
-      icon={Tags}
-    />
-  );
+  return <CategoriesAdmin />;
 }
