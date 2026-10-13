@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminClaims } from "@/lib/auth/admin";
-import { SignOutButton } from "./sign-out-button";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardLayout({
   children,
@@ -18,10 +19,26 @@ export default function DashboardLayout({
 
 function DashboardFallback() {
   return (
-    <main className="p-8">
-      <div className="h-8 w-48 animate-pulse rounded bg-neutral-200" />
-      <div className="mt-4 h-4 w-72 animate-pulse rounded bg-neutral-200" />
-    </main>
+    <div className="flex min-h-screen bg-muted/30">
+      <aside className="hidden w-64 border-r bg-sidebar p-4 lg:block">
+        <Skeleton className="h-5 w-32" />
+        <div className="mt-8 space-y-2">
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+        </div>
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex h-14 items-center border-b px-4 sm:px-6">
+          <Skeleton className="h-5 w-28" />
+        </div>
+        <div className="space-y-4 p-4 sm:p-6">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -37,13 +54,8 @@ async function AdminGate({ children }: { children: React.ReactNode }) {
     redirect("/");
   }
 
-  return (
-    <div className="min-h-screen">
-      <header className="flex items-center justify-between border-b px-8 py-4">
-        <p className="text-sm font-medium">Caps Store · Admin</p>
-        <SignOutButton />
-      </header>
-      {children}
-    </div>
-  );
+  const email =
+    typeof data.claims.email === "string" ? data.claims.email : null;
+
+  return <DashboardShell email={email}>{children}</DashboardShell>;
 }
