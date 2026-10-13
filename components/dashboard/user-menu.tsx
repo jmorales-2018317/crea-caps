@@ -33,19 +33,17 @@ export function UserMenu({ email }: UserMenuProps) {
         render={
           <Button
             variant="ghost"
-            size="sm"
-            className="h-9 gap-2 px-1.5 sm:px-2"
+            size="icon"
+            aria-label="Menú de cuenta"
+            className="rounded-full"
           />
         }
       >
-        <Avatar size="sm">
+        <Avatar>
           <AvatarFallback className="text-xs font-medium">
             {getInitials(email)}
           </AvatarFallback>
         </Avatar>
-        <span className="hidden max-w-44 truncate text-sm font-medium sm:inline">
-          {label}
-        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-56">
         <DropdownMenuGroup>

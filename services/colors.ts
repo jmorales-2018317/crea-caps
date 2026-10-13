@@ -53,3 +53,36 @@ export async function deleteColor(id: string): Promise<void> {
     throw error;
   }
 }
+
+export async function updateColorsActive(
+  ids: string[],
+  isActive: boolean,
+): Promise<void> {
+  if (ids.length === 0) {
+    return;
+  }
+
+  const { error } = await createClient()
+    .from("colors")
+    .update({ is_active: isActive })
+    .in("id", ids);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function deleteColors(ids: string[]): Promise<void> {
+  if (ids.length === 0) {
+    return;
+  }
+
+  const { error } = await createClient()
+    .from("colors")
+    .delete()
+    .in("id", ids);
+
+  if (error) {
+    throw error;
+  }
+}

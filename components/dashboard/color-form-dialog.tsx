@@ -67,7 +67,15 @@ function ColorFormFields({
   });
 
   return (
-    <form className="grid gap-4" onSubmit={handleSubmit} noValidate>
+    <form
+      className="grid gap-4"
+      onSubmit={(event) => {
+        // Evita que el submit burbujee al formulario padre (p. ej. producto).
+        event.stopPropagation();
+        void handleSubmit(event);
+      }}
+      noValidate
+    >
       <div className="grid gap-2">
         <Label htmlFor="color-name">Nombre</Label>
         <Input

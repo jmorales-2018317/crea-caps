@@ -1,12 +1,5 @@
-import { Package } from "lucide-react";
-import { ModulePlaceholder } from "@/components/dashboard/module-placeholder";
+import { ProductsAdmin } from "@/components/dashboard/products-admin";
 
 export default function ProductosPage() {
-  return (
-    <ModulePlaceholder
-      title="Productos"
-      description="Gestión del catálogo de gorras."
-      icon={Package}
-    />
-  );
+  return <ProductsAdmin />;
 }

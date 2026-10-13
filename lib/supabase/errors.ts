@@ -11,7 +11,7 @@ function isSupabaseLikeError(error: unknown): error is SupabaseLikeError {
 
 export function getSupabaseErrorMessage(
   error: unknown,
-  context?: "categories" | "colors",
+  context?: "categories" | "colors" | "products",
 ): string {
   if (!isSupabaseLikeError(error)) {
     return "Ocurrió un error inesperado. Inténtalo de nuevo.";
@@ -20,12 +20,30 @@ export function getSupabaseErrorMessage(
   const code = error.code;
   const message = error.message ?? "";
 
+  if (code === "42501" || message.toLowerCase().includes("not authorized")) {
+    return "No tienes permisos de administrador para esta acción.";
+  }
+
+  if (code === "P0002" || message.toLowerCase().includes("product not found")) {
+    return "El producto no existe o ya fue eliminado.";
+  }
+
   if (code === "23505") {
     if (context === "categories" || message.includes("categories_slug")) {
       return "Ya existe una categoría con ese slug.";
     }
     if (context === "colors" || message.includes("colors_name")) {
       return "Ya existe un color con ese nombre.";
+    }
+    if (
+      context === "products" ||
+      message.includes("products_slug") ||
+      message.includes("products_sku")
+    ) {
+      if (message.includes("sku")) {
+        return "Ya existe un producto con ese SKU.";
+      }
+      return "Ya existe un producto con ese slug.";
     }
     return "Ya existe un registro con esos datos.";
   }
@@ -37,6 +55,9 @@ export function getSupabaseErrorMessage(
     if (context === "colors") {
       return "No se puede eliminar: el color está en uso en uno o más productos.";
     }
+    if (context === "products") {
+      return "Hay una referencia inválida a una categoría o color.";
+    }
     return "No se puede eliminar: hay registros que dependen de este elemento.";
   }
 
@@ -44,8 +65,21 @@ export function getSupabaseErrorMessage(
     if (context === "colors" || message.includes("hex_code")) {
       return "El código hexadecimal no es válido. Usa el formato #RRGGBB.";
     }
-    if (context === "categories" || message.includes("slug")) {
+    if (
+      context === "categories" ||
+      ((context === "products" || message.includes("slug")) &&
+        message.toLowerCase().includes("slug"))
+    ) {
       return "El slug no es válido. Usa solo minúsculas, números y guiones.";
+    }
+    if (context === "products") {
+      if (message.toLowerCase().includes("strap")) {
+        return "La configuración del cincho no es válida.";
+      }
+      if (message.toLowerCase().includes("part")) {
+        return "Hay un color asignado a una parte que no aplica a este producto.";
+      }
+      return "Los datos del producto no cumplen las reglas de validación.";
     }
     return "Los datos no cumplen las reglas de validación.";
   }

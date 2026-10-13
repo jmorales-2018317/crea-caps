@@ -8,8 +8,10 @@ import {
 import {
   createColor,
   deleteColor,
+  deleteColors,
   listColors,
   updateColor,
+  updateColorsActive,
 } from "@/services/colors";
 import type { ColorInsert, ColorUpdate } from "@/types/colors";
 
@@ -58,6 +60,29 @@ export function useDeleteColor() {
 
   return useMutation({
     mutationFn: (id: string) => deleteColor(id),
+    onSuccess: async () => {
+      await invalidate();
+    },
+  });
+}
+
+export function useUpdateColorsActive() {
+  const invalidate = useInvalidateColors();
+
+  return useMutation({
+    mutationFn: ({ ids, isActive }: { ids: string[]; isActive: boolean }) =>
+      updateColorsActive(ids, isActive),
+    onSuccess: async () => {
+      await invalidate();
+    },
+  });
+}
+
+export function useDeleteColors() {
+  const invalidate = useInvalidateColors();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => deleteColors(ids),
     onSuccess: async () => {
       await invalidate();
     },

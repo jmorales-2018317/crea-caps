@@ -15,20 +15,24 @@ import { getSupabaseErrorMessage } from "@/lib/supabase/errors";
 import type { Color } from "@/types/colors";
 
 type DeleteColorDialogProps = {
-  color: Color | null;
+  color?: Color | null;
+  count?: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<void>;
 };
 
 export function DeleteColorDialog({
-  color,
+  color = null,
+  count,
   open,
   onOpenChange,
   onConfirm,
 }: DeleteColorDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const isBulk = typeof count === "number";
+  const canConfirm = isBulk ? count > 0 : Boolean(color);
 
   return (
     <AlertDialog
@@ -42,14 +46,29 @@ export function DeleteColorDialog({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Eliminar color</AlertDialogTitle>
+          <AlertDialogTitle>
+            {isBulk && count > 1 ? "Eliminar colores" : "Eliminar color"}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            ¿Seguro que quieres eliminar{" "}
-            <span className="font-medium text-foreground">
-              {color?.name ?? "este color"}
-            </span>
-            ? Esta acción no se puede deshacer. Si está en uso en productos, la
-            base de datos impedirá el borrado.
+            {isBulk ? (
+              <>
+                ¿Seguro que quieres eliminar{" "}
+                <span className="font-medium text-foreground">
+                  {count === 1 ? "1 color" : `${count} colores`}
+                </span>
+                ? Esta acción no se puede deshacer. Si alguno está en uso en
+                productos, la base de datos impedirá el borrado.
+              </>
+            ) : (
+              <>
+                ¿Seguro que quieres eliminar{" "}
+                <span className="font-medium text-foreground">
+                  {color?.name ?? "este color"}
+                </span>
+                ? Esta acción no se puede deshacer. Si está en uso en productos,
+                la base de datos impedirá el borrado.
+              </>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         {error ? (
@@ -61,10 +80,10 @@ export function DeleteColorDialog({
           <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
-            disabled={isDeleting || !color}
+            disabled={isDeleting || !canConfirm}
             onClick={async (event) => {
               event.preventDefault();
-              if (!color) {
+              if (!canConfirm) {
                 return;
               }
               setIsDeleting(true);
@@ -79,7 +98,11 @@ export function DeleteColorDialog({
               }
             }}
           >
-            {isDeleting ? "Eliminando…" : "Eliminar"}
+            {isDeleting
+              ? "Eliminando…"
+              : isBulk && count > 1
+                ? `Eliminar ${count}`
+                : "Eliminar"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -74,7 +74,16 @@ function CategoryFormFields({
   });
 
   return (
-    <form className="grid gap-4" onSubmit={handleSubmit} noValidate>
+    <form
+      className="grid gap-4"
+      onSubmit={(event) => {
+        // Evita que el submit burbujee al formulario padre (p. ej. producto)
+        // aunque el Dialog esté portaleado en el DOM.
+        event.stopPropagation();
+        void handleSubmit(event);
+      }}
+      noValidate
+    >
       <div className="grid gap-2">
         <Label htmlFor="category-name">Nombre</Label>
         <Input
