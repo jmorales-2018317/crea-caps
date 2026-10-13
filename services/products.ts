@@ -1,9 +1,14 @@
 import { createClient } from "@/lib/supabase/client";
+import {
+  deleteStoragePaths,
+  listProductImagePaths,
+} from "@/services/product-images";
 import type {
   AdminProductDetail,
   AdminProductListItem,
   AdminProductsListParams,
   AdminProductsListResult,
+  ProductImage,
   ProductStatus,
   SaveAdminProductPayload,
 } from "@/types/products";
@@ -21,6 +26,12 @@ const LIST_SELECT = `
   product_categories (
     category_id,
     categories ( id, name )
+  ),
+  product_images (
+    id,
+    storage_path,
+    is_primary,
+    sort_order
   )
 `;
 
@@ -43,8 +54,42 @@ const DETAIL_SELECT = `
     has_front_logo
   ),
   product_categories ( category_id ),
-  product_part_colors ( part, color_id )
+  product_part_colors ( part, color_id ),
+  product_images (
+    id,
+    product_id,
+    storage_path,
+    alt_text,
+    is_primary,
+    sort_order,
+    created_at
+  )
 `;
+
+function sortProductImages<T extends Pick<ProductImage, "sort_order" | "is_primary" | "created_at">>(
+  images: T[],
+): T[] {
+  return [...images].sort((a, b) => {
+    if (a.is_primary !== b.is_primary) {
+      return a.is_primary ? -1 : 1;
+    }
+    if (a.sort_order !== b.sort_order) {
+      return a.sort_order - b.sort_order;
+    }
+    return a.created_at.localeCompare(b.created_at);
+  });
+}
+
+function sortListImages<
+  T extends Pick<ProductImage, "sort_order" | "is_primary">,
+>(images: T[]): T[] {
+  return [...images].sort((a, b) => {
+    if (a.is_primary !== b.is_primary) {
+      return a.is_primary ? -1 : 1;
+    }
+    return a.sort_order - b.sort_order;
+  });
+}
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
@@ -136,7 +181,7 @@ export async function getPublishedProducts() {
   const { data, error } = await createClient()
     .from("products")
     .select(
-      "id,name,slug,description,is_featured,created_at,product_images(id,storage_path,is_primary,sort_order),product_attributes(*)",
+      "id,name,slug,description,is_featured,created_at,product_images(id,storage_path,alt_text,is_primary,sort_order,created_at),product_attributes(*)",
     )
     .eq("status", "published")
     .order("created_at", { ascending: false });
@@ -145,7 +190,10 @@ export async function getPublishedProducts() {
     throw error;
   }
 
-  return data;
+  return (data ?? []).map((product) => ({
+    ...product,
+    product_images: sortProductImages(product.product_images ?? []),
+  }));
 }
 
 export async function listAdminProducts(
@@ -184,8 +232,13 @@ export async function listAdminProducts(
     throw error;
   }
 
+  const items = ((data ?? []) as AdminProductListItem[]).map((item) => ({
+    ...item,
+    product_images: sortListImages(item.product_images ?? []),
+  }));
+
   return {
-    items: (data ?? []) as AdminProductListItem[],
+    items,
     total: count ?? 0,
     page,
     pageSize,
@@ -220,6 +273,7 @@ export async function getAdminProduct(
     product_attributes: attributes,
     product_categories: row.product_categories ?? [],
     product_part_colors: row.product_part_colors ?? [],
+    product_images: sortProductImages(row.product_images ?? []),
   };
 }
 
@@ -300,6 +354,8 @@ export async function updateProductsStatus(
 }
 
 export async function deleteProduct(id: string): Promise<void> {
+  const paths = await listProductImagePaths([id]);
+
   const { error } = await createClient()
     .from("products")
     .delete()
@@ -308,12 +364,22 @@ export async function deleteProduct(id: string): Promise<void> {
   if (error) {
     throw error;
   }
+
+  if (paths.length > 0) {
+    try {
+      await deleteStoragePaths(paths);
+    } catch {
+      // Rows already removed; Storage cleanup is best-effort.
+    }
+  }
 }
 
 export async function deleteProducts(ids: string[]): Promise<void> {
   if (ids.length === 0) {
     return;
   }
+
+  const paths = await listProductImagePaths(ids);
 
   const { error } = await createClient()
     .from("products")
@@ -322,5 +388,13 @@ export async function deleteProducts(ids: string[]): Promise<void> {
 
   if (error) {
     throw error;
+  }
+
+  if (paths.length > 0) {
+    try {
+      await deleteStoragePaths(paths);
+    } catch {
+      // Rows already removed; Storage cleanup is best-effort.
+    }
   }
 }

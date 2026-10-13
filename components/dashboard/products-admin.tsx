@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   Archive,
   ChevronLeft,
   ChevronRight,
+  ImageIcon,
   Pencil,
   Plus,
   Trash2,
@@ -13,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { DeleteProductDialog } from "@/components/dashboard/delete-product-dialog";
+import { getCatalogImagePublicUrl } from "@/lib/catalog-images";
 import {
   QueryEmptyState,
   QueryErrorState,
@@ -376,6 +379,7 @@ export function ProductsAdmin() {
                       aria-label="Seleccionar todos los productos de esta página"
                     />
                   </TableHead>
+                  <TableHead className="w-14">Foto</TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Categorías</TableHead>
@@ -388,6 +392,13 @@ export function ProductsAdmin() {
                 {items.map((product) => {
                   const categories = categoryLabels(product);
                   const isSelected = selectedIds.has(product.id);
+                  const primaryImage =
+                    product.product_images?.find((image) => image.is_primary) ??
+                    product.product_images?.[0] ??
+                    null;
+                  const thumbUrl = primaryImage
+                    ? getCatalogImagePublicUrl(primaryImage.storage_path)
+                    : null;
                   return (
                     <TableRow
                       key={product.id}
@@ -401,6 +412,24 @@ export function ProductsAdmin() {
                           }}
                           aria-label={`Seleccionar ${product.name}`}
                         />
+                      </TableCell>
+                      <TableCell>
+                        <div className="relative size-10 overflow-hidden rounded-md border border-border bg-muted">
+                          {thumbUrl ? (
+                            <Image
+                              src={thumbUrl}
+                              alt=""
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                              unoptimized
+                            />
+                          ) : (
+                            <span className="flex size-full items-center justify-center text-muted-foreground">
+                              <ImageIcon className="size-4" aria-hidden />
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="font-medium">
                         {product.name}

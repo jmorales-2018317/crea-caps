@@ -11,17 +11,47 @@ function isSupabaseLikeError(error: unknown): error is SupabaseLikeError {
 
 export function getSupabaseErrorMessage(
   error: unknown,
-  context?: "categories" | "colors" | "products",
+  context?: "categories" | "colors" | "products" | "product_images",
 ): string {
+  if (error instanceof Error) {
+    const local = error.message;
+    if (
+      local.includes("Formato no permitido") ||
+      local.includes("tamaño máximo") ||
+      local.includes("archivo está vacío")
+    ) {
+      return local;
+    }
+  }
+
   if (!isSupabaseLikeError(error)) {
     return "Ocurrió un error inesperado. Inténtalo de nuevo.";
   }
 
   const code = error.code;
   const message = error.message ?? "";
+  const lower = message.toLowerCase();
 
-  if (code === "42501" || message.toLowerCase().includes("not authorized")) {
+  if (code === "42501" || lower.includes("not authorized")) {
     return "No tienes permisos de administrador para esta acción.";
+  }
+
+  if (
+    context === "product_images" ||
+    lower.includes("storage") ||
+    lower.includes("payload too large") ||
+    lower.includes("mime type") ||
+    (lower.includes("invalid") && lower.includes("type"))
+  ) {
+    if (lower.includes("payload too large") || lower.includes("maximum allowed size")) {
+      return "La imagen supera el tamaño máximo de 5 MB.";
+    }
+    if (lower.includes("mime") || lower.includes("not supported")) {
+      return "Formato no permitido. Usa JPEG, PNG, WebP o AVIF.";
+    }
+    if (lower.includes("not authorized") || lower.includes("row-level security")) {
+      return "No tienes permisos de administrador para gestionar imágenes.";
+    }
   }
 
   if (code === "P0002" || message.toLowerCase().includes("product not found")) {

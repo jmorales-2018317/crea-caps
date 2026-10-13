@@ -2,23 +2,19 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { cn } from "cn";
 import { Info, Star } from "lucide-react";
+import { CategoryMultiSelect } from "@/components/dashboard/category-multi-select";
 import {
-  CategoryMultiSelect,
-  SelectedCategoryBadges,
-} from "@/components/dashboard/category-multi-select";
+  ProductImagesField,
+  type PendingProductImage,
+  type ProductImagesDraft,
+} from "@/components/dashboard/product-images-field";
 import { ProductPartColorsField } from "@/components/dashboard/product-part-colors-field";
 import { QueryErrorState } from "@/components/dashboard/query-state";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,8 +34,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useQueryClient } from "@tanstack/react-query";
 import { useColors } from "@/hooks/use-colors";
+import { productImagesQueryKey } from "@/hooks/use-product-images";
 import {
+  adminProductDetailQueryKey,
+  adminProductsQueryKey,
+  publishedProductsQueryKey,
   useAdminProduct,
   useCreateProduct,
   useUpdateProduct,
@@ -62,6 +63,10 @@ import {
   toSaveAdminProductPayload,
   type ProductFormValues,
 } from "@/schemas/products";
+import {
+  commitProductImageDraft,
+  uploadProductImages,
+} from "@/services/product-images";
 import type { AdminProductDetail, ProductPart } from "@/types/products";
 
 type ProductFormProps = {
@@ -101,7 +106,7 @@ function Section({
   className,
   actions,
 }: {
-  title: string;
+  title: ReactNode;
   description: string;
   children: ReactNode;
   className?: string;
@@ -130,32 +135,6 @@ function Section({
   );
 }
 
-function detailsSummary(sku: string, description: string): string {
-  const hasSku = sku.trim().length > 0;
-  const hasDescription = description.trim().length > 0;
-  if (!hasSku && !hasDescription) {
-    return "Sin SKU ni descripción";
-  }
-  if (hasSku && hasDescription) {
-    return "SKU y descripción definidos";
-  }
-  if (hasSku) {
-    return "SKU definido";
-  }
-  return "Descripción definida";
-}
-
-function defaultOptionalOpen(values: ProductFormValues): string[] {
-  const open: string[] = [];
-  if ((values.sku ?? "").trim() || (values.description ?? "").trim()) {
-    open.push("details");
-  }
-  if (values.category_ids.length > 0) {
-    open.push("categories");
-  }
-  return open;
-}
-
 function OptionalLabel() {
   return (
     <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium leading-none text-muted-foreground">
@@ -172,11 +151,28 @@ function ProductFormFields({
   initialValues: ProductFormValues;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const createMutation = useCreateProduct();
   const updateMutation = useUpdateProduct();
   const colorsQuery = useColors();
-  const [formError, setFormError] = useState<string | null>(null);
+  const [pendingImages, setPendingImages] = useState<PendingProductImage[]>(
+    [],
+  );
+  const [imageDraft, setImageDraft] = useState<ProductImagesDraft>({
+    savedImages: [],
+    baselineImages: [],
+    removedImageIds: [],
+  });
+  const [formError, setFormError] = useState<string | null>(() =>
+    searchParams.get("images_error") === "1"
+      ? "El producto se creó, pero algunas imágenes no se pudieron subir. Reinténtalo desde esta galería."
+      : null,
+  );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [imageUploadMessage, setImageUploadMessage] = useState<string | null>(
+    null,
+  );
   const [slugManual, setSlugManual] = useState(Boolean(productId));
 
   const form = useForm<ProductFormValues>({
@@ -190,16 +186,6 @@ function ProductFormFields({
   });
   const hasStrap = useWatch({ control: form.control, name: "has_strap" });
   const partColors = useWatch({ control: form.control, name: "part_colors" });
-  const categoryIds = useWatch({ control: form.control, name: "category_ids" });
-  const skuValue = useWatch({ control: form.control, name: "sku" });
-  const descriptionValue = useWatch({
-    control: form.control,
-    name: "description",
-  });
-
-  const [optionalDefaultOpen] = useState(() =>
-    defaultOptionalOpen(initialValues),
-  );
 
   const applicableParts = useMemo(
     () => getApplicableParts(constructionType, hasStrap),
@@ -251,24 +237,105 @@ function ProductFormFields({
   const nameRegister = form.register("name");
   const slugRegister = form.register("slug");
 
-  const handleSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = async (values: ProductFormValues) => {
     setFormError(null);
     setSuccessMessage(null);
+    setImageUploadMessage(null);
     const payload = toSaveAdminProductPayload(values, productId);
     try {
       if (productId) {
         await updateMutation.mutateAsync({ id: productId, payload });
+        setImageUploadMessage("Actualizando imágenes…");
+        const imageResult = await commitProductImageDraft({
+          productId,
+          savedImages: imageDraft.savedImages,
+          baselineImages: imageDraft.baselineImages,
+          removedImageIds: imageDraft.removedImageIds,
+          pendingFiles: pendingImages.map((item) => item.file),
+        });
+
+        for (const item of pendingImages) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+        setPendingImages([]);
+
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: productImagesQueryKey(productId),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: adminProductDetailQueryKey(productId),
+          }),
+          queryClient.invalidateQueries({ queryKey: adminProductsQueryKey }),
+          queryClient.invalidateQueries({
+            queryKey: publishedProductsQueryKey,
+          }),
+        ]);
+        setImageUploadMessage(null);
+
+        if (imageResult.uploadErrors.length) {
+          setFormError(
+            [
+              "El producto se actualizó, pero algunas imágenes no se pudieron guardar.",
+              ...imageResult.uploadErrors.map(
+                (entry) => `${entry.fileName}: ${entry.error}`,
+              ),
+            ].join(" "),
+          );
+          return;
+        }
+
+        if (imageResult.storageWarning) {
+          setFormError(imageResult.storageWarning);
+          return;
+        }
+
         setSuccessMessage("Producto actualizado correctamente.");
-      } else {
-        await createMutation.mutateAsync(payload);
-        setSuccessMessage("Producto creado correctamente.");
+        router.push("/dashboard/productos");
+        router.refresh();
+        return;
       }
+
+      const newId = await createMutation.mutateAsync(payload);
+      const pendingFiles = pendingImages.map((item) => item.file);
+
+      if (pendingFiles.length > 0) {
+        setImageUploadMessage("Subiendo imágenes…");
+        const { errors } = await uploadProductImages(newId, pendingFiles);
+        for (const item of pendingImages) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+        setPendingImages([]);
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: productImagesQueryKey(newId),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: adminProductDetailQueryKey(newId),
+          }),
+          queryClient.invalidateQueries({ queryKey: adminProductsQueryKey }),
+          queryClient.invalidateQueries({
+            queryKey: publishedProductsQueryKey,
+          }),
+        ]);
+
+        if (errors.length > 0) {
+          setImageUploadMessage(null);
+          router.push(`/dashboard/productos/${newId}?images_error=1`);
+          router.refresh();
+          return;
+        }
+      }
+
+      setImageUploadMessage(null);
+      setSuccessMessage("Producto creado correctamente.");
       router.push("/dashboard/productos");
       router.refresh();
     } catch (error) {
+      setImageUploadMessage(null);
       setFormError(getSupabaseErrorMessage(error, "products"));
     }
-  });
+  };
 
   if (colorsQuery.isPending) {
     return (
@@ -294,14 +361,17 @@ function ProductFormFields({
   const isSubmitting = form.formState.isSubmitting;
 
   return (
-    <form className="space-y-6 pb-24" onSubmit={handleSubmit} noValidate>
+    <form
+      className="space-y-6 pb-10"
+      onSubmit={form.handleSubmit(onSubmit)}
+      noValidate
+    >
       <div>
         <h1 className="text-lg font-semibold tracking-tight">
           {productId ? "Editar producto" : "Nuevo producto"}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Completa lo esencial; lo opcional puedes expandirlo cuando lo
-          necesites.
+          Completa los datos del producto. Las categorías son opcionales.
         </p>
       </div>
 
@@ -447,6 +517,15 @@ function ProductFormFields({
                     </SelectContent>
                   </Select>
                 )}
+              />
+            </div>
+
+            <div className="grid gap-2 sm:col-span-2">
+              <Label htmlFor="product-description">Descripción</Label>
+              <Textarea
+                id="product-description"
+                rows={4}
+                {...form.register("description")}
               />
             </div>
           </div>
@@ -627,87 +706,44 @@ function ProductFormFields({
         />
       </Section>
 
-      <Accordion
-        multiple
-        defaultValue={optionalDefaultOpen}
-        className="gap-3"
+      <Section
+        title="Imágenes"
+        description="Sube una o varias fotos, elige la principal y ordena la galería. Los cambios se guardan al enviar el formulario."
       >
-        <AccordionItem
-          value="details"
-          className="overflow-hidden rounded-xl border border-border bg-background"
-        >
-          <AccordionTrigger className="items-center px-4 py-4 hover:no-underline sm:px-5">
-            <span className="flex min-w-0 flex-1 flex-col gap-1 pr-3 text-left">
-              <span className="flex flex-wrap items-center gap-2">
-                <span className="text-base font-semibold tracking-tight">
-                  Detalles adicionales
-                </span>
-                <OptionalLabel />
-              </span>
-              <span className="text-sm font-normal text-muted-foreground">
-                {detailsSummary(skuValue ?? "", descriptionValue ?? "")}
-              </span>
-            </span>
-          </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4 sm:px-5">
-            <div className="grid items-start gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="product-sku">SKU</Label>
-                <Input id="product-sku" {...form.register("sku")} />
-              </div>
-              <div className="grid gap-2 sm:col-span-2">
-                <Label htmlFor="product-description">Descripción</Label>
-                <Textarea
-                  id="product-description"
-                  rows={4}
-                  {...form.register("description")}
-                />
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
+        <ProductImagesField
+          productId={productId}
+          disabled={isSubmitting}
+          pendingImages={pendingImages}
+          onPendingImagesChange={setPendingImages}
+          onDraftChange={setImageDraft}
+        />
+        {imageUploadMessage ? (
+          <p className="text-sm text-muted-foreground" role="status">
+            {imageUploadMessage}
+          </p>
+        ) : null}
+      </Section>
 
-        <AccordionItem
-          value="categories"
-          className="overflow-hidden rounded-xl border border-border bg-background"
-        >
-          <AccordionTrigger className="items-center px-4 py-4 hover:no-underline sm:px-5">
-            <span className="flex min-w-0 flex-1 flex-col gap-1 pr-3 text-left">
-              <span className="flex flex-wrap items-center gap-2">
-                <span className="text-base font-semibold tracking-tight">
-                  Categorías
-                </span>
-                <OptionalLabel />
-              </span>
-              <SelectedCategoryBadges
-                value={categoryIds ?? []}
-                onChange={(ids) => {
-                  form.setValue("category_ids", ids, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                }}
-              />
-            </span>
-          </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4 sm:px-5">
-            <p className="mb-3 text-sm text-muted-foreground">
-              Busca y asigna una o varias categorías. Puedes crear una nueva al
-              vuelo.
-            </p>
-            <Controller
-              control={form.control}
-              name="category_ids"
-              render={({ field }) => (
-                <CategoryMultiSelect
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
+      <Section
+        title={
+          <span className="flex flex-wrap items-center gap-2">
+            Categorías
+            <OptionalLabel />
+          </span>
+        }
+        description="Busca y asigna una o varias categorías. Puedes crear una nueva al vuelo."
+      >
+        <Controller
+          control={form.control}
+          name="category_ids"
+          render={({ field }) => (
+            <CategoryMultiSelect
+              value={field.value}
+              onChange={field.onChange}
             />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+          )}
+        />
+      </Section>
 
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-sm sm:px-6 lg:left-64">
         <div className="pointer-events-auto flex justify-end gap-2">

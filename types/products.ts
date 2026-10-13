@@ -8,6 +8,7 @@ export type Product = Tables<"products">;
 export type ProductInsert = TablesInsert<"products">;
 export type ProductUpdate = TablesUpdate<"products">;
 
+export type ProductImage = Tables<"product_images">;
 export type ProductAttributes = Tables<"product_attributes">;
 export type ProductPartColor = Tables<"product_part_colors">;
 
@@ -22,6 +23,9 @@ export type AdminProductListItem = Product & {
     category_id: string;
     categories: { id: string; name: string } | null;
   }>;
+  product_images: Array<
+    Pick<ProductImage, "id" | "storage_path" | "is_primary" | "sort_order">
+  >;
 };
 
 export type AdminProductDetail = Product & {
@@ -31,6 +35,7 @@ export type AdminProductDetail = Product & {
     part: ProductPart;
     color_id: string;
   }>;
+  product_images: ProductImage[];
 };
 
 export type AdminProductsListParams = {
