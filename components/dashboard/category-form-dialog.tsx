@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { CategoryIconPicker } from "@/components/dashboard/category-icon-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -51,12 +52,14 @@ function CategoryFormFields({
           name: category.name,
           slug: category.slug,
           description: category.description ?? "",
+          icon: category.icon ?? null,
           is_active: category.is_active,
         }
       : {
           name: "",
           slug: "",
           description: "",
+          icon: null,
           is_active: true,
         },
   });
@@ -135,6 +138,28 @@ function CategoryFormFields({
         />
       </div>
 
+      <div className="grid gap-2">
+        <Label htmlFor="category-icon">Icono</Label>
+        <Controller
+          control={form.control}
+          name="icon"
+          render={({ field }) => (
+            <CategoryIconPicker
+              id="category-icon"
+              value={field.value ?? null}
+              onChange={field.onChange}
+              disabled={form.formState.isSubmitting}
+              aria-invalid={Boolean(form.formState.errors.icon)}
+            />
+          )}
+        />
+        {form.formState.errors.icon ? (
+          <p className="text-xs text-destructive">
+            {form.formState.errors.icon.message}
+          </p>
+        ) : null}
+      </div>
+
       <div className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
         <div>
           <p className="text-sm font-medium">Activa</p>
@@ -192,14 +217,14 @@ export function CategoryFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" showCloseButton>
+      <DialogContent className="sm:max-w-lg" showCloseButton>
         <DialogHeader>
           <DialogTitle>
             {category ? "Editar categoría" : "Nueva categoría"}
           </DialogTitle>
           <DialogDescription>
             {category
-              ? "Actualiza el nombre, slug o descripción."
+              ? "Actualiza el nombre, slug, icono o descripción."
               : "Crea una categoría para organizar el catálogo."}
           </DialogDescription>
         </DialogHeader>

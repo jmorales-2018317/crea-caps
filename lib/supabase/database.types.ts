@@ -51,6 +51,7 @@ export type Database = {
           name: string;
           slug: string;
           description: string | null;
+          icon: string | null;
           is_active: boolean;
         };
         Insert: {
@@ -58,6 +59,7 @@ export type Database = {
           name: string;
           slug: string;
           description?: string | null;
+          icon?: string | null;
           is_active?: boolean;
         };
         Update: {
@@ -65,6 +67,7 @@ export type Database = {
           name?: string;
           slug?: string;
           description?: string | null;
+          icon?: string | null;
           is_active?: boolean;
         };
         Relationships: [];

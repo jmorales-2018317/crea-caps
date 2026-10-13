@@ -91,14 +91,25 @@ export function PublishedProductsCatalog() {
 
 export function StoreHeader() {
   return (
-    <header className="border-b border-border">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
-          Caps Store
+    <header className="sticky top-0 z-20 bg-background/70 backdrop-blur-md">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <Link
+          href="/"
+          className="inline-flex items-center transition-opacity duration-200 hover:opacity-90"
+          aria-label="Caps Store"
+        >
+          <Image
+            src="/logo-gold.webp"
+            alt="Caps Store"
+            width={148}
+            height={58}
+            priority
+            className="h-8 w-auto"
+          />
         </Link>
         <Link
           href="/login"
-          className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
         >
           Admin
         </Link>

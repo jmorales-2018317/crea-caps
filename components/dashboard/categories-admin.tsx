@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { CategoryFormDialog } from "@/components/dashboard/category-form-dialog";
 import { DeleteCategoryDialog } from "@/components/dashboard/delete-category-dialog";
+import { CategoryLucideIcon } from "@/components/shared/category-lucide-icon";
 import {
   QueryEmptyState,
   QueryErrorState,
@@ -320,6 +321,7 @@ export function CategoriesAdmin() {
                       aria-label="Seleccionar todas las categorías de esta página"
                     />
                   </TableHead>
+                  <TableHead className="w-14">Icono</TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead className="hidden md:table-cell">
@@ -345,6 +347,23 @@ export function CategoriesAdmin() {
                           }}
                           aria-label={`Seleccionar ${category.name}`}
                         />
+                      </TableCell>
+                      <TableCell>
+                        {category.icon ? (
+                          <span
+                            className="inline-flex size-8 items-center justify-center rounded-md border border-border bg-muted text-foreground"
+                            title={category.icon}
+                          >
+                            <CategoryLucideIcon
+                              name={category.icon}
+                              className="size-4"
+                            />
+                          </span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">
+                            —
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="font-medium">
                         {category.name}

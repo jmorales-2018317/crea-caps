@@ -12,6 +12,7 @@ import {
   deleteCategories,
   deleteCategory,
   getCategoriesByIds,
+  listActiveCategories,
   listCategories,
   searchCategoriesByName,
   updateCategoriesActive,
@@ -20,11 +21,19 @@ import {
 import type { CategoryInsert, CategoryUpdate } from "@/types/categories";
 
 export const categoriesQueryKey = ["categories"] as const;
+export const storeCategoriesQueryKey = ["categories", "store"] as const;
 
 export function useCategories() {
   return useQuery({
     queryKey: categoriesQueryKey,
     queryFn: listCategories,
+  });
+}
+
+export function useStoreCategories(limit = 8) {
+  return useQuery({
+    queryKey: [...storeCategoriesQueryKey, limit] as const,
+    queryFn: () => listActiveCategories({ limit }),
   });
 }
 
@@ -54,6 +63,7 @@ function useInvalidateCategories() {
   return async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: categoriesQueryKey }),
+      queryClient.invalidateQueries({ queryKey: storeCategoriesQueryKey }),
       queryClient.invalidateQueries({ queryKey: dashboardStatsQueryKey }),
     ]);
   };
