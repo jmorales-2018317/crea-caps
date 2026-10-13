@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminClaims } from "@/lib/auth/admin";
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { DashboardShell } from "@/features/dashboard/components/dashboard-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardLayout({

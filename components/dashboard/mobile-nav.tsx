@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Menu } from "lucide-react";
+import { DashboardLogo } from "@/components/dashboard/dashboard-logo";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,16 +34,7 @@ export function MobileNav() {
       <SheetContent side="left" className="w-72 bg-sidebar p-0 text-sidebar-foreground">
         <SheetHeader className="border-b border-sidebar-border">
           <SheetTitle>
-            <Link
-              href="/dashboard"
-              onClick={() => setOpen(false)}
-              className="font-heading text-sm font-semibold tracking-tight"
-            >
-              Caps Store
-              <span className="ml-1.5 font-normal text-muted-foreground">
-                Admin
-              </span>
-            </Link>
+            <DashboardLogo onNavigate={() => setOpen(false)} />
           </SheetTitle>
           <SheetDescription className="sr-only">
             Navegación del panel administrativo
