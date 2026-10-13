@@ -1,5 +1,5 @@
 'use client';
-import { getPublishedProducts } from '@/services/products.service';
+import { getPublishedProducts } from '@/services/products';
 import { useQuery } from '@tanstack/react-query';
 
 export function useProducts() {
