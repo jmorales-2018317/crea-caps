@@ -37,7 +37,7 @@ function ColorSwatch({
       className={cn(
         "inline-block size-5 rounded-full border border-border",
         !hex &&
-          "bg-[linear-gradient(45deg,#e5e5e5_25%,transparent_25%,transparent_75%,#e5e5e5_75%),linear-gradient(45deg,#e5e5e5_25%,transparent_25%,transparent_75%,#e5e5e5_75%)] bg-size-[8px_8px] bg-position-[0_0,4px_4px]",
+          "bg-[linear-gradient(45deg,var(--border)_25%,transparent_25%,transparent_75%,var(--border)_75%),linear-gradient(45deg,var(--border)_25%,transparent_25%,transparent_75%,var(--border)_75%)] bg-size-[8px_8px] bg-position-[0_0,4px_4px]",
         className,
       )}
       style={hex ? { backgroundColor: hex } : undefined}

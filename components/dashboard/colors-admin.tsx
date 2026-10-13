@@ -228,7 +228,7 @@ export function ColorsAdmin() {
 
       {selectedCount > 0 ? (
         <div
-          className="flex flex-col gap-3 rounded-lg border bg-muted/40 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
           role="region"
           aria-label="Acciones para colores seleccionados"
         >

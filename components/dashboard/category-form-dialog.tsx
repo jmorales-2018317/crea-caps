@@ -135,7 +135,7 @@ function CategoryFormFields({
         />
       </div>
 
-      <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
         <div>
           <p className="text-sm font-medium">Activa</p>
           <p className="text-xs text-muted-foreground">

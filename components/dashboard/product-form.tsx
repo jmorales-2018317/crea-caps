@@ -382,7 +382,7 @@ function ProductFormFields({
       ) : null}
       {successMessage ? (
         <p
-          className="text-sm text-emerald-700 dark:text-emerald-400"
+          className="text-sm text-success"
           role="status"
         >
           {successMessage}
@@ -428,14 +428,14 @@ function ProductFormFields({
                     }
                     onClick={() => field.onChange(!field.value)}
                     className={cn(
-                      "text-muted-foreground hover:text-amber-500",
-                      field.value && "text-amber-500 hover:text-amber-600",
+                      "text-muted-foreground hover:text-primary",
+                      field.value && "text-primary hover:text-primary-hover",
                     )}
                   >
                     <Star
                       className={cn(
                         "size-4 transition-colors",
-                        field.value && "fill-amber-500",
+                        field.value && "fill-primary",
                       )}
                     />
                   </Button>

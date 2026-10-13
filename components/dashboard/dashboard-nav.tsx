@@ -28,14 +28,20 @@ export function DashboardNav({ onNavigate, className }: DashboardNavProps) {
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               active
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground",
+                ? "bg-sidebar-accent text-sidebar-accent-foreground before:absolute before:top-1.5 before:bottom-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-sidebar-primary/80"
+                : "text-text-secondary hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
             )}
             aria-current={active ? "page" : undefined}
           >
-            <Icon className="size-4 shrink-0" aria-hidden />
+            <Icon
+              className={cn(
+                "size-4 shrink-0",
+                active ? "text-gold-soft" : "text-text-subtle",
+              )}
+              aria-hidden
+            />
             {item.title}
           </Link>
         );

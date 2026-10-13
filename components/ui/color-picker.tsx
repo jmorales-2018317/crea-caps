@@ -36,10 +36,12 @@ export function ColorPicker({
     <div className={cn("flex items-center gap-2", className)}>
       <label
         className={cn(
-          "relative size-9 shrink-0 overflow-hidden rounded-lg border border-input shadow-sm",
+          "relative size-9 shrink-0 overflow-hidden rounded-lg border border-border shadow-sm",
           disabled && "pointer-events-none opacity-50",
         )}
-        style={{ backgroundColor: HEX_PATTERN.test(value) ? value : "#e5e5e5" }}
+        style={{
+          backgroundColor: HEX_PATTERN.test(value) ? value : "var(--muted)",
+        }}
         title="Seleccionar color"
       >
         <span className="sr-only">Selector visual de color</span>

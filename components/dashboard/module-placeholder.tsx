@@ -21,7 +21,7 @@ export function ModulePlaceholder({
   return (
     <div className="mx-auto max-w-2xl">
       <Card>
-        <CardHeader className="border-b">
+        <CardHeader className="border-b border-border">
           <div className="flex items-start gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
               <Icon className="size-5" aria-hidden />

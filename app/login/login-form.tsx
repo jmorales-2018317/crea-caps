@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isAdminClaims } from "@/lib/auth/admin";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function LoginForm() {
   const router = useRouter();
@@ -48,46 +50,42 @@ export function LoginForm() {
         onSubmit={handleLogin}
         className="flex w-full max-w-sm flex-col gap-4"
       >
-        <h1 className="text-2xl font-bold">Administración</h1>
-        <p className="text-sm text-neutral-600">
+        <h1 className="text-2xl font-bold text-foreground">Administración</h1>
+        <p className="text-sm text-muted-foreground">
           Acceso exclusivo para administradores.
         </p>
 
-        <input
+        <Input
           type="email"
           name="email"
           autoComplete="email"
           placeholder="Correo electrónico"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="rounded border p-3"
+          className="h-auto p-3"
           required
         />
 
-        <input
+        <Input
           type="password"
           name="password"
           autoComplete="current-password"
           placeholder="Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="rounded border p-3"
+          className="h-auto p-3"
           required
         />
 
         {error ? (
-          <p role="alert" className="text-sm text-red-500">
+          <p role="alert" className="text-sm text-destructive">
             {error}
           </p>
         ) : null}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-black p-3 text-white disabled:opacity-50"
-        >
+        <Button type="submit" disabled={loading} className="h-auto p-3">
           {loading ? "Ingresando..." : "Iniciar sesión"}
-        </button>
+        </Button>
       </form>
     </main>
   );

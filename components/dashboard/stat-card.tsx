@@ -23,7 +23,7 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <Card size="sm">
-      <CardHeader className="border-b">
+      <CardHeader className="border-b border-border">
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardDescription>{title}</CardDescription>
@@ -46,7 +46,7 @@ export function StatCard({
 export function StatCardSkeleton() {
   return (
     <Card size="sm">
-      <CardHeader className="border-b">
+      <CardHeader className="border-b border-border">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-2">
             <Skeleton className="h-4 w-24" />

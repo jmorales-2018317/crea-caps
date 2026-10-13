@@ -30,7 +30,7 @@ function DashboardFallback() {
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex h-14 items-center border-b px-4 sm:px-6">
+        <div className="flex h-14 items-center border-b border-border px-4 sm:px-6">
           <Skeleton className="h-5 w-28" />
         </div>
         <div className="space-y-4 p-4 sm:p-6">
