@@ -1,21 +1,24 @@
 import Link from "next/link";
 import { ProductCategories } from "@/components/store/product-categories";
+import { formatGtq } from "@/lib/format-currency";
 import type { PublishedProductCategory } from "@/types/products";
 
 type ProductInfoProps = {
   name: string;
-  sku: string | null;
+  code: string;
+  price: number;
   description: string | null;
   categories: PublishedProductCategory[];
 };
 
 export function ProductInfo({
   name,
-  sku,
+  code,
+  price,
   description,
   categories,
 }: ProductInfoProps) {
-  const trimmedSku = sku?.trim() || null;
+  const trimmedCode = code.trim() || null;
   const trimmedDescription = description?.trim() || null;
 
   return (
@@ -42,10 +45,13 @@ export function ProductInfo({
           <h1 className="text-balance text-2xl font-semibold tracking-tight text-text-strong sm:text-3xl">
             {name}
           </h1>
-          {trimmedSku ? (
+          <p className="text-xl font-semibold tabular-nums tracking-tight text-text-strong sm:text-2xl">
+            {formatGtq(price)}
+          </p>
+          {trimmedCode ? (
             <p className="text-sm text-text-secondary">
-              <span className="text-muted-foreground">SKU</span>{" "}
-              <span className="font-medium text-foreground">{trimmedSku}</span>
+              <span className="text-muted-foreground">Código</span>{" "}
+              <span className="font-medium text-foreground">{trimmedCode}</span>
             </p>
           ) : null}
         </div>

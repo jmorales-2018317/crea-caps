@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ImageIcon,
+  Info,
   Pencil,
   Plus,
   Star,
@@ -61,6 +62,7 @@ import {
   useUpdateProductStatus,
   useUpdateProductsStatus,
 } from "@/hooks/use-products";
+import { formatGtq } from "@/lib/format-currency";
 import { getSupabaseErrorMessage } from "@/lib/supabase/errors";
 import { cn } from "@/lib/utils";
 import { STATUS_LABELS } from "@/schemas/products";
@@ -205,7 +207,7 @@ export function ProductsAdmin() {
       await updateStatusMutation.mutateAsync({
         id: product.id,
         status: nextStatus,
-        slug: product.slug,
+        code: product.code,
       });
     } catch (error) {
       setActionError(getSupabaseErrorMessage(error, "products"));
@@ -218,7 +220,7 @@ export function ProductsAdmin() {
       await updateFeaturedMutation.mutateAsync({
         id: product.id,
         isFeatured: !product.is_featured,
-        slug: product.slug,
+        code: product.code,
       });
     } catch (error) {
       setActionError(getSupabaseErrorMessage(error, "products"));
@@ -308,7 +310,7 @@ export function ProductsAdmin() {
         <Input
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Buscar por nombre, SKU o slug…"
+          placeholder="Buscar por nombre o código…"
           className="sm:max-w-sm"
         />
         <Select
@@ -435,7 +437,8 @@ export function ProductsAdmin() {
                   </TableHead>
                   <TableHead className="w-20">Foto</TableHead>
                   <TableHead>Nombre</TableHead>
-                  <TableHead>SKU</TableHead>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Precio</TableHead>
                   <TableHead>Categorías</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Creación</TableHead>
@@ -510,10 +513,36 @@ export function ProductsAdmin() {
                         )}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {product.name}
+                        {product.status === "archived" ? (
+                          <TooltipProvider delay={300}>
+                            <span className="inline-flex items-center gap-1.5">
+                              <span className="text-muted-foreground line-through">
+                                {product.name}
+                              </span>
+                              <Tooltip>
+                                <TooltipTrigger
+                                  type="button"
+                                  className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                                  aria-label={`${product.name} está archivado`}
+                                >
+                                  <Info className="size-3.5" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-[220px] text-pretty">
+                                  Archivado: no se muestra en la tienda ni en
+                                  productos destacados.
+                                </TooltipContent>
+                              </Tooltip>
+                            </span>
+                          </TooltipProvider>
+                        ) : (
+                          product.name
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {product.sku ?? "—"}
+                        {product.code}
+                      </TableCell>
+                      <TableCell className="tabular-nums text-muted-foreground">
+                        {formatGtq(product.price)}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">

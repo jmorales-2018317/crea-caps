@@ -16,13 +16,13 @@ import {
 } from "@/lib/constants/store";
 import { getSiteUrl } from "@/lib/site-url";
 import {
-  getPublishedProductBySlug,
+  getPublishedProductByCode,
   getRelatedPublishedProducts,
 } from "@/services/products.server";
 import { getStoreSettings } from "@/services/store-settings.server";
 
 type ProductPageProps = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ code: string }>;
 };
 
 function truncateDescription(value: string, max = 160): string {
@@ -36,9 +36,9 @@ function truncateDescription(value: string, max = 160): string {
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { code } = await params;
   const [product, settings] = await Promise.all([
-    getPublishedProductBySlug(slug).catch(() => null),
+    getPublishedProductByCode(code).catch(() => null),
     getStoreSettings().catch(() => null),
   ]);
 
@@ -61,7 +61,7 @@ export async function generateMetadata({
     ? getCatalogImagePublicUrl(primary.storage_path)
     : undefined;
   const siteUrl = getSiteUrl();
-  const canonicalPath = `/productos/${product.slug}`;
+  const canonicalPath = `/productos/${product.code}`;
 
   return {
     metadataBase: new URL(siteUrl),
@@ -116,10 +116,10 @@ function ProductFallback() {
 async function ProductContent({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ code: string }>;
 }) {
-  const { slug } = await params;
-  const product = await getPublishedProductBySlug(slug);
+  const { code } = await params;
+  const product = await getPublishedProductByCode(code);
 
   if (!product) {
     notFound();
@@ -148,7 +148,8 @@ async function ProductContent({
           <div className="min-w-0">
             <ProductInfo
               name={product.name}
-              sku={product.sku}
+              code={product.code}
+              price={product.price}
               description={product.description}
               categories={product.categories}
             />

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ImageIcon } from "lucide-react";
 import { getCatalogImagePublicUrl } from "@/lib/catalog-images";
+import { formatGtq } from "@/lib/format-currency";
 import {
   CONSTRUCTION_LABELS,
   VISOR_LABELS,
@@ -27,7 +28,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link
-      href={`/productos/${product.slug}`}
+      href={`/productos/${product.code}`}
       className="group block min-w-0 space-y-2.5 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-muted">
@@ -51,6 +52,10 @@ export function ProductCard({ product }: ProductCardProps) {
         <h2 className="truncate text-sm font-medium tracking-tight group-hover:text-foreground">
           {product.name}
         </h2>
+
+        <p className="text-sm font-semibold tabular-nums tracking-tight text-text-strong">
+          {formatGtq(product.price)}
+        </p>
 
         {categories.length > 0 ? (
           <p className="truncate text-xs text-text-secondary">

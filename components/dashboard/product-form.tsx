@@ -7,7 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { cn } from "cn";
 import { Info, Star } from "lucide-react";
-import { CategoryMultiSelect } from "@/components/dashboard/category-multi-select";
+import {
+  CategoryMultiSelect,
+  SelectedCategoryBadges,
+} from "@/components/dashboard/category-multi-select";
 import {
   ProductImagesField,
   type PendingProductImage,
@@ -59,7 +62,7 @@ import {
   emptyPartColors,
   getApplicableParts,
   productFormSchema,
-  slugifyProductName,
+  codeifyProductName,
   toSaveAdminProductPayload,
   type ProductFormValues,
 } from "@/schemas/products";
@@ -82,9 +85,9 @@ function toFormValues(product: AdminProductDetail): ProductFormValues {
 
   return {
     name: product.name,
-    slug: product.slug,
-    sku: product.sku ?? "",
+    code: product.code,
     description: product.description ?? "",
+    price: product.price,
     status: product.status,
     is_featured: product.is_featured,
     category_ids: product.product_categories.map((row) => row.category_id),
@@ -173,7 +176,7 @@ function ProductFormFields({
   const [imageUploadMessage, setImageUploadMessage] = useState<string | null>(
     null,
   );
-  const [slugManual, setSlugManual] = useState(Boolean(productId));
+  const [codeManual, setCodeManual] = useState(Boolean(productId));
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -235,7 +238,7 @@ function ProductFormFields({
   }, [activeColors, form]);
 
   const nameRegister = form.register("name");
-  const slugRegister = form.register("slug");
+  const codeRegister = form.register("code");
 
   const onSubmit = async (values: ProductFormValues) => {
     setFormError(null);
@@ -362,7 +365,7 @@ function ProductFormFields({
 
   return (
     <form
-      className="space-y-6 pb-10"
+      className="space-y-6"
       onSubmit={form.handleSubmit(onSubmit)}
       noValidate
     >
@@ -452,10 +455,10 @@ function ProductFormFields({
                 {...nameRegister}
                 onChange={(event) => {
                   void nameRegister.onChange(event);
-                  if (!slugManual) {
+                  if (!codeManual) {
                     form.setValue(
-                      "slug",
-                      slugifyProductName(event.target.value),
+                      "code",
+                      codeifyProductName(event.target.value),
                       {
                         shouldValidate: true,
                       },
@@ -471,18 +474,35 @@ function ProductFormFields({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="product-slug">Slug</Label>
+              <Label htmlFor="product-code">Código</Label>
               <Input
-                id="product-slug"
-                {...slugRegister}
+                id="product-code"
+                {...codeRegister}
                 onChange={(event) => {
-                  setSlugManual(true);
-                  void slugRegister.onChange(event);
+                  setCodeManual(true);
+                  void codeRegister.onChange(event);
                 }}
               />
-              {form.formState.errors.slug ? (
+              {form.formState.errors.code ? (
                 <p className="text-sm text-destructive">
-                  {form.formState.errors.slug.message}
+                  {form.formState.errors.code.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="product-price">Precio (GTQ)</Label>
+              <Input
+                id="product-price"
+                type="number"
+                inputMode="decimal"
+                min={0.01}
+                step={0.01}
+                {...form.register("price", { valueAsNumber: true })}
+              />
+              {form.formState.errors.price ? (
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.price.message}
                 </p>
               ) : null}
             </div>
@@ -737,28 +757,32 @@ function ProductFormFields({
           control={form.control}
           name="category_ids"
           render={({ field }) => (
-            <CategoryMultiSelect
-              value={field.value}
-              onChange={field.onChange}
-            />
+            <div className="space-y-3">
+              <SelectedCategoryBadges
+                value={field.value}
+                onChange={field.onChange}
+              />
+              <CategoryMultiSelect
+                value={field.value}
+                onChange={field.onChange}
+              />
+            </div>
           )}
         />
       </Section>
 
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-sm sm:px-6 lg:left-64">
-        <div className="pointer-events-auto flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            nativeButton={false}
-            render={<Link href="/dashboard/productos" />}
-          >
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Guardando…" : "Guardar producto"}
-          </Button>
-        </div>
+      <div className="flex justify-end gap-2 border-t border-border pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          nativeButton={false}
+          render={<Link href="/dashboard/productos" />}
+        >
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Guardando…" : "Guardar producto"}
+        </Button>
       </div>
     </form>
   );
