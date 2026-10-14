@@ -5,6 +5,12 @@ import { LogOut, Store } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "cn";
 
 type UserMenuProps = {
@@ -31,9 +37,18 @@ export function UserMenu({ email, className, onNavigate }: UserMenuProps) {
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-sidebar-foreground">
-            {label}
-          </p>
+          <TooltipProvider delay={300}>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <p className="truncate text-xs font-medium text-sidebar-foreground" />
+                }
+              >
+                {label}
+              </TooltipTrigger>
+              <TooltipContent side="right">{label}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <p className="text-xs text-muted-foreground">Administrador</p>
         </div>
       </div>
