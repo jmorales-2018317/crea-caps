@@ -1,15 +1,33 @@
-import {
-  PublishedProductsCatalog,
-  StoreHeader,
-} from "@/components/store/published-products-catalog";
+import type { Metadata } from "next";
+import { PublishedProductsCatalog } from "@/components/store/published-products-catalog";
 import { StoreCategories } from "@/components/store/store-categories";
 import { StoreFooter } from "@/components/store/store-footer";
+import { StoreHeader } from "@/components/store/store-header";
 import { StoreHero } from "@/components/store/store-hero";
+import {
+  DEFAULT_STORE_DESCRIPTION,
+  DEFAULT_STORE_NAME,
+} from "@/lib/constants/store";
+import { getStoreSettings } from "@/services/store-settings.server";
 
-export default function Home() {
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getStoreSettings().catch(() => null);
+  const title = settings?.store_name?.trim() || DEFAULT_STORE_NAME;
+  const description =
+    settings?.description?.trim() || DEFAULT_STORE_DESCRIPTION;
+
+  return {
+    title,
+    description,
+  };
+}
+
+export default async function Home() {
+  const settings = await getStoreSettings().catch(() => null);
+
   return (
     <div className="flex min-h-full flex-col bg-background">
-      <StoreHeader />
+      <StoreHeader settings={settings} />
       <StoreHero />
       <main
         id="catalogo"
@@ -26,7 +44,7 @@ export default function Home() {
         <PublishedProductsCatalog />
       </main>
       <StoreCategories />
-      <StoreFooter />
+      <StoreFooter settings={settings} />
     </div>
   );
 }

@@ -11,7 +11,12 @@ function isSupabaseLikeError(error: unknown): error is SupabaseLikeError {
 
 export function getSupabaseErrorMessage(
   error: unknown,
-  context?: "categories" | "colors" | "products" | "product_images",
+  context?:
+    | "categories"
+    | "colors"
+    | "products"
+    | "product_images"
+    | "store_settings",
 ): string {
   if (error instanceof Error) {
     const local = error.message;

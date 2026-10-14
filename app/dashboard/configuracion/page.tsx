@@ -1,12 +1,5 @@
-import { Settings } from "lucide-react";
-import { ModulePlaceholder } from "@/components/dashboard/module-placeholder";
+import { StoreSettingsForm } from "@/components/dashboard/store-settings-form";
 
 export default function ConfiguracionPage() {
-  return (
-    <ModulePlaceholder
-      title="Configuración"
-      description="Ajustes generales de la tienda."
-      icon={Settings}
-    />
-  );
+  return <StoreSettingsForm />;
 }

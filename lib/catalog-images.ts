@@ -47,6 +47,13 @@ export function buildProductImagePath(productId: string, file: File): string {
   return `products/${productId}/${id}.${ext}`;
 }
 
+export function buildStoreLogoPath(file: File): string {
+  const mime = isCatalogImageMimeType(file.type) ? file.type : "image/jpeg";
+  const ext = MIME_TO_EXT[mime];
+  const id = crypto.randomUUID();
+  return `store/logo/${id}.${ext}`;
+}
+
 export function getCatalogImagePublicUrl(storagePath: string): string {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
   if (!base) {

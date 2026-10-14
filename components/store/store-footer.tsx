@@ -1,13 +1,30 @@
-import type { ReactNode, SVGProps } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, MessageCircle, type LucideIcon } from "lucide-react";
-import { getStoreSettings } from "@/services/store-settings";
+import { cacheLife } from "next/cache";
+import { StoreContactIcon } from "@/components/shared/store-contact-icon";
+import {
+  DEFAULT_STORE_DESCRIPTION,
+  DEFAULT_STORE_NAME,
+  FALLBACK_LOGO,
+} from "@/lib/constants/store";
+import { getCatalogImagePublicUrl } from "@/lib/catalog-images";
+import {
+  STORE_CONTACT_KINDS,
+  STORE_CONTACT_KIND_LABELS,
+  isStoreContactSocialKind,
+  resolveStoreContact,
+  type ResolvedStoreContact,
+  type StoreContact,
+  type StoreContactKind,
+} from "@/lib/store-contacts";
+import { cn } from "cn";
 import type { StoreSettingsPublic } from "@/types/store-settings";
 
-const DEFAULT_STORE_NAME = "Caps Store";
-const DEFAULT_DESCRIPTION =
-  "Gorras personalizadas diseñadas para representar tu estilo, identidad o marca.";
+async function getCopyrightYear() {
+  "use cache";
+  cacheLife("days");
+  return new Date().getFullYear();
+}
 
 const NAV_LINKS = [
   { href: "/", label: "Inicio" },
@@ -15,23 +32,79 @@ const NAV_LINKS = [
 ] as const;
 
 type StoreFooterProps = {
-  /** Optional override — when omitted, settings are loaded from Supabase. */
   settings?: StoreSettingsPublic | null;
 };
 
-export async function StoreFooter({
-  settings: settingsProp,
-}: StoreFooterProps = {}) {
-  const settings =
-    settingsProp === undefined
-      ? await getStoreSettings().catch(() => null)
-      : settingsProp;
+type FooterContactSlot = {
+  key: string;
+  kind: StoreContactKind;
+  label: string;
+  resolved: ResolvedStoreContact | null;
+};
 
+function buildContactSlots(contacts: StoreContact[]): FooterContactSlot[] {
+  const byKind = new Map<StoreContactKind, StoreContact[]>();
+
+  for (const contact of contacts) {
+    const list = byKind.get(contact.kind) ?? [];
+    list.push(contact);
+    byKind.set(contact.kind, list);
+  }
+
+  const slots: FooterContactSlot[] = [];
+
+  for (const kind of STORE_CONTACT_KINDS) {
+    if (kind === "custom") {
+      const customs = byKind.get("custom") ?? [];
+      if (customs.length === 0) {
+        slots.push({
+          key: "custom-empty",
+          kind: "custom",
+          label: STORE_CONTACT_KIND_LABELS.custom,
+          resolved: null,
+        });
+        continue;
+      }
+
+      for (const contact of customs) {
+        slots.push({
+          key: contact.id,
+          kind: "custom",
+          label: STORE_CONTACT_KIND_LABELS.custom,
+          resolved: resolveStoreContact(contact),
+        });
+      }
+      continue;
+    }
+
+    const first = byKind.get(kind)?.[0] ?? null;
+    slots.push({
+      key: kind,
+      kind,
+      label: STORE_CONTACT_KIND_LABELS[kind],
+      resolved: first ? resolveStoreContact(first) : null,
+    });
+  }
+
+  return slots;
+}
+
+export async function StoreFooter({ settings }: StoreFooterProps) {
   const storeName = settings?.store_name?.trim() || DEFAULT_STORE_NAME;
-  const description = settings?.description?.trim() || DEFAULT_DESCRIPTION;
-  const year = new Date().getFullYear();
-
-  const contactLinks = buildContactLinks(settings);
+  const description =
+    settings?.description?.trim() || DEFAULT_STORE_DESCRIPTION;
+  const logoSrc =
+    settings?.logo_path && settings.logo_path.trim().length > 0
+      ? getCatalogImagePublicUrl(settings.logo_path) || FALLBACK_LOGO
+      : FALLBACK_LOGO;
+  const year = await getCopyrightYear();
+  const contactSlots = buildContactSlots(settings?.contacts ?? []);
+  const detailSlots = contactSlots.filter(
+    (slot) => !isStoreContactSocialKind(slot.kind),
+  );
+  const socialSlots = contactSlots.filter((slot) =>
+    isStoreContactSocialKind(slot.kind),
+  );
 
   return (
     <footer
@@ -56,7 +129,7 @@ export async function StoreFooter({
               aria-label={storeName}
             >
               <Image
-                src="/logo-gold.webp"
+                src={logoSrc}
                 alt={storeName}
                 width={148}
                 height={58}
@@ -86,38 +159,123 @@ export async function StoreFooter({
             </ul>
           </nav>
 
-          {contactLinks.length > 0 ? (
-            <div className="space-y-4">
-              <h2 className="text-sm font-semibold tracking-tight text-text-strong">
-                Contacto
+          <div className="space-y-8">
+            <section className="space-y-4" aria-labelledby="footer-social-heading">
+              <h2
+                id="footer-social-heading"
+                className="text-sm font-semibold tracking-tight text-text-strong"
+              >
+                Redes sociales
               </h2>
               <ul className="flex flex-wrap gap-2">
-                {contactLinks.map((link) => (
-                  <li key={link.label}>
-                    <a
-                      href={link.href}
-                      target={link.external ? "_blank" : undefined}
-                      rel={link.external ? "noopener noreferrer" : undefined}
-                      className="inline-flex size-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/40 text-text-secondary transition-[color,border-color,background-color] duration-200 hover:border-primary/40 hover:bg-[rgb(184_154_85_/_0.08)] hover:text-gold-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                      aria-label={link.label}
-                    >
-                      <link.icon className="size-4" aria-hidden="true" />
-                    </a>
-                  </li>
-                ))}
+                {socialSlots.map((slot) => {
+                  const label = slot.resolved?.label ?? slot.label;
+                  const className = cn(
+                    "inline-flex size-10 items-center justify-center rounded-lg border transition-[color,border-color,background-color,opacity] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    slot.resolved
+                      ? "cursor-pointer border-border bg-muted/40 text-text-secondary hover:border-primary/40 hover:bg-[rgb(184_154_85_/_0.08)] hover:text-gold-soft"
+                      : "cursor-default border-border/50 bg-muted/20 text-text-subtle opacity-40",
+                  );
+
+                  if (slot.resolved) {
+                    return (
+                      <li key={slot.key}>
+                        <a
+                          href={slot.resolved.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={className}
+                          aria-label={label}
+                        >
+                          <StoreContactIcon
+                            kind={slot.kind}
+                            className="size-4"
+                          />
+                        </a>
+                      </li>
+                    );
+                  }
+
+                  return (
+                    <li key={slot.key}>
+                      <span
+                        className={className}
+                        aria-label={`${label} (no configurado)`}
+                        title={`${label} (no configurado)`}
+                      >
+                        <StoreContactIcon
+                          kind={slot.kind}
+                          className="size-4"
+                        />
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <h2 className="text-sm font-semibold tracking-tight text-text-strong">
-                Tienda
+            </section>
+
+            <section
+              className="space-y-4"
+              aria-labelledby="footer-contact-heading"
+            >
+              <h2
+                id="footer-contact-heading"
+                className="text-sm font-semibold tracking-tight text-text-strong"
+              >
+                Contacto
               </h2>
-              <p className="max-w-xs text-sm leading-relaxed text-text-secondary">
-                Catálogo público de gorras personalizadas. Explora estilos y
-                encuentra la tuya.
-              </p>
-            </div>
-          )}
+              <ul className="grid grid-cols-2 gap-2">
+                {detailSlots.map((slot) => {
+                  const label = slot.resolved?.label ?? slot.label;
+                  const className = cn(
+                    "inline-flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm transition-[color,border-color,background-color,opacity] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    slot.resolved
+                      ? "cursor-pointer border-border bg-muted/40 text-text-secondary hover:border-primary/40 hover:bg-[rgb(184_154_85_/_0.08)] hover:text-gold-soft"
+                      : "cursor-default border-border/50 bg-muted/20 text-text-subtle opacity-40",
+                  );
+
+                  const content = (
+                    <>
+                      <StoreContactIcon kind={slot.kind} className="size-4" />
+                      <span className="min-w-0 truncate">{label}</span>
+                    </>
+                  );
+
+                  if (slot.resolved) {
+                    return (
+                      <li key={slot.key}>
+                        <a
+                          href={slot.resolved.href}
+                          target={
+                            slot.resolved.external ? "_blank" : undefined
+                          }
+                          rel={
+                            slot.resolved.external
+                              ? "noopener noreferrer"
+                              : undefined
+                          }
+                          className={className}
+                        >
+                          {content}
+                        </a>
+                      </li>
+                    );
+                  }
+
+                  return (
+                    <li key={slot.key}>
+                      <span
+                        className={className}
+                        title={`${label} (no configurado)`}
+                      >
+                        {content}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          </div>
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-divider pt-6 sm:flex-row sm:items-center sm:justify-between">
@@ -131,139 +289,4 @@ export async function StoreFooter({
       </div>
     </footer>
   );
-}
-
-type IconComponent =
-  | LucideIcon
-  | ((props: SVGProps<SVGSVGElement>) => ReactNode);
-
-type ContactLink = {
-  href: string;
-  label: string;
-  icon: IconComponent;
-  external: boolean;
-};
-
-function InstagramIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-      {...props}
-    >
-      <rect x="3" y="3" width="18" height="18" rx="5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.5" cy="6.5" r="0.75" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function FacebookIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M14 8h2V5.5A3.5 3.5 0 0 0 12.5 2H10v3h2v3H10v3h2v9h3v-9h2.2L18 8h-4Z" />
-    </svg>
-  );
-}
-
-function buildContactLinks(
-  settings: StoreSettingsPublic | null | undefined,
-): ContactLink[] {
-  if (!settings) {
-    return [];
-  }
-
-  const links: ContactLink[] = [];
-
-  const whatsapp = normalizeWhatsappHref(settings.whatsapp_number);
-  if (whatsapp) {
-    links.push({
-      href: whatsapp,
-      label: "WhatsApp",
-      icon: MessageCircle,
-      external: true,
-    });
-  }
-
-  const email = settings.email?.trim();
-  if (email) {
-    links.push({
-      href: `mailto:${email}`,
-      label: "Correo electrónico",
-      icon: Mail,
-      external: false,
-    });
-  }
-
-  const instagram = normalizeHttpUrl(settings.instagram_url);
-  if (instagram) {
-    links.push({
-      href: instagram,
-      label: "Instagram",
-      icon: InstagramIcon,
-      external: true,
-    });
-  }
-
-  const facebook = normalizeHttpUrl(settings.facebook_url);
-  if (facebook) {
-    links.push({
-      href: facebook,
-      label: "Facebook",
-      icon: FacebookIcon,
-      external: true,
-    });
-  }
-
-  return links;
-}
-
-function normalizeWhatsappHref(value: string | null | undefined): string | null {
-  if (!value?.trim()) {
-    return null;
-  }
-
-  const digits = value.replace(/\D/g, "");
-  if (digits.length < 8) {
-    return null;
-  }
-
-  return `https://wa.me/${digits}`;
-}
-
-function normalizeHttpUrl(value: string | null | undefined): string | null {
-  const trimmed = value?.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  try {
-    const url = new URL(
-      trimmed.startsWith("http://") || trimmed.startsWith("https://")
-        ? trimmed
-        : `https://${trimmed}`,
-    );
-    if (url.protocol !== "http:" && url.protocol !== "https:") {
-      return null;
-    }
-    return url.toString();
-  } catch {
-    return null;
-  }
 }
