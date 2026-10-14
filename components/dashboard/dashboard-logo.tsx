@@ -21,12 +21,15 @@ export function DashboardLogo({ className, onNavigate }: DashboardLogoProps) {
     >
       <Image
         src={FALLBACK_LOGO}
-        alt={DEFAULT_STORE_NAME}
+        alt=""
         width={148}
         height={58}
         priority
         className="h-8 w-auto"
       />
+      <span className="font-heading text-base font-semibold tracking-tight text-text-strong">
+        {DEFAULT_STORE_NAME}
+      </span>
       <span className="sr-only">Admin</span>
     </Link>
   );

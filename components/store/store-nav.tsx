@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, Search } from "lucide-react";
+import { LayoutDashboard, Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -23,7 +23,11 @@ const NAV_LINKS = [
 const linkClassName =
   "rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
-export function StoreNav() {
+type StoreNavProps = {
+  showAdminLink?: boolean;
+};
+
+export function StoreNav({ showAdminLink = false }: StoreNavProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -45,6 +49,18 @@ export function StoreNav() {
           <Search className="size-3.5" aria-hidden />
           Buscar
         </Link>
+        {showAdminLink ? (
+          <Link
+            href="/dashboard"
+            className={cn(
+              linkClassName,
+              "inline-flex items-center gap-1.5 font-medium text-foreground",
+            )}
+          >
+            <LayoutDashboard className="size-3.5" aria-hidden />
+            Administración
+          </Link>
+        ) : null}
       </nav>
 
       <Sheet open={open} onOpenChange={setOpen}>
@@ -91,6 +107,19 @@ export function StoreNav() {
               <Search className="size-3.5" aria-hidden />
               Buscar
             </Link>
+            {showAdminLink ? (
+              <Link
+                href="/dashboard"
+                className={cn(
+                  linkClassName,
+                  "inline-flex items-center gap-2 px-3 py-2.5 font-medium text-foreground",
+                )}
+                onClick={() => setOpen(false)}
+              >
+                <LayoutDashboard className="size-3.5" aria-hidden />
+                Administración
+              </Link>
+            ) : null}
           </nav>
         </SheetContent>
       </Sheet>

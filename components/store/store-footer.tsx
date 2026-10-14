@@ -129,16 +129,19 @@ export async function StoreFooter({ settings }: StoreFooterProps) {
           <div className="space-y-4 sm:col-span-2 lg:col-span-1">
             <Link
               href="/"
-              className="inline-flex items-center rounded-md transition-opacity duration-200 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex items-center gap-2.5 rounded-md transition-opacity duration-200 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               aria-label={storeName}
             >
               <Image
                 src={logoSrc}
-                alt={storeName}
+                alt=""
                 width={148}
                 height={58}
                 className="h-8 w-auto"
               />
+              <span className="font-heading text-base font-semibold tracking-tight text-text-strong sm:text-lg">
+                {storeName}
+              </span>
             </Link>
             <p className="max-w-sm text-sm leading-relaxed text-text-secondary">
               {description}

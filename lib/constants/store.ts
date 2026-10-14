@@ -1,4 +1,4 @@
-export const FALLBACK_LOGO = "/logo-gold.webp";
+export const FALLBACK_LOGO = "/logos/logo.png";
 
 export const DEFAULT_STORE_NAME = "Crea Caps";
 
