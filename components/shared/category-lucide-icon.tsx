@@ -1,25 +1,37 @@
 "use client";
 
-import { DynamicIcon, type IconName } from "lucide-react/dynamic";
+import { DynamicIcon } from "lucide-react/dynamic";
 import { cn } from "cn";
-import { isLucideIconName } from "@/lib/category-icons";
+import {
+  isLucideIconName,
+  resolveCategoryIconName,
+} from "@/lib/category-icons";
 
 type CategoryLucideIconProps = {
   name: string | null | undefined;
   className?: string;
+  /** Si es false, no usa `tag` cuando el nombre es inválido o vacío. */
+  fallbackToDefault?: boolean;
 };
 
 export function CategoryLucideIcon({
   name,
   className,
+  fallbackToDefault = true,
 }: CategoryLucideIconProps) {
-  if (!name || !isLucideIconName(name)) {
+  const resolved = fallbackToDefault
+    ? resolveCategoryIconName(name)
+    : name && isLucideIconName(name)
+      ? name
+      : null;
+
+  if (!resolved) {
     return null;
   }
 
   return (
     <DynamicIcon
-      name={name as IconName}
+      name={resolved}
       className={cn("size-4", className)}
       aria-hidden="true"
       fallback={() => (
