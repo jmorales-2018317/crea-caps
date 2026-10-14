@@ -48,19 +48,11 @@ export function StoreNav({ showAdminLink = false }: StoreNavProps) {
         aria-label="Secciones"
         className="hidden items-center justify-center gap-1 md:flex"
       >
-        {NAV_LINKS.map((link) => {
-          const Icon = link.icon;
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(linkClassName, "inline-flex items-center gap-1.5")}
-            >
-              <Icon className="size-3.5" aria-hidden />
-              {link.label}
-            </Link>
-          );
-        })}
+        {NAV_LINKS.map((link) => (
+          <Link key={link.href} href={link.href} className={linkClassName}>
+            {link.label}
+          </Link>
+        ))}
       </nav>
 
       {/* Desktop: right actions + mobile trigger */}
