@@ -17,7 +17,6 @@ import {
   type StoreContact,
   type StoreContactKind,
 } from "@/lib/store-contacts";
-import { cn } from "cn";
 import type { StoreSettingsPublic } from "@/types/store-settings";
 
 async function getCopyrightYear() {
@@ -28,8 +27,8 @@ async function getCopyrightYear() {
 
 const NAV_LINKS = [
   { href: "/", label: "Inicio" },
+  { href: "/#destacados", label: "Destacados" },
   { href: "/catalogo", label: "Catálogo" },
-  { href: "/catalogo#buscar", label: "Buscar" },
   { href: "/#categorias", label: "Categorías" },
 ] as const;
 
@@ -102,10 +101,12 @@ export async function StoreFooter({ settings }: StoreFooterProps) {
   const year = await getCopyrightYear();
   const contactSlots = buildContactSlots(settings?.contacts ?? []);
   const detailSlots = contactSlots.filter(
-    (slot) => !isStoreContactSocialKind(slot.kind),
+    (slot): slot is FooterContactSlot & { resolved: ResolvedStoreContact } =>
+      !isStoreContactSocialKind(slot.kind) && slot.resolved !== null,
   );
-  const socialSlots = contactSlots.filter((slot) =>
-    isStoreContactSocialKind(slot.kind),
+  const socialSlots = contactSlots.filter(
+    (slot): slot is FooterContactSlot & { resolved: ResolvedStoreContact } =>
+      isStoreContactSocialKind(slot.kind) && slot.resolved !== null,
   );
 
   return (
@@ -162,33 +163,28 @@ export async function StoreFooter({ settings }: StoreFooterProps) {
             </ul>
           </nav>
 
-          <div className="space-y-8">
-            <section className="space-y-4" aria-labelledby="footer-social-heading">
-              <h2
-                id="footer-social-heading"
-                className="text-sm font-semibold tracking-tight text-text-strong"
-              >
-                Redes sociales
-              </h2>
-              <ul className="flex flex-wrap gap-2">
-                {socialSlots.map((slot) => {
-                  const label = slot.resolved?.label ?? slot.label;
-                  const className = cn(
-                    "inline-flex size-10 items-center justify-center rounded-lg border transition-[color,border-color,background-color,opacity] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                    slot.resolved
-                      ? "cursor-pointer border-border bg-muted/40 text-text-secondary hover:border-primary/40 hover:bg-[rgb(184_154_85_/_0.08)] hover:text-gold-soft"
-                      : "cursor-default border-border/50 bg-muted/20 text-text-subtle opacity-40",
-                  );
-
-                  if (slot.resolved) {
-                    return (
+          {socialSlots.length > 0 || detailSlots.length > 0 ? (
+            <div className="space-y-8">
+              {socialSlots.length > 0 ? (
+                <section
+                  className="space-y-4"
+                  aria-labelledby="footer-social-heading"
+                >
+                  <h2
+                    id="footer-social-heading"
+                    className="text-sm font-semibold tracking-tight text-text-strong"
+                  >
+                    Redes sociales
+                  </h2>
+                  <ul className="flex flex-wrap gap-2">
+                    {socialSlots.map((slot) => (
                       <li key={slot.key}>
                         <a
                           href={slot.resolved.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={className}
-                          aria-label={label}
+                          className="inline-flex size-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/40 text-text-secondary transition-[color,border-color,background-color] duration-200 hover:border-primary/40 hover:bg-[rgb(184_154_85_/_0.08)] hover:text-gold-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                          aria-label={slot.resolved.label ?? slot.label}
                         >
                           <StoreContactIcon
                             kind={slot.kind}
@@ -196,56 +192,24 @@ export async function StoreFooter({ settings }: StoreFooterProps) {
                           />
                         </a>
                       </li>
-                    );
-                  }
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
 
-                  return (
-                    <li key={slot.key}>
-                      <span
-                        className={className}
-                        aria-label={`${label} (no configurado)`}
-                        title={`${label} (no configurado)`}
-                      >
-                        <StoreContactIcon
-                          kind={slot.kind}
-                          className="size-4"
-                        />
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-
-            <section
-              className="space-y-4"
-              aria-labelledby="footer-contact-heading"
-            >
-              <h2
-                id="footer-contact-heading"
-                className="text-sm font-semibold tracking-tight text-text-strong"
-              >
-                Contacto
-              </h2>
-              <ul className="grid grid-cols-2 gap-2">
-                {detailSlots.map((slot) => {
-                  const label = slot.resolved?.label ?? slot.label;
-                  const className = cn(
-                    "inline-flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm transition-[color,border-color,background-color,opacity] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                    slot.resolved
-                      ? "cursor-pointer border-border bg-muted/40 text-text-secondary hover:border-primary/40 hover:bg-[rgb(184_154_85_/_0.08)] hover:text-gold-soft"
-                      : "cursor-default border-border/50 bg-muted/20 text-text-subtle opacity-40",
-                  );
-
-                  const content = (
-                    <>
-                      <StoreContactIcon kind={slot.kind} className="size-4" />
-                      <span className="min-w-0 truncate">{label}</span>
-                    </>
-                  );
-
-                  if (slot.resolved) {
-                    return (
+              {detailSlots.length > 0 ? (
+                <section
+                  className="space-y-4"
+                  aria-labelledby="footer-contact-heading"
+                >
+                  <h2
+                    id="footer-contact-heading"
+                    className="text-sm font-semibold tracking-tight text-text-strong"
+                  >
+                    Contacto
+                  </h2>
+                  <ul className="grid grid-cols-2 gap-2">
+                    {detailSlots.map((slot) => (
                       <li key={slot.key}>
                         <a
                           href={slot.resolved.href}
@@ -257,28 +221,23 @@ export async function StoreFooter({ settings }: StoreFooterProps) {
                               ? "noopener noreferrer"
                               : undefined
                           }
-                          className={className}
+                          className="inline-flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-2.5 py-2 text-sm text-text-secondary transition-[color,border-color,background-color] duration-200 hover:border-primary/40 hover:bg-[rgb(184_154_85_/_0.08)] hover:text-gold-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
-                          {content}
+                          <StoreContactIcon
+                            kind={slot.kind}
+                            className="size-4"
+                          />
+                          <span className="min-w-0 truncate">
+                            {slot.resolved.label ?? slot.label}
+                          </span>
                         </a>
                       </li>
-                    );
-                  }
-
-                  return (
-                    <li key={slot.key}>
-                      <span
-                        className={className}
-                        title={`${label} (no configurado)`}
-                      >
-                        {content}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          </div>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-divider pt-6 sm:flex-row sm:items-center sm:justify-between">
