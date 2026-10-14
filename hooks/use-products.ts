@@ -20,6 +20,11 @@ import {
   updateProductStatus,
   updateProductsStatus,
 } from "@/services/products";
+import {
+  productStatusToastMessage,
+  toastMutationError,
+  toastSuccess,
+} from "@/lib/toast";
 import type {
   AdminProductsListParams,
   ProductStatus,
@@ -98,6 +103,10 @@ export function useCreateProduct() {
     mutationFn: (payload: SaveAdminProductPayload) => createProduct(payload),
     onSuccess: async (id, payload) => {
       await invalidate({ productId: id, code: payload.code });
+      toastSuccess("Producto creado");
+    },
+    onError: (error) => {
+      toastMutationError(error, "products");
     },
   });
 }
@@ -118,6 +127,10 @@ export function useUpdateProduct() {
         productId: variables.id,
         code: variables.payload.code,
       });
+      toastSuccess("Producto actualizado");
+    },
+    onError: (error) => {
+      toastMutationError(error, "products");
     },
   });
 }
@@ -137,6 +150,10 @@ export function useUpdateProductStatus() {
     }) => updateProductStatus(id, status),
     onSuccess: async (_data, variables) => {
       await invalidate({ productId: variables.id, code: variables.code });
+      toastSuccess(productStatusToastMessage(variables.status));
+    },
+    onError: (error) => {
+      toastMutationError(error, "products");
     },
   });
 }
@@ -156,6 +173,14 @@ export function useUpdateProductFeatured() {
     }) => updateProductFeatured(id, isFeatured),
     onSuccess: async (_data, variables) => {
       await invalidate({ productId: variables.id, code: variables.code });
+      toastSuccess(
+        variables.isFeatured
+          ? "Producto destacado"
+          : "Producto quitado de destacados",
+      );
+    },
+    onError: (error) => {
+      toastMutationError(error, "products");
     },
   });
 }
@@ -166,8 +191,14 @@ export function useUpdateProductsStatus() {
   return useMutation({
     mutationFn: ({ ids, status }: { ids: string[]; status: ProductStatus }) =>
       updateProductsStatus(ids, status),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await invalidate();
+      toastSuccess(
+        productStatusToastMessage(variables.status, variables.ids.length),
+      );
+    },
+    onError: (error) => {
+      toastMutationError(error, "products");
     },
   });
 }
@@ -179,6 +210,10 @@ export function useDeleteProduct() {
     mutationFn: (id: string) => deleteProduct(id),
     onSuccess: async () => {
       await invalidate();
+      toastSuccess("Producto eliminado");
+    },
+    onError: (error) => {
+      toastMutationError(error, "products");
     },
   });
 }
@@ -188,8 +223,14 @@ export function useDeleteProducts() {
 
   return useMutation({
     mutationFn: (ids: string[]) => deleteProducts(ids),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await invalidate();
+      toastSuccess(
+        variables.length > 1 ? "Productos eliminados" : "Producto eliminado",
+      );
+    },
+    onError: (error) => {
+      toastMutationError(error, "products");
     },
   });
 }

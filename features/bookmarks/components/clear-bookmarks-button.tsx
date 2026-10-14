@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useBookmarksStore } from "@/features/bookmarks/stores/bookmarks.store";
+import { toastSuccess } from "@/lib/toast";
 
 type ClearBookmarksButtonProps = {
   disabled?: boolean;
@@ -57,6 +58,7 @@ export function ClearBookmarksButton({
               onClick={() => {
                 clearBookmarks();
                 setOpen(false);
+                toastSuccess("Guardados vaciados");
               }}
             >
               Quitar todos

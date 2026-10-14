@@ -172,7 +172,6 @@ function ProductFormFields({
       ? "El producto se creó, pero algunas imágenes no se pudieron subir. Reinténtalo desde esta galería."
       : null,
   );
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [imageUploadMessage, setImageUploadMessage] = useState<string | null>(
     null,
   );
@@ -242,7 +241,6 @@ function ProductFormFields({
 
   const onSubmit = async (values: ProductFormValues) => {
     setFormError(null);
-    setSuccessMessage(null);
     setImageUploadMessage(null);
     const payload = toSaveAdminProductPayload(values, productId);
     try {
@@ -293,7 +291,6 @@ function ProductFormFields({
           return;
         }
 
-        setSuccessMessage("Producto actualizado correctamente.");
         router.push("/dashboard/productos");
         router.refresh();
         return;
@@ -331,7 +328,6 @@ function ProductFormFields({
       }
 
       setImageUploadMessage(null);
-      setSuccessMessage("Producto creado correctamente.");
       router.push("/dashboard/productos");
       router.refresh();
     } catch (error) {
@@ -381,14 +377,6 @@ function ProductFormFields({
       {formError ? (
         <p className="text-sm text-destructive" role="alert">
           {formError}
-        </p>
-      ) : null}
-      {successMessage ? (
-        <p
-          className="text-sm text-success"
-          role="status"
-        >
-          {successMessage}
         </p>
       ) : null}
 

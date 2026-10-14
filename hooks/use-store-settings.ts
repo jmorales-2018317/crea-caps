@@ -6,6 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { revalidateStoreSettingsCache } from "@/app/store/actions";
+import { toastMutationError, toastSuccess } from "@/lib/toast";
 import {
   getStoreSettingsClient,
   saveStoreSettings,
@@ -39,6 +40,10 @@ export function useSaveStoreSettings() {
     mutationFn: (input: SaveStoreSettingsInput) => saveStoreSettings(input),
     onSuccess: async () => {
       await invalidate();
+      toastSuccess("Configuración de la tienda actualizada");
+    },
+    onError: (error) => {
+      toastMutationError(error, "store_settings");
     },
   });
 }

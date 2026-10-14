@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowDown,
   ArrowUp,
-  CheckCircle2,
   ImageIcon,
   Plus,
   Trash2,
@@ -185,7 +184,6 @@ function StoreSettingsFormFields({
   const [clearLogo, setClearLogo] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [formError, setFormError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const form = useForm<StoreSettingsFormValues>({
     resolver: zodResolver(storeSettingsFormSchema),
@@ -228,7 +226,6 @@ function StoreSettingsFormFields({
   function handleLogoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
     setFormError(null);
-    setSuccessMessage(null);
 
     if (!file) {
       return;
@@ -255,7 +252,6 @@ function StoreSettingsFormFields({
     setClearLogo(true);
     setFileInputKey((key) => key + 1);
     setFormError(null);
-    setSuccessMessage(null);
   }
 
   function handleDiscard() {
@@ -264,13 +260,11 @@ function StoreSettingsFormFields({
     setClearLogo(false);
     setFileInputKey((key) => key + 1);
     setFormError(null);
-    setSuccessMessage(null);
     form.reset(settingsToFormValues(effectiveSettings));
   }
 
   async function onValid(values: StoreSettingsFormValues) {
     setFormError(null);
-    setSuccessMessage(null);
 
     try {
       const updated = await saveMutation.mutateAsync({
@@ -283,7 +277,6 @@ function StoreSettingsFormFields({
       setClearLogo(false);
       setFileInputKey((key) => key + 1);
       form.reset(settingsToFormValues(updated));
-      setSuccessMessage("Configuración guardada correctamente.");
     } catch (error) {
       setFormError(getSupabaseErrorMessage(error, "store_settings"));
     }
@@ -479,14 +472,6 @@ function StoreSettingsFormFields({
             {isDirty ? (
               <p className="text-sm text-muted-foreground" role="status">
                 Hay cambios sin guardar.
-              </p>
-            ) : successMessage ? (
-              <p
-                className="inline-flex items-center gap-2 text-sm text-emerald-500"
-                role="status"
-              >
-                <CheckCircle2 className="size-4 shrink-0" aria-hidden />
-                {successMessage}
               </p>
             ) : null}
           </div>

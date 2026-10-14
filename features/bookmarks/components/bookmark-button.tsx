@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useBookmarksHydrated } from "@/features/bookmarks/hooks/use-bookmarks-hydrated";
 import { useBookmarksStore } from "@/features/bookmarks/stores/bookmarks.store";
+import { toastSuccess } from "@/lib/toast";
 import { cn } from "cn";
 
 type BookmarkButtonSize = "sm" | "md" | "lg";
@@ -73,7 +74,13 @@ export function BookmarkButton({
     event.preventDefault();
     event.stopPropagation();
     if (!hasHydrated) return;
+    const wasBookmarked = isBookmarked;
     toggleBookmark(productId);
+    toastSuccess(
+      wasBookmarked
+        ? "Producto quitado de guardados"
+        : "Producto guardado",
+    );
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {

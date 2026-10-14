@@ -18,6 +18,12 @@ import {
   updateCategoriesActive,
   updateCategory,
 } from "@/services/categories";
+import {
+  activeToggleToastMessage,
+  isOnlyActiveToggle,
+  toastMutationError,
+  toastSuccess,
+} from "@/lib/toast";
 import type { CategoryInsert, CategoryUpdate } from "@/types/categories";
 
 export const categoriesQueryKey = ["categories"] as const;
@@ -76,6 +82,10 @@ export function useCreateCategory() {
     mutationFn: (input: CategoryInsert) => createCategory(input),
     onSuccess: async () => {
       await invalidate();
+      toastSuccess("Categoría creada");
+    },
+    onError: (error) => {
+      toastMutationError(error, "categories");
     },
   });
 }
@@ -86,8 +96,18 @@ export function useUpdateCategory() {
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: CategoryUpdate }) =>
       updateCategory(id, input),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await invalidate();
+      if (isOnlyActiveToggle(variables.input)) {
+        toastSuccess(
+          activeToggleToastMessage("categoría", variables.input.is_active),
+        );
+        return;
+      }
+      toastSuccess("Categoría actualizada");
+    },
+    onError: (error) => {
+      toastMutationError(error, "categories");
     },
   });
 }
@@ -99,6 +119,10 @@ export function useDeleteCategory() {
     mutationFn: (id: string) => deleteCategory(id),
     onSuccess: async () => {
       await invalidate();
+      toastSuccess("Categoría eliminada");
+    },
+    onError: (error) => {
+      toastMutationError(error, "categories");
     },
   });
 }
@@ -109,8 +133,14 @@ export function useUpdateCategoriesActive() {
   return useMutation({
     mutationFn: ({ ids, isActive }: { ids: string[]; isActive: boolean }) =>
       updateCategoriesActive(ids, isActive),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await invalidate();
+      toastSuccess(
+        activeToggleToastMessage("categorías", variables.isActive),
+      );
+    },
+    onError: (error) => {
+      toastMutationError(error, "categories");
     },
   });
 }
@@ -120,8 +150,14 @@ export function useDeleteCategories() {
 
   return useMutation({
     mutationFn: (ids: string[]) => deleteCategories(ids),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await invalidate();
+      toastSuccess(
+        variables.length > 1 ? "Categorías eliminadas" : "Categoría eliminada",
+      );
+    },
+    onError: (error) => {
+      toastMutationError(error, "categories");
     },
   });
 }
