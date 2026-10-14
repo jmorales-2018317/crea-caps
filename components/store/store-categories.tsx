@@ -8,7 +8,7 @@ import { useStoreCategories } from "@/hooks/use-categories";
 
 const STORE_CATEGORY_LIMIT = 8;
 const CATEGORIES_LIST_CLASS =
-  "mt-10 flex flex-col items-center gap-y-10 sm:flex-row sm:flex-wrap sm:justify-around sm:gap-y-10";
+  "mt-10 grid grid-cols-2 justify-items-center gap-x-4 gap-y-10 sm:flex sm:flex-row sm:flex-wrap sm:justify-around sm:gap-y-10";
 const CATEGORY_ITEM_CLASS = "w-full sm:w-1/6";
 
 export function StoreCategories() {

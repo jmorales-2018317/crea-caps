@@ -24,7 +24,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
             >
               Productos destacados
             </h2>
-            <p className="max-w-md text-sm leading-relaxed text-text-secondary sm:text-base">
+            <p className="text-sm leading-relaxed text-text-secondary sm:text-base">
               Una selección de gorras publicadas para explorar estilos y
               acabados.
             </p>
