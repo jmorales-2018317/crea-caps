@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { revalidatePublishedProductCaches } from "@/app/products/actions";
 import {
   adminProductDetailQueryKey,
   adminProductsQueryKey,
@@ -31,6 +32,7 @@ async function invalidateProductImageQueries(
     }),
     queryClient.invalidateQueries({ queryKey: adminProductsQueryKey }),
     queryClient.invalidateQueries({ queryKey: publishedProductsQueryKey }),
+    revalidatePublishedProductCaches(),
   ]);
 }
 

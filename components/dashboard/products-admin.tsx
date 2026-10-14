@@ -10,6 +10,7 @@ import {
   ImageIcon,
   Pencil,
   Plus,
+  Star,
   Trash2,
   Upload,
   X,
@@ -24,6 +25,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -51,10 +57,12 @@ import {
   useAdminProducts,
   useDeleteProduct,
   useDeleteProducts,
+  useUpdateProductFeatured,
   useUpdateProductStatus,
   useUpdateProductsStatus,
 } from "@/hooks/use-products";
 import { getSupabaseErrorMessage } from "@/lib/supabase/errors";
+import { cn } from "@/lib/utils";
 import { STATUS_LABELS } from "@/schemas/products";
 import type { AdminProductListItem, ProductStatus } from "@/types/products";
 
@@ -88,6 +96,13 @@ function categoryLabels(product: AdminProductListItem) {
     .filter((row): row is { id: string; name: string } => Boolean(row));
 }
 
+function primaryImageIndex(
+  images: AdminProductListItem["product_images"],
+): number {
+  const primary = images.findIndex((image) => image.is_primary);
+  return primary >= 0 ? primary : 0;
+}
+
 export function ProductsAdmin() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -96,6 +111,10 @@ export function ProductsAdmin() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [deleting, setDeleting] = useState<AdminProductListItem | null>(null);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [previewing, setPreviewing] = useState<AdminProductListItem | null>(
+    null,
+  );
+  const [previewIndex, setPreviewIndex] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -117,6 +136,7 @@ export function ProductsAdmin() {
     pageSize: PAGE_SIZE,
   });
   const updateStatusMutation = useUpdateProductStatus();
+  const updateFeaturedMutation = useUpdateProductFeatured();
   const updateProductsStatusMutation = useUpdateProductsStatus();
   const deleteMutation = useDeleteProduct();
   const deleteProductsMutation = useDeleteProducts();
@@ -185,11 +205,45 @@ export function ProductsAdmin() {
       await updateStatusMutation.mutateAsync({
         id: product.id,
         status: nextStatus,
+        slug: product.slug,
       });
     } catch (error) {
       setActionError(getSupabaseErrorMessage(error, "products"));
     }
   }
+
+  async function handleFeaturedToggle(product: AdminProductListItem) {
+    setActionError(null);
+    try {
+      await updateFeaturedMutation.mutateAsync({
+        id: product.id,
+        isFeatured: !product.is_featured,
+        slug: product.slug,
+      });
+    } catch (error) {
+      setActionError(getSupabaseErrorMessage(error, "products"));
+    }
+  }
+
+  function openImagePreview(product: AdminProductListItem) {
+    const images = product.product_images ?? [];
+    if (images.length === 0) {
+      return;
+    }
+    setPreviewing(product);
+    setPreviewIndex(primaryImageIndex(images));
+  }
+
+  const previewImages = previewing?.product_images ?? [];
+  const previewCount = previewImages.length;
+  const safePreviewIndex =
+    previewCount === 0
+      ? 0
+      : Math.min(Math.max(previewIndex, 0), previewCount - 1);
+  const previewUrl =
+    previewCount > 0
+      ? getCatalogImagePublicUrl(previewImages[safePreviewIndex].storage_path)
+      : null;
 
   async function handleBulkStatusChange(nextStatus: ProductStatus) {
     const ids = selectedItems
@@ -379,7 +433,7 @@ export function ProductsAdmin() {
                       aria-label="Seleccionar todos los productos de esta página"
                     />
                   </TableHead>
-                  <TableHead className="w-14">Foto</TableHead>
+                  <TableHead className="w-20">Foto</TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Categorías</TableHead>
@@ -392,9 +446,11 @@ export function ProductsAdmin() {
                 {items.map((product) => {
                   const categories = categoryLabels(product);
                   const isSelected = selectedIds.has(product.id);
+                  const images = product.product_images ?? [];
+                  const imageCount = images.length;
                   const primaryImage =
-                    product.product_images?.find((image) => image.is_primary) ??
-                    product.product_images?.[0] ??
+                    images.find((image) => image.is_primary) ??
+                    images[0] ??
                     null;
                   const thumbUrl = primaryImage
                     ? getCatalogImagePublicUrl(primaryImage.storage_path)
@@ -414,22 +470,44 @@ export function ProductsAdmin() {
                         />
                       </TableCell>
                       <TableCell>
-                        <div className="relative size-10 overflow-hidden rounded-md border border-border bg-muted">
-                          {thumbUrl ? (
-                            <Image
-                              src={thumbUrl}
-                              alt=""
-                              fill
-                              className="object-cover"
-                              sizes="40px"
-                              unoptimized
-                            />
-                          ) : (
-                            <span className="flex size-full items-center justify-center text-muted-foreground">
-                              <ImageIcon className="size-4" aria-hidden />
+                        {thumbUrl ? (
+                          <button
+                            type="button"
+                            onClick={() => openImagePreview(product)}
+                            className="relative size-10 shrink-0 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                            aria-label={
+                              imageCount > 1
+                                ? `Ver galería de ${product.name} (${imageCount} imágenes)`
+                                : `Ver imagen de ${product.name}`
+                            }
+                          >
+                            <span className="relative block size-full overflow-hidden rounded-md border border-border bg-muted transition-opacity hover:opacity-90">
+                              <Image
+                                src={thumbUrl}
+                                alt=""
+                                fill
+                                className="object-cover"
+                                sizes="40px"
+                                unoptimized
+                              />
                             </span>
-                          )}
-                        </div>
+                            {imageCount > 1 ? (
+                              <span
+                                className="absolute -right-1 -top-1 z-10 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-4 text-primary-foreground tabular-nums shadow-sm"
+                                aria-hidden
+                              >
+                                +{imageCount - 1}
+                              </span>
+                            ) : null}
+                          </button>
+                        ) : (
+                          <span
+                            className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground"
+                            aria-hidden
+                          >
+                            <ImageIcon className="size-4" />
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="font-medium">
                         {product.name}
@@ -461,6 +539,42 @@ export function ProductsAdmin() {
                       <TableCell>
                         <TooltipProvider delay={300}>
                           <div className="flex justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger
+                                render={
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    aria-pressed={product.is_featured}
+                                    aria-label={
+                                      product.is_featured
+                                        ? `Quitar ${product.name} de destacados`
+                                        : `Destacar ${product.name}`
+                                    }
+                                    disabled={updateFeaturedMutation.isPending}
+                                    onClick={() => {
+                                      void handleFeaturedToggle(product);
+                                    }}
+                                    className={cn(
+                                      "text-muted-foreground hover:text-primary",
+                                      product.is_featured &&
+                                        "text-primary hover:text-primary-hover",
+                                    )}
+                                  />
+                                }
+                              >
+                                <Star
+                                  className={cn(
+                                    product.is_featured && "fill-primary",
+                                  )}
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {product.is_featured
+                                  ? "Quitar de destacados"
+                                  : "Destacar"}
+                              </TooltipContent>
+                            </Tooltip>
                             <Tooltip>
                               <TooltipTrigger
                                 render={
@@ -615,6 +729,71 @@ export function ProductsAdmin() {
           clearSelection();
         }}
       />
+
+      <Dialog
+        open={Boolean(previewing)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPreviewing(null);
+          }
+        }}
+      >
+        <DialogContent
+          className="max-w-3xl border-0 bg-transparent p-0 shadow-none ring-0 sm:max-w-3xl"
+          showCloseButton
+        >
+          <DialogTitle className="sr-only">
+            {previewing
+              ? `Imagen de ${previewing.name}`
+              : "Vista previa de imagen"}
+          </DialogTitle>
+          {previewUrl ? (
+            <div className="relative mx-auto h-[min(80vh,36rem)] w-full overflow-hidden rounded-xl bg-background">
+              <Image
+                src={previewUrl}
+                alt={previewing ? `Imagen de ${previewing.name}` : ""}
+                fill
+                className="object-contain"
+                sizes="90vw"
+                unoptimized
+              />
+            </div>
+          ) : null}
+          {previewCount > 1 ? (
+            <div className="mt-3 flex items-center justify-center gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                onClick={() =>
+                  setPreviewIndex((current) =>
+                    current <= 0 ? previewCount - 1 : current - 1,
+                  )
+                }
+                aria-label="Imagen anterior"
+              >
+                <ChevronLeft aria-hidden />
+              </Button>
+              <p className="min-w-14 text-center text-sm tabular-nums text-background">
+                {safePreviewIndex + 1} / {previewCount}
+              </p>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                onClick={() =>
+                  setPreviewIndex((current) =>
+                    current >= previewCount - 1 ? 0 : current + 1,
+                  )
+                }
+                aria-label="Imagen siguiente"
+              >
+                <ChevronRight aria-hidden />
+              </Button>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

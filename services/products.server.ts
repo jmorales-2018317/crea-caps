@@ -57,6 +57,8 @@ export function productCacheTag(slug: string) {
   return `product-${slug}`;
 }
 
+export const FEATURED_PRODUCTS_CACHE_TAG = "featured-products";
+
 type DetailRow = {
   id: string;
   name: string;
@@ -141,6 +143,40 @@ function mapCard(row: {
     slug: row.slug,
     product_images: sortProductImages(row.product_images ?? []),
   };
+}
+
+/** Published products marked as featured for the store home. */
+export async function getFeaturedPublishedProducts(
+  limit = 8,
+): Promise<PublishedProductCard[]> {
+  "use cache";
+  cacheTag(FEATURED_PRODUCTS_CACHE_TAG);
+  cacheLife("hours");
+
+  const safeLimit = Math.max(1, Math.min(12, limit));
+
+  const { data, error } = await createPublicClient()
+    .from("products")
+    .select(CARD_SELECT)
+    .eq("status", "published")
+    .eq("is_featured", true)
+    .order("created_at", { ascending: false })
+    .limit(safeLimit);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map((row) =>
+    mapCard(
+      row as {
+        id: string;
+        name: string;
+        slug: string;
+        product_images: PublishedProductCard["product_images"] | null;
+      },
+    ),
+  );
 }
 
 /** Public product detail by slug. Returns null when missing or not published. */

@@ -6,6 +6,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { revalidatePublishedProductCaches } from "@/app/products/actions";
 import { dashboardStatsQueryKey } from "@/hooks/use-dashboard-stats";
 import {
   createProduct,
@@ -15,6 +16,7 @@ import {
   getPublishedProducts,
   listAdminProducts,
   updateProduct,
+  updateProductFeatured,
   updateProductStatus,
   updateProductsStatus,
 } from "@/services/products";
@@ -69,17 +71,18 @@ export function useAdminProduct(id: string | undefined) {
 function useInvalidateAdminProducts() {
   const queryClient = useQueryClient();
 
-  return async (productId?: string) => {
+  return async (options?: { productId?: string; slug?: string }) => {
     const tasks = [
       queryClient.invalidateQueries({ queryKey: adminProductsQueryKey }),
       queryClient.invalidateQueries({ queryKey: dashboardStatsQueryKey }),
       queryClient.invalidateQueries({ queryKey: publishedProductsQueryKey }),
+      revalidatePublishedProductCaches(options?.slug),
     ];
 
-    if (productId) {
+    if (options?.productId) {
       tasks.push(
         queryClient.invalidateQueries({
-          queryKey: adminProductDetailQueryKey(productId),
+          queryKey: adminProductDetailQueryKey(options.productId),
         }),
       );
     }
@@ -93,8 +96,8 @@ export function useCreateProduct() {
 
   return useMutation({
     mutationFn: (payload: SaveAdminProductPayload) => createProduct(payload),
-    onSuccess: async (id) => {
-      await invalidate(id);
+    onSuccess: async (id, payload) => {
+      await invalidate({ productId: id, slug: payload.slug });
     },
   });
 }
@@ -111,7 +114,10 @@ export function useUpdateProduct() {
       payload: SaveAdminProductPayload;
     }) => updateProduct(id, payload),
     onSuccess: async (_data, variables) => {
-      await invalidate(variables.id);
+      await invalidate({
+        productId: variables.id,
+        slug: variables.payload.slug,
+      });
     },
   });
 }
@@ -120,10 +126,36 @@ export function useUpdateProductStatus() {
   const invalidate = useInvalidateAdminProducts();
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: ProductStatus }) =>
-      updateProductStatus(id, status),
+    mutationFn: ({
+      id,
+      status,
+      slug,
+    }: {
+      id: string;
+      status: ProductStatus;
+      slug?: string;
+    }) => updateProductStatus(id, status),
     onSuccess: async (_data, variables) => {
-      await invalidate(variables.id);
+      await invalidate({ productId: variables.id, slug: variables.slug });
+    },
+  });
+}
+
+export function useUpdateProductFeatured() {
+  const invalidate = useInvalidateAdminProducts();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      isFeatured,
+      slug,
+    }: {
+      id: string;
+      isFeatured: boolean;
+      slug?: string;
+    }) => updateProductFeatured(id, isFeatured),
+    onSuccess: async (_data, variables) => {
+      await invalidate({ productId: variables.id, slug: variables.slug });
     },
   });
 }

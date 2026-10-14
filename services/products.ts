@@ -385,6 +385,20 @@ export async function updateProductStatus(
   }
 }
 
+export async function updateProductFeatured(
+  id: string,
+  isFeatured: boolean,
+): Promise<void> {
+  const { error } = await createClient()
+    .from("products")
+    .update({ is_featured: isFeatured })
+    .eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function updateProductsStatus(
   ids: string[],
   status: ProductStatus,

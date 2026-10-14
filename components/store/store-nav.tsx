@@ -15,7 +15,7 @@ import {
 import { cn } from "cn";
 
 const NAV_LINKS = [
-  { href: "/catalogo", label: "Catálogo" },
+  { href: "/#destacados", label: "Destacados" },
   { href: "/#categorias", label: "Categorías" },
   { href: "/#contacto", label: "Contacto" },
 ] as const;
@@ -38,7 +38,7 @@ export function StoreNav() {
           </Link>
         ))}
         <Link
-          href="/catalogo#buscar"
+          href="/catalogo"
           className={cn(linkClassName, "inline-flex items-center gap-1.5")}
           aria-label="Buscar en el catálogo"
         >
@@ -80,7 +80,7 @@ export function StoreNav() {
               </Link>
             ))}
             <Link
-              href="/catalogo#buscar"
+              href="/catalogo"
               className={cn(
                 linkClassName,
                 "inline-flex items-center gap-2 px-3 py-2.5",
