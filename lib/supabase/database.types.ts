@@ -280,10 +280,7 @@ export type Database = {
           store_name: string;
           description: string | null;
           logo_path: string | null;
-          whatsapp_number: string | null;
-          email: string | null;
-          instagram_url: string | null;
-          facebook_url: string | null;
+          contacts: Json;
           updated_at: string;
         };
         Insert: {
@@ -291,10 +288,7 @@ export type Database = {
           store_name?: string;
           description?: string | null;
           logo_path?: string | null;
-          whatsapp_number?: string | null;
-          email?: string | null;
-          instagram_url?: string | null;
-          facebook_url?: string | null;
+          contacts?: Json;
           updated_at?: string;
         };
         Update: {
@@ -302,10 +296,7 @@ export type Database = {
           store_name?: string;
           description?: string | null;
           logo_path?: string | null;
-          whatsapp_number?: string | null;
-          email?: string | null;
-          instagram_url?: string | null;
-          facebook_url?: string | null;
+          contacts?: Json;
           updated_at?: string;
         };
         Relationships: [];
