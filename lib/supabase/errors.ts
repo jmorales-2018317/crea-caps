@@ -64,21 +64,22 @@ export function getSupabaseErrorMessage(
   }
 
   if (code === "23505") {
-    if (context === "categories" || message.includes("categories_slug")) {
-      return "Ya existe una categoría con ese slug.";
+    if (
+      context === "categories" ||
+      message.includes("categories_code") ||
+      message.includes("categories_slug")
+    ) {
+      return "Ya existe una categoría con ese código.";
     }
     if (context === "colors" || message.includes("colors_name")) {
       return "Ya existe un color con ese nombre.";
     }
     if (
       context === "products" ||
-      message.includes("products_slug") ||
-      message.includes("products_sku")
+      message.includes("products_code") ||
+      message.includes("products_slug")
     ) {
-      if (message.includes("sku")) {
-        return "Ya existe un producto con ese SKU.";
-      }
-      return "Ya existe un producto con ese slug.";
+      return "Ya existe un producto con ese código.";
     }
     return "Ya existe un registro con esos datos.";
   }
@@ -101,11 +102,18 @@ export function getSupabaseErrorMessage(
       return "El código hexadecimal no es válido. Usa el formato #RRGGBB.";
     }
     if (
-      context === "categories" ||
-      ((context === "products" || message.includes("slug")) &&
+      context === "categories" &&
+      (message.toLowerCase().includes("code") ||
         message.toLowerCase().includes("slug"))
     ) {
-      return "El slug no es válido. Usa solo minúsculas, números y guiones.";
+      return "El código no es válido. Usa solo minúsculas, números y guiones.";
+    }
+    if (
+      context === "products" &&
+      (message.toLowerCase().includes("code") ||
+        message.toLowerCase().includes("slug"))
+    ) {
+      return "El código no es válido. Usa solo minúsculas, números y guiones.";
     }
     if (context === "products") {
       if (message.toLowerCase().includes("strap")) {

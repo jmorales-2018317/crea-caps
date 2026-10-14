@@ -20,9 +20,9 @@ import type {
 const LIST_SELECT = `
   id,
   name,
-  slug,
-  sku,
+  code,
   description,
+  price,
   is_featured,
   status,
   created_at,
@@ -42,9 +42,9 @@ const LIST_SELECT = `
 const DETAIL_SELECT = `
   id,
   name,
-  slug,
-  sku,
+  code,
   description,
+  price,
   is_featured,
   status,
   created_at,
@@ -75,9 +75,9 @@ type SupabaseClient = ReturnType<typeof createClient>;
 function productFields(payload: SaveAdminProductPayload) {
   return {
     name: payload.name,
-    slug: payload.slug,
-    sku: payload.sku,
+    code: payload.code,
     description: payload.description,
+    price: payload.price,
     status: payload.status,
     is_featured: payload.is_featured,
   };
@@ -159,8 +159,9 @@ async function syncProductRelations(
 const PUBLISHED_LIST_SELECT = `
   id,
   name,
-  slug,
+  code,
   description,
+  price,
   is_featured,
   created_at,
   product_images (
@@ -177,8 +178,9 @@ const PUBLISHED_LIST_SELECT = `
 const PUBLISHED_LIST_BY_CATEGORY_SELECT = `
   id,
   name,
-  slug,
+  code,
   description,
+  price,
   is_featured,
   created_at,
   product_images (
@@ -192,7 +194,7 @@ const PUBLISHED_LIST_BY_CATEGORY_SELECT = `
   product_attributes (*),
   product_categories!inner (
     categories!inner (
-      slug
+      code
     )
   )
 ` as const;
@@ -200,8 +202,9 @@ const PUBLISHED_LIST_BY_CATEGORY_SELECT = `
 type PublishedListRow = {
   id: string;
   name: string;
-  slug: string;
+  code: string;
   description: string | null;
+  price: number;
   is_featured: boolean;
   created_at: string;
   product_images: Array<{
@@ -218,15 +221,15 @@ type PublishedListRow = {
 export async function getPublishedProducts(
   filters: PublishedProductsFilters = {},
 ) {
-  const categorySlug = filters.categorySlug?.trim() ?? "";
+  const categoryCode = filters.categoryCode?.trim() ?? "";
   const client = createClient();
 
-  const query = categorySlug
+  const query = categoryCode
     ? client
         .from("products")
         .select(PUBLISHED_LIST_BY_CATEGORY_SELECT)
         .eq("status", "published")
-        .eq("product_categories.categories.slug", categorySlug)
+        .eq("product_categories.categories.code", categoryCode)
         .order("created_at", { ascending: false })
     : client
         .from("products")
@@ -271,7 +274,7 @@ export async function listAdminProducts(
     if (safe.length > 0) {
       const pattern = `%${safe}%`;
       query = query.or(
-        `name.ilike.${pattern},sku.ilike.${pattern},slug.ilike.${pattern}`,
+        `name.ilike.${pattern},code.ilike.${pattern}`,
       );
     }
   }

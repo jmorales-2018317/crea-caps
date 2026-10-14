@@ -1,4 +1,5 @@
 import { normalizeCatalogSearchParams } from "@/lib/catalog-search-params";
+import { toPriceNumber } from "@/lib/format-currency";
 import { createClient } from "@/lib/supabase/client";
 import type { Json } from "@/lib/supabase/database.types";
 import type {
@@ -17,7 +18,8 @@ import type {
 type RpcRow = {
   id: string;
   name: string;
-  slug: string;
+  code: string;
+  price: number | string;
   created_at: string;
   categories: Json;
   colors: Json;
@@ -36,14 +38,14 @@ function mapCategories(value: Json): PublishedProductCategory[] {
       if (
         typeof row.id !== "string" ||
         typeof row.name !== "string" ||
-        typeof row.slug !== "string"
+        typeof row.code !== "string"
       ) {
         return null;
       }
       return {
         id: row.id,
         name: row.name,
-        slug: row.slug,
+        code: row.code,
       };
     })
     .filter((row): row is PublishedProductCategory => row !== null);
@@ -124,7 +126,8 @@ function mapCard(row: RpcRow): PublishedProductCard {
   return {
     id: row.id,
     name: row.name,
-    slug: row.slug,
+    code: row.code,
+    price: toPriceNumber(row.price),
     created_at: row.created_at,
     categories: mapCategories(row.categories),
     colors: mapColors(row.colors),
@@ -140,7 +143,7 @@ export async function searchPublishedProducts(
 
   const { data, error } = await createClient().rpc("search_published_products", {
     p_query: normalized.q || null,
-    p_category_slugs:
+    p_category_codes:
       normalized.categories.length > 0 ? normalized.categories : null,
     p_color_slugs: normalized.colors.length > 0 ? normalized.colors : null,
     p_visor_types: normalized.visor.length > 0 ? normalized.visor : null,

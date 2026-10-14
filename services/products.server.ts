@@ -1,4 +1,5 @@
 import { cacheLife, cacheTag } from "next/cache";
+import { toPriceNumber } from "@/lib/format-currency";
 import { sortProductImages } from "@/lib/product-images-sort";
 import { createPublicClient } from "@/lib/supabase/public";
 import type {
@@ -10,9 +11,9 @@ import type {
 const DETAIL_SELECT = `
   id,
   name,
-  slug,
-  sku,
+  code,
   description,
+  price,
   status,
   product_images (
     id,
@@ -30,7 +31,7 @@ const DETAIL_SELECT = `
     has_front_logo
   ),
   product_categories (
-    categories ( id, name, slug )
+    categories ( id, name, code )
   ),
   product_part_colors (
     part,
@@ -42,7 +43,8 @@ const DETAIL_SELECT = `
 const CARD_SELECT = `
   id,
   name,
-  slug,
+  code,
+  price,
   product_images (
     id,
     storage_path,
@@ -53,8 +55,8 @@ const CARD_SELECT = `
   )
 ` as const;
 
-export function productCacheTag(slug: string) {
-  return `product-${slug}`;
+export function productCacheTag(code: string) {
+  return `product-${code}`;
 }
 
 export const FEATURED_PRODUCTS_CACHE_TAG = "featured-products";
@@ -62,9 +64,9 @@ export const FEATURED_PRODUCTS_CACHE_TAG = "featured-products";
 type DetailRow = {
   id: string;
   name: string;
-  slug: string;
-  sku: string | null;
+  code: string;
   description: string | null;
+  price: number | string;
   status: PublishedProductDetail["status"];
   product_images: PublishedProductDetail["product_images"] | null;
   product_attributes:
@@ -76,7 +78,7 @@ type DetailRow = {
         categories: {
           id: string;
           name: string;
-          slug: string;
+          code: string;
         } | null;
       }>
     | null;
@@ -116,9 +118,9 @@ function mapDetail(row: DetailRow): PublishedProductDetail {
   return {
     id: row.id,
     name: row.name,
-    slug: row.slug,
-    sku: row.sku,
+    code: row.code,
     description: row.description,
+    price: toPriceNumber(row.price),
     status: row.status,
     product_images: sortProductImages(row.product_images ?? []),
     product_attributes: normalizeAttributes(row.product_attributes),
@@ -134,13 +136,15 @@ function mapDetail(row: DetailRow): PublishedProductDetail {
 function mapCard(row: {
   id: string;
   name: string;
-  slug: string;
+  code: string;
+  price: number | string;
   product_images: PublishedProductCard["product_images"] | null;
 }): PublishedProductCard {
   return {
     id: row.id,
     name: row.name,
-    slug: row.slug,
+    code: row.code,
+    price: toPriceNumber(row.price),
     product_images: sortProductImages(row.product_images ?? []),
   };
 }
@@ -172,30 +176,31 @@ export async function getFeaturedPublishedProducts(
       row as {
         id: string;
         name: string;
-        slug: string;
+        code: string;
+        price: number | string;
         product_images: PublishedProductCard["product_images"] | null;
       },
     ),
   );
 }
 
-/** Public product detail by slug. Returns null when missing or not published. */
-export async function getPublishedProductBySlug(
-  slug: string,
+/** Public product detail by code. Returns null when missing or not published. */
+export async function getPublishedProductByCode(
+  code: string,
 ): Promise<PublishedProductDetail | null> {
   "use cache";
-  cacheTag(productCacheTag(slug));
+  cacheTag(productCacheTag(code));
   cacheLife("hours");
 
-  const normalizedSlug = slug.trim();
-  if (!normalizedSlug) {
+  const normalizedCode = code.trim();
+  if (!normalizedCode) {
     return null;
   }
 
   const { data, error } = await createPublicClient()
     .from("products")
     .select(DETAIL_SELECT)
-    .eq("slug", normalizedSlug)
+    .eq("code", normalizedCode)
     .eq("status", "published")
     .maybeSingle();
 
@@ -261,7 +266,8 @@ export async function getRelatedPublishedProducts(options: {
       row as {
         id: string;
         name: string;
-        slug: string;
+        code: string;
+        price: number | string;
         product_images: PublishedProductCard["product_images"] | null;
       },
     ),

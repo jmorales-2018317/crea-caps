@@ -117,16 +117,21 @@ export const productFormSchema = z
       .trim()
       .min(1, "El nombre es obligatorio.")
       .max(160, "El nombre no puede superar 160 caracteres."),
-    slug: z
+    code: z
       .string()
       .trim()
-      .min(1, "El slug es obligatorio.")
+      .min(1, "El código es obligatorio.")
       .regex(
         SLUG_REGEX,
         "Usa solo minúsculas, números y guiones (ej. gorra-mesh-curved).",
       ),
-    sku: z.string().trim().optional(),
     description: z.string().trim().optional(),
+    price: z
+      .number({ error: "El precio es obligatorio." })
+      .refine((value) => Number.isFinite(value), {
+        message: "El precio es obligatorio.",
+      })
+      .positive("El precio debe ser mayor que cero."),
     status: z.enum(PRODUCT_STATUSES),
     is_featured: z.boolean(),
     category_ids: z.array(z.string().uuid()),
@@ -179,9 +184,9 @@ export function emptyPartColors(): ProductFormValues["part_colors"] {
 export function defaultProductFormValues(): ProductFormValues {
   return {
     name: "",
-    slug: "",
-    sku: "",
+    code: "",
     description: "",
+    price: Number.NaN,
     status: "published",
     is_featured: false,
     category_ids: [],
@@ -218,12 +223,12 @@ export function toSaveAdminProductPayload(
   return {
     id: id ?? null,
     name: values.name,
-    slug: values.slug,
-    sku: values.sku && values.sku.length > 0 ? values.sku : null,
+    code: values.code,
     description:
       values.description && values.description.length > 0
         ? values.description
         : null,
+    price: values.price,
     status: values.status,
     is_featured: values.is_featured,
     category_ids: values.category_ids,
@@ -238,4 +243,5 @@ export function toSaveAdminProductPayload(
   };
 }
 
-export const slugifyProductName = slugifyName;
+/** Generates a product code from the display name (same rules as URL slugs). */
+export const codeifyProductName = slugifyName;

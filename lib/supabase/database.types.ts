@@ -13,9 +13,9 @@ export type Database = {
         Row: {
           id: string;
           name: string;
-          slug: string;
-          sku: string | null;
+          code: string;
           description: string | null;
+          price: number;
           is_featured: boolean;
           status: "draft" | "published" | "archived";
           created_at: string;
@@ -24,9 +24,9 @@ export type Database = {
         Insert: {
           id?: string;
           name: string;
-          slug: string;
-          sku?: string | null;
+          code: string;
           description?: string | null;
+          price: number;
           is_featured?: boolean;
           status?: "draft" | "published" | "archived";
           created_at?: string;
@@ -35,9 +35,9 @@ export type Database = {
         Update: {
           id?: string;
           name?: string;
-          slug?: string;
-          sku?: string | null;
+          code?: string;
           description?: string | null;
+          price?: number;
           is_featured?: boolean;
           status?: "draft" | "published" | "archived";
           created_at?: string;
@@ -49,7 +49,7 @@ export type Database = {
         Row: {
           id: string;
           name: string;
-          slug: string;
+          code: string;
           description: string | null;
           icon: string | null;
           is_active: boolean;
@@ -57,7 +57,7 @@ export type Database = {
         Insert: {
           id?: string;
           name: string;
-          slug: string;
+          code: string;
           description?: string | null;
           icon?: string | null;
           is_active?: boolean;
@@ -65,7 +65,7 @@ export type Database = {
         Update: {
           id?: string;
           name?: string;
-          slug?: string;
+          code?: string;
           description?: string | null;
           icon?: string | null;
           is_active?: boolean;
@@ -315,7 +315,7 @@ export type Database = {
       search_published_products: {
         Args: {
           p_query?: string | null;
-          p_category_slugs?: string[] | null;
+          p_category_codes?: string[] | null;
           p_color_slugs?: string[] | null;
           p_visor_types?: string[] | null;
           p_construction_types?: string[] | null;
@@ -329,7 +329,8 @@ export type Database = {
         Returns: Array<{
           id: string;
           name: string;
-          slug: string;
+          code: string;
+          price: number;
           created_at: string;
           categories: Json;
           colors: Json;

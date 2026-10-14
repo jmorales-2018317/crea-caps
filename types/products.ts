@@ -55,9 +55,9 @@ export type AdminProductsListResult = {
 export type SaveAdminProductPayload = {
   id?: string | null;
   name: string;
-  slug: string;
-  sku: string | null;
+  code: string;
   description: string | null;
+  price: number;
   status: ProductStatus;
   is_featured: boolean;
   category_ids: string[];
@@ -87,7 +87,7 @@ export type PublishedProductImage = Pick<
 export type PublishedProductCategory = {
   id: string;
   name: string;
-  slug: string;
+  code: string;
 };
 
 export type PublishedProductPartColor = {
@@ -103,9 +103,9 @@ export type PublishedProductPartColor = {
 export type PublishedProductDetail = {
   id: string;
   name: string;
-  slug: string;
-  sku: string | null;
+  code: string;
   description: string | null;
+  price: number;
   status: ProductStatus;
   product_images: PublishedProductImage[];
   product_attributes: Pick<
@@ -139,7 +139,8 @@ export type PublishedProductCardAttributes = Pick<
 export type PublishedProductCard = {
   id: string;
   name: string;
-  slug: string;
+  code: string;
+  price: number;
   created_at?: string;
   product_images: Array<
     Pick<
@@ -153,7 +154,7 @@ export type PublishedProductCard = {
 };
 
 export type PublishedProductsFilters = {
-  categorySlug?: string;
+  categoryCode?: string;
 };
 
 export type CatalogSort =

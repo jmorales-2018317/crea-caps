@@ -7,10 +7,10 @@ export const ICON_NAME_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export const categoryFormSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio."),
-  slug: z
+  code: z
     .string()
     .trim()
-    .min(1, "El slug es obligatorio.")
+    .min(1, "El código es obligatorio.")
     .regex(
       SLUG_REGEX,
       "Usa solo minúsculas, números y guiones (ej. gorras-snapback).",
@@ -39,7 +39,7 @@ export function toCategoryPayload(values: CategoryFormValues) {
 
   return {
     name: values.name,
-    slug: values.slug,
+    code: values.code,
     description:
       values.description && values.description.length > 0
         ? values.description
@@ -49,6 +49,7 @@ export function toCategoryPayload(values: CategoryFormValues) {
   };
 }
 
-export function slugifyCategoryName(name: string): string {
+/** Generates a category code from the display name. */
+export function codeifyCategoryName(name: string): string {
   return slugifyName(name);
 }

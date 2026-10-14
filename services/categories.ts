@@ -6,7 +6,7 @@ import type {
 } from "@/types/categories";
 
 const CATEGORY_COLUMNS =
-  "id, name, slug, description, icon, is_active" as const;
+  "id, name, code, description, icon, is_active" as const;
 
 export async function listCategories(): Promise<Category[]> {
   const { data, error } = await createClient()

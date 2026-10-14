@@ -35,7 +35,7 @@ export function publishedProductsFilteredQueryKey(
 ) {
   return [
     ...publishedProductsQueryKey,
-    { categorySlug: filters.categorySlug ?? null },
+    { categoryCode: filters.categoryCode ?? null },
   ] as const;
 }
 
@@ -71,12 +71,12 @@ export function useAdminProduct(id: string | undefined) {
 function useInvalidateAdminProducts() {
   const queryClient = useQueryClient();
 
-  return async (options?: { productId?: string; slug?: string }) => {
+  return async (options?: { productId?: string; code?: string }) => {
     const tasks = [
       queryClient.invalidateQueries({ queryKey: adminProductsQueryKey }),
       queryClient.invalidateQueries({ queryKey: dashboardStatsQueryKey }),
       queryClient.invalidateQueries({ queryKey: publishedProductsQueryKey }),
-      revalidatePublishedProductCaches(options?.slug),
+      revalidatePublishedProductCaches(options?.code),
     ];
 
     if (options?.productId) {
@@ -97,7 +97,7 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: (payload: SaveAdminProductPayload) => createProduct(payload),
     onSuccess: async (id, payload) => {
-      await invalidate({ productId: id, slug: payload.slug });
+      await invalidate({ productId: id, code: payload.code });
     },
   });
 }
@@ -116,7 +116,7 @@ export function useUpdateProduct() {
     onSuccess: async (_data, variables) => {
       await invalidate({
         productId: variables.id,
-        slug: variables.payload.slug,
+        code: variables.payload.code,
       });
     },
   });
@@ -129,14 +129,14 @@ export function useUpdateProductStatus() {
     mutationFn: ({
       id,
       status,
-      slug,
+      code,
     }: {
       id: string;
       status: ProductStatus;
-      slug?: string;
+      code?: string;
     }) => updateProductStatus(id, status),
     onSuccess: async (_data, variables) => {
-      await invalidate({ productId: variables.id, slug: variables.slug });
+      await invalidate({ productId: variables.id, code: variables.code });
     },
   });
 }
@@ -148,14 +148,14 @@ export function useUpdateProductFeatured() {
     mutationFn: ({
       id,
       isFeatured,
-      slug,
+      code,
     }: {
       id: string;
       isFeatured: boolean;
-      slug?: string;
+      code?: string;
     }) => updateProductFeatured(id, isFeatured),
     onSuccess: async (_data, variables) => {
-      await invalidate({ productId: variables.id, slug: variables.slug });
+      await invalidate({ productId: variables.id, code: variables.code });
     },
   });
 }
