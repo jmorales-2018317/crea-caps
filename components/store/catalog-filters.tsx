@@ -44,6 +44,8 @@ type CatalogFiltersProps = {
   colors: Color[];
   loading?: boolean;
   idPrefix?: string;
+  /** Hide the "Filtros" heading (e.g. when rendered inside a Sheet that already has a title). */
+  hideTitle?: boolean;
   onChange: (
     updater: (current: CatalogSearchParams) => CatalogSearchParams,
   ) => void;
@@ -370,6 +372,7 @@ export function CatalogFilters({
   colors,
   loading,
   idPrefix = "catalog",
+  hideTitle = false,
   onChange,
   onClear,
 }: CatalogFiltersProps) {
@@ -475,19 +478,21 @@ export function CatalogFilters({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-medium text-text-strong">
-          Filtros
+      {!hideTitle ? (
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-medium text-text-strong">
+            Filtros
+            {activeCount > 0 ? (
+              <span className="ml-1.5 text-text-secondary">({activeCount})</span>
+            ) : null}
+          </p>
           {activeCount > 0 ? (
-            <span className="ml-1.5 text-text-secondary">({activeCount})</span>
+            <Button type="button" variant="ghost" size="xs" onClick={onClear}>
+              Limpiar todo
+            </Button>
           ) : null}
-        </p>
-        {activeCount > 0 ? (
-          <Button type="button" variant="ghost" size="xs" onClick={onClear}>
-            Limpiar todo
-          </Button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {chips.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">

@@ -79,14 +79,28 @@ export function CatalogPageClient() {
               ) : null}
             </SheetTrigger>
             <SheetContent side="left" className="w-[min(100%,20rem)] overflow-y-auto p-0">
-              <SheetHeader className="border-b border-divider px-4 py-3">
+              <SheetHeader className="flex-row items-center justify-between gap-2 border-b border-divider px-4 py-3 pr-12">
                 <SheetTitle>Filtros</SheetTitle>
                 <SheetDescription className="sr-only">
                   Filtrar el catálogo de gorras
                 </SheetDescription>
+                {activeCount > 0 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    onClick={clearFilters}
+                  >
+                    Limpiar todo
+                  </Button>
+                ) : null}
               </SheetHeader>
               <div className="p-4">
-                <CatalogFilters {...filterProps} idPrefix="catalog-mobile" />
+                <CatalogFilters
+                  {...filterProps}
+                  idPrefix="catalog-mobile"
+                  hideTitle
+                />
               </div>
             </SheetContent>
           </Sheet>
@@ -110,7 +124,7 @@ export function CatalogPageClient() {
               {Array.from({ length: 8 }).map((_, index) => (
                 <Skeleton
                   key={index}
-                  className="aspect-[4/5] w-full rounded-lg"
+                  className="aspect-square w-full rounded-lg"
                 />
               ))}
             </div>
