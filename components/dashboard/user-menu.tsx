@@ -1,21 +1,16 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { LogOut, Store } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { cn } from "cn";
 
 type UserMenuProps = {
   email: string | null;
+  className?: string;
+  onNavigate?: () => void;
 };
 
 function getInitials(email: string | null): string {
@@ -24,51 +19,48 @@ function getInitials(email: string | null): string {
   return local.slice(0, 2).toUpperCase();
 }
 
-export function UserMenu({ email }: UserMenuProps) {
+export function UserMenu({ email, className, onNavigate }: UserMenuProps) {
   const label = email ?? "Administrador";
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Menú de cuenta"
-            className="rounded-full"
-          />
-        }
-      >
+    <div className={cn("space-y-3", className)}>
+      <div className="flex items-center gap-3 px-1">
         <Avatar>
           <AvatarFallback className="text-xs font-medium">
             {getInitials(email)}
           </AvatarFallback>
         </Avatar>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-56">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col gap-0.5 px-0.5 py-0.5">
-              <span className="text-sm font-medium text-foreground">
-                Cuenta administrativa
-              </span>
-              <span className="truncate text-xs text-muted-foreground">
-                {label}
-              </span>
-            </div>
-          </DropdownMenuLabel>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          variant="destructive"
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-sidebar-foreground">
+            {label}
+          </p>
+          <p className="text-xs text-muted-foreground">Administrador</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-9 justify-start gap-2 px-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          nativeButton={false}
+          render={<Link href="/" onClick={onNavigate} />}
+        >
+          <Store className="size-4" aria-hidden />
+          Ir a la tienda
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-9 justify-start gap-2 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
           onClick={() => {
             void signOut();
           }}
         >
-          <LogOut />
+          <LogOut className="size-4" aria-hidden />
           Cerrar sesión
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </Button>
+      </div>
+    </div>
   );
 }

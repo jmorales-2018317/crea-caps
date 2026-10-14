@@ -43,14 +43,6 @@ export const dashboardNavItems: DashboardNavItem[] = [
   },
 ];
 
-export function getDashboardModuleTitle(pathname: string): string {
-  const match = dashboardNavItems.find((item) =>
-    item.exact ? pathname === item.href : pathname.startsWith(item.href),
-  );
-
-  return match?.title ?? "Dashboard";
-}
-
 export function isDashboardNavActive(
   pathname: string,
   item: DashboardNavItem,

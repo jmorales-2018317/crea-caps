@@ -19,8 +19,8 @@ export default function DashboardLayout({
 
 function DashboardFallback() {
   return (
-    <div className="flex min-h-screen bg-muted/30">
-      <aside className="hidden w-64 border-r bg-sidebar p-4 lg:block">
+    <div className="fixed inset-0 flex overflow-hidden bg-muted/30">
+      <aside className="hidden h-full w-64 border-r bg-sidebar p-4 lg:block">
         <Skeleton className="h-5 w-32" />
         <div className="mt-8 space-y-2">
           <Skeleton className="h-9 w-full" />
@@ -29,11 +29,11 @@ function DashboardFallback() {
           <Skeleton className="h-9 w-full" />
         </div>
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex h-14 items-center border-b border-border px-4 sm:px-6">
-          <Skeleton className="h-5 w-28" />
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="flex h-14 shrink-0 items-center border-b border-border px-4 lg:hidden">
+          <Skeleton className="size-7 rounded-md" />
         </div>
-        <div className="space-y-4 p-4 sm:p-6">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-4 w-72" />
         </div>
