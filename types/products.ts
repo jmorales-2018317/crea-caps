@@ -73,3 +73,112 @@ export type SaveAdminProductPayload = {
     color_id: string;
   }>;
 };
+
+export type PublishedProductImage = Pick<
+  ProductImage,
+  | "id"
+  | "storage_path"
+  | "alt_text"
+  | "is_primary"
+  | "sort_order"
+  | "created_at"
+>;
+
+export type PublishedProductCategory = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+export type PublishedProductPartColor = {
+  part: ProductPart;
+  color_id: string;
+  colors: {
+    id: string;
+    name: string;
+    hex_code: string;
+  } | null;
+};
+
+export type PublishedProductDetail = {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string | null;
+  description: string | null;
+  status: ProductStatus;
+  product_images: PublishedProductImage[];
+  product_attributes: Pick<
+    ProductAttributes,
+    | "visor_type"
+    | "construction_type"
+    | "has_strap"
+    | "strap_type"
+    | "has_front_logo"
+  > | null;
+  categories: PublishedProductCategory[];
+  product_part_colors: PublishedProductPartColor[];
+};
+
+export type PublishedProductCardColor = {
+  id: string;
+  name: string;
+  hex_code: string;
+  slug: string;
+};
+
+export type PublishedProductCardAttributes = Pick<
+  ProductAttributes,
+  | "visor_type"
+  | "construction_type"
+  | "has_strap"
+  | "strap_type"
+  | "has_front_logo"
+>;
+
+export type PublishedProductCard = {
+  id: string;
+  name: string;
+  slug: string;
+  created_at?: string;
+  product_images: Array<
+    Pick<
+      ProductImage,
+      "id" | "storage_path" | "alt_text" | "is_primary" | "sort_order" | "created_at"
+    >
+  >;
+  categories?: PublishedProductCategory[];
+  colors?: PublishedProductCardColor[];
+  attributes?: PublishedProductCardAttributes | null;
+};
+
+export type PublishedProductsFilters = {
+  categorySlug?: string;
+};
+
+export type CatalogSort =
+  | "name_asc"
+  | "name_desc"
+  | "created_at_asc"
+  | "created_at_desc";
+
+export type CatalogSearchParams = {
+  q: string;
+  categories: string[];
+  colors: string[];
+  visor: VisorType[];
+  construction: ConstructionType[];
+  hasStrap: boolean | null;
+  strap: StrapType[];
+  hasFrontLogo: boolean | null;
+  sort: CatalogSort;
+  page: number;
+  pageSize: number;
+};
+
+export type CatalogSearchResult = {
+  items: PublishedProductCard[];
+  total: number;
+  page: number;
+  pageSize: number;
+};

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SLUG_REGEX, slugifyCategoryName } from "@/schemas/categories";
+import { SLUG_REGEX, slugifyName } from "@/lib/slug";
 import type { ConstructionType, ProductPart, SaveAdminProductPayload } from "@/types/products";
 
 export const PRODUCT_STATUSES = ["draft", "published", "archived"] as const;
@@ -238,4 +238,4 @@ export function toSaveAdminProductPayload(
   };
 }
 
-export const slugifyProductName = slugifyCategoryName;
+export const slugifyProductName = slugifyName;

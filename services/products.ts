@@ -1,5 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
 import {
+  sortListImages,
+  sortProductImages,
+} from "@/lib/product-images-sort";
+import {
   deleteStoragePaths,
   listProductImagePaths,
 } from "@/services/product-images";
@@ -8,8 +12,8 @@ import type {
   AdminProductListItem,
   AdminProductsListParams,
   AdminProductsListResult,
-  ProductImage,
   ProductStatus,
+  PublishedProductsFilters,
   SaveAdminProductPayload,
 } from "@/types/products";
 
@@ -65,31 +69,6 @@ const DETAIL_SELECT = `
     created_at
   )
 `;
-
-function sortProductImages<T extends Pick<ProductImage, "sort_order" | "is_primary" | "created_at">>(
-  images: T[],
-): T[] {
-  return [...images].sort((a, b) => {
-    if (a.is_primary !== b.is_primary) {
-      return a.is_primary ? -1 : 1;
-    }
-    if (a.sort_order !== b.sort_order) {
-      return a.sort_order - b.sort_order;
-    }
-    return a.created_at.localeCompare(b.created_at);
-  });
-}
-
-function sortListImages<
-  T extends Pick<ProductImage, "sort_order" | "is_primary">,
->(images: T[]): T[] {
-  return [...images].sort((a, b) => {
-    if (a.is_primary !== b.is_primary) {
-      return a.is_primary ? -1 : 1;
-    }
-    return a.sort_order - b.sort_order;
-  });
-}
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
@@ -177,20 +156,91 @@ async function syncProductRelations(
   }
 }
 
-export async function getPublishedProducts() {
-  const { data, error } = await createClient()
-    .from("products")
-    .select(
-      "id,name,slug,description,is_featured,created_at,product_images(id,storage_path,alt_text,is_primary,sort_order,created_at),product_attributes(*)",
+const PUBLISHED_LIST_SELECT = `
+  id,
+  name,
+  slug,
+  description,
+  is_featured,
+  created_at,
+  product_images (
+    id,
+    storage_path,
+    alt_text,
+    is_primary,
+    sort_order,
+    created_at
+  ),
+  product_attributes (*)
+` as const;
+
+const PUBLISHED_LIST_BY_CATEGORY_SELECT = `
+  id,
+  name,
+  slug,
+  description,
+  is_featured,
+  created_at,
+  product_images (
+    id,
+    storage_path,
+    alt_text,
+    is_primary,
+    sort_order,
+    created_at
+  ),
+  product_attributes (*),
+  product_categories!inner (
+    categories!inner (
+      slug
     )
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+  )
+` as const;
+
+type PublishedListRow = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  is_featured: boolean;
+  created_at: string;
+  product_images: Array<{
+    id: string;
+    storage_path: string;
+    alt_text: string | null;
+    is_primary: boolean;
+    sort_order: number;
+    created_at: string;
+  }>;
+  product_attributes: unknown;
+};
+
+export async function getPublishedProducts(
+  filters: PublishedProductsFilters = {},
+) {
+  const categorySlug = filters.categorySlug?.trim() ?? "";
+  const client = createClient();
+
+  const query = categorySlug
+    ? client
+        .from("products")
+        .select(PUBLISHED_LIST_BY_CATEGORY_SELECT)
+        .eq("status", "published")
+        .eq("product_categories.categories.slug", categorySlug)
+        .order("created_at", { ascending: false })
+    : client
+        .from("products")
+        .select(PUBLISHED_LIST_SELECT)
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []).map((product) => ({
+  return ((data ?? []) as PublishedListRow[]).map((product) => ({
     ...product,
     product_images: sortProductImages(product.product_images ?? []),
   }));

@@ -13,8 +13,9 @@ export function StoreCategories() {
   if (categoriesQuery.isPending) {
     return (
       <section
+        id="categorias"
         aria-labelledby="store-categories-heading"
-        className="border-t border-divider"
+        className="scroll-mt-16 border-t border-divider"
       >
         <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
           <CategoriesHeader />
@@ -37,8 +38,9 @@ export function StoreCategories() {
   if (categoriesQuery.isError) {
     return (
       <section
+        id="categorias"
         aria-labelledby="store-categories-heading"
-        className="border-t border-divider"
+        className="scroll-mt-16 border-t border-divider"
       >
         <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
           <CategoriesHeader />
@@ -64,8 +66,9 @@ export function StoreCategories() {
 
   return (
     <section
+      id="categorias"
       aria-labelledby="store-categories-heading"
-      className="border-t border-divider"
+      className="scroll-mt-16 border-t border-divider"
     >
       <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
         <CategoriesHeader />

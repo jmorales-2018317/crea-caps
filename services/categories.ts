@@ -43,6 +43,21 @@ export async function listActiveCategories(
   return data ?? [];
 }
 
+/** All active categories for public catalog filters. */
+export async function listActiveCategoriesForFilters(): Promise<Category[]> {
+  const { data, error } = await createClient()
+    .from("categories")
+    .select(CATEGORY_COLUMNS)
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
 export async function searchCategoriesByName(
   name = "",
   options?: { limit?: number },

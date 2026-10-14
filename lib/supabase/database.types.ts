@@ -304,9 +304,39 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      color_name_slug: {
+        Args: { p_name: string };
+        Returns: string;
+      };
       is_store_admin: {
         Args: Record<string, never>;
         Returns: boolean;
+      };
+      search_published_products: {
+        Args: {
+          p_query?: string | null;
+          p_category_slugs?: string[] | null;
+          p_color_slugs?: string[] | null;
+          p_visor_types?: string[] | null;
+          p_construction_types?: string[] | null;
+          p_has_strap?: boolean | null;
+          p_strap_types?: string[] | null;
+          p_has_front_logo?: boolean | null;
+          p_sort?: string | null;
+          p_page?: number | null;
+          p_page_size?: number | null;
+        };
+        Returns: Array<{
+          id: string;
+          name: string;
+          slug: string;
+          created_at: string;
+          categories: Json;
+          colors: Json;
+          attributes: Json;
+          product_images: Json;
+          total_count: number;
+        }>;
       };
     };
     Enums: Record<string, never>;

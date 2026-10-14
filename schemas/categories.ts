@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { isLucideIconName } from "@/lib/category-icons";
+import { SLUG_REGEX, slugifyName } from "@/lib/slug";
 
-export const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+export { SLUG_REGEX };
 export const ICON_NAME_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export const categoryFormSchema = z.object({
@@ -49,12 +50,5 @@ export function toCategoryPayload(values: CategoryFormValues) {
 }
 
 export function slugifyCategoryName(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-{2,}/g, "-");
+  return slugifyName(name);
 }

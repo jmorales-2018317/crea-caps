@@ -28,7 +28,9 @@ async function getCopyrightYear() {
 
 const NAV_LINKS = [
   { href: "/", label: "Inicio" },
-  { href: "/#catalogo", label: "Catálogo" },
+  { href: "/catalogo", label: "Catálogo" },
+  { href: "/catalogo#buscar", label: "Buscar" },
+  { href: "/#categorias", label: "Categorías" },
 ] as const;
 
 type StoreFooterProps = {
@@ -108,7 +110,8 @@ export async function StoreFooter({ settings }: StoreFooterProps) {
 
   return (
     <footer
-      className="relative mt-auto border-t border-divider"
+      id="contacto"
+      className="relative mt-auto scroll-mt-16 border-t border-divider"
       role="contentinfo"
     >
       <div

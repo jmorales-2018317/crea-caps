@@ -14,6 +14,21 @@ export async function listColors(): Promise<Color[]> {
   return data ?? [];
 }
 
+/** Active colors for public catalog filters. */
+export async function listActiveColors(): Promise<Color[]> {
+  const { data, error } = await createClient()
+    .from("colors")
+    .select("id, name, hex_code, is_active")
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
 export async function createColor(input: ColorInsert): Promise<Color> {
   const { data, error } = await createClient()
     .from("colors")

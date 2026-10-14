@@ -21,20 +21,30 @@ import {
 import type {
   AdminProductsListParams,
   ProductStatus,
+  PublishedProductsFilters,
   SaveAdminProductPayload,
 } from "@/types/products";
 
 export const publishedProductsQueryKey = ["products", "published"] as const;
 export const adminProductsQueryKey = ["products", "admin"] as const;
 
+export function publishedProductsFilteredQueryKey(
+  filters: PublishedProductsFilters = {},
+) {
+  return [
+    ...publishedProductsQueryKey,
+    { categorySlug: filters.categorySlug ?? null },
+  ] as const;
+}
+
 export function adminProductDetailQueryKey(id: string) {
   return ["products", "admin", "detail", id] as const;
 }
 
-export function useProducts() {
+export function useProducts(filters: PublishedProductsFilters = {}) {
   return useQuery({
-    queryKey: publishedProductsQueryKey,
-    queryFn: getPublishedProducts,
+    queryKey: publishedProductsFilteredQueryKey(filters),
+    queryFn: () => getPublishedProducts(filters),
   });
 }
 

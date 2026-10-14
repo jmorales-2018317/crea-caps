@@ -44,7 +44,7 @@ export function StoreHero() {
               size="lg"
               nativeButton={false}
               className="group relative h-12 min-w-44 cursor-pointer overflow-hidden rounded-2xl border border-[#e8d9a8]/30 bg-linear-to-b from-[#e0c878] via-primary to-[#9a7f3f] px-10 text-sm font-semibold tracking-wide text-primary-foreground shadow-[0_4px_24px_rgba(193,161,88,0.28),inset_0_1px_0_rgba(255,255,255,0.35)] transition-[box-shadow,filter,border-color] duration-200 ease-out hover:border-[#f0e4b8]/45 hover:bg-primary hover:shadow-[0_8px_32px_rgba(193,161,88,0.42),inset_0_1px_0_rgba(255,255,255,0.45)] hover:brightness-105 focus-visible:ring-primary/50 active:brightness-95 motion-reduce:transition-none sm:h-12"
-              render={<Link href="#catalogo" />}
+              render={<Link href="/catalogo" />}
             >
               <span
                 className="pointer-events-none absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none"

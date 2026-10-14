@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { StoreNav } from "@/components/store/store-nav";
 import {
   DEFAULT_STORE_NAME,
   FALLBACK_LOGO,
@@ -35,12 +36,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
             className="h-8 w-auto"
           />
         </Link>
-        <Link
-          href="/login"
-          className="rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
-        >
-          Admin
-        </Link>
+        <StoreNav />
       </div>
     </header>
   );
