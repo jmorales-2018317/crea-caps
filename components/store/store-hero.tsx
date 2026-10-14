@@ -66,7 +66,7 @@ export function StoreHero() {
           />
           <Image
             src="/hero-cap.webp"
-            alt="Gorra personalizada Caps Store"
+            alt="Gorra personalizada Crea Caps"
             width={700}
             height={700}
             priority
