@@ -27,7 +27,7 @@ export const PRODUCT_PARTS = [
 
 export const PRODUCT_PART_LABELS: Record<(typeof PRODUCT_PARTS)[number], string> =
   {
-    all: "Color general",
+    all: "General",
     crown: "Corona",
     front_panel: "Panel frontal",
     side_panels: "Paneles laterales",

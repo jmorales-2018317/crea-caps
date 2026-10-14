@@ -85,7 +85,7 @@ export function ProductPartColors({
   return (
     <section
       aria-labelledby="product-colors-heading"
-      className="space-y-4 border-t border-divider pt-6"
+      className="mt-5 space-y-4"
     >
       <div className="space-y-1">
         <h2
@@ -94,27 +94,24 @@ export function ProductPartColors({
         >
           Colores por parte
         </h2>
-        <p className="text-xs text-muted-foreground">
-          Colores reales configurados en este producto.
-        </p>
       </div>
-      <ul className="grid gap-2 sm:grid-cols-2">
+      <ul className="grid grid-cols-2 gap-2">
         {rows.map((row) => (
           <li
             key={row.part}
-            className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5"
+            className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-card px-2.5 py-2 sm:gap-3 sm:px-3 sm:py-2.5"
           >
             <span
-              className="size-9 shrink-0 rounded-full border border-border shadow-sm"
+              className="size-6 shrink-0 rounded-full border border-border shadow-sm sm:size-9"
               style={{ backgroundColor: row.hex }}
               title={row.hex}
               aria-hidden
             />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">
+              <p className="truncate text-xs font-medium text-foreground sm:text-sm">
                 {PRODUCT_PART_LABELS[row.part]}
               </p>
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
                 {row.name}
                 <span className="sr-only">, color {row.hex}</span>
               </p>

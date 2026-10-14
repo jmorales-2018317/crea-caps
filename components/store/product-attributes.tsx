@@ -79,21 +79,29 @@ export function ProductAttributesSection({
           Detalles físicos de esta gorra.
         </p>
       </div>
-      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {rows.map((row) => (
-          <div
-            key={row.label}
-            className="rounded-xl border border-border bg-card px-4 py-3"
-          >
-            <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {row.label}
-            </dt>
-            <dd className="mt-1 min-w-0 text-sm font-medium text-foreground">
-              {row.value}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <table className="w-full text-sm">
+          <caption className="sr-only">
+            Características físicas del producto
+          </caption>
+          <tbody>
+            {rows.map((row) => (
+              <tr
+                key={row.label}
+                className="border-b border-divider last:border-b-0"
+              >
+                <th
+                  scope="row"
+                  className="w-[40%] px-4 py-3 text-left font-medium text-text-secondary sm:w-56"
+                >
+                  {row.label}
+                </th>
+                <td className="px-4 py-3 text-foreground">{row.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }
