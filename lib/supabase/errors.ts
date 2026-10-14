@@ -86,7 +86,7 @@ export function getSupabaseErrorMessage(
 
   if (code === "23503") {
     if (context === "categories") {
-      return "No se puede eliminar: la categoría está asociada a uno o más productos.";
+      return "No se puede eliminar la categoría por una referencia inválida.";
     }
     if (context === "colors") {
       return "No se puede eliminar: el color está en uso en uno o más productos.";

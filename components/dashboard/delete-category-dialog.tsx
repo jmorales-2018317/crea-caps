@@ -58,8 +58,9 @@ export function DeleteCategoryDialog({
                 <span className="font-medium text-foreground">
                   {count === 1 ? "1 categoría" : `${count} categorías`}
                 </span>
-                ? Esta acción no se puede deshacer. Si alguna está asociada a
-                productos, la base de datos impedirá el borrado.
+                ? Esta acción no se puede deshacer. Se quitarán de los productos
+                asociados; los productos se conservan aunque queden sin
+                categoría.
               </>
             ) : (
               <>
@@ -67,8 +68,9 @@ export function DeleteCategoryDialog({
                 <span className="font-medium text-foreground">
                   {category?.name ?? "esta categoría"}
                 </span>
-                ? Esta acción no se puede deshacer. Si está asociada a productos,
-                la base de datos impedirá el borrado.
+                ? Esta acción no se puede deshacer. Se quitará de los productos
+                asociados; los productos se conservan aunque queden sin
+                categoría.
               </>
             )}
           </AlertDialogDescription>
