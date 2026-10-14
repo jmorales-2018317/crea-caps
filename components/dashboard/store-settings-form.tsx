@@ -191,6 +191,7 @@ function StoreSettingsFormFields({
     resolver: zodResolver(storeSettingsFormSchema),
     defaultValues: settingsToFormValues(settings),
   });
+  const { isDirty: isFormDirty } = form.formState;
 
   const contactsField = useFieldArray({
     control: form.control,
@@ -209,6 +210,9 @@ function StoreSettingsFormFields({
 
   const effectiveSettings = saveMutation.data ?? settings;
   const currentLogoPath = effectiveSettings.logo_path ?? null;
+  const isLogoDirty =
+    logoDraft !== null || (clearLogo && currentLogoPath !== null);
+  const isDirty = isFormDirty || isLogoDirty;
   const displayLogoSrc =
     logoDraft?.previewUrl ??
     (clearLogo || !currentLogoPath
@@ -254,6 +258,16 @@ function StoreSettingsFormFields({
     setSuccessMessage(null);
   }
 
+  function handleDiscard() {
+    revokeDraft(logoDraft);
+    setLogoDraft(null);
+    setClearLogo(false);
+    setFileInputKey((key) => key + 1);
+    setFormError(null);
+    setSuccessMessage(null);
+    form.reset(settingsToFormValues(effectiveSettings));
+  }
+
   async function onValid(values: StoreSettingsFormValues) {
     setFormError(null);
     setSuccessMessage(null);
@@ -295,16 +309,6 @@ function StoreSettingsFormFields({
         {formError ? (
           <p className="text-sm text-destructive" role="alert">
             {formError}
-          </p>
-        ) : null}
-
-        {successMessage ? (
-          <p
-            className="inline-flex items-center gap-2 text-sm text-emerald-500"
-            role="status"
-          >
-            <CheckCircle2 className="size-4 shrink-0" aria-hidden />
-            {successMessage}
           </p>
         ) : null}
 
@@ -470,10 +474,39 @@ function StoreSettingsFormFields({
           ) : null}
         </Section>
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? "Guardando…" : "Guardar cambios"}
-          </Button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-h-5" aria-live="polite">
+            {isDirty ? (
+              <p className="text-sm text-muted-foreground" role="status">
+                Hay cambios sin guardar.
+              </p>
+            ) : successMessage ? (
+              <p
+                className="inline-flex items-center gap-2 text-sm text-emerald-500"
+                role="status"
+              >
+                <CheckCircle2 className="size-4 shrink-0" aria-hidden />
+                {successMessage}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!isDirty || saveMutation.isPending}
+              onClick={handleDiscard}
+            >
+              Descartar cambios
+            </Button>
+            <Button
+              type="submit"
+              disabled={!isDirty || saveMutation.isPending}
+            >
+              {saveMutation.isPending ? "Guardando…" : "Guardar cambios"}
+            </Button>
+          </div>
         </div>
       </form>
     </FormProvider>
