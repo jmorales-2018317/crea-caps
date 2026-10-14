@@ -18,9 +18,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getSupabaseErrorMessage } from "@/lib/supabase/errors";
+import { DEFAULT_CATEGORY_ICON } from "@/lib/category-icons";
 import {
   categoryFormSchema,
-  slugifyCategoryName,
+  codeifyCategoryName,
   type CategoryFormValues,
 } from "@/schemas/categories";
 import type { Category } from "@/types/categories";
@@ -43,29 +44,29 @@ function CategoryFormFields({
 }) {
   const isEditing = Boolean(category);
   const [formError, setFormError] = useState<string | null>(null);
-  const [slugManual, setSlugManual] = useState(isEditing);
+  const [codeManual, setCodeManual] = useState(isEditing);
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: category
       ? {
           name: category.name,
-          slug: category.slug,
+          code: category.code,
           description: category.description ?? "",
-          icon: category.icon ?? null,
+          icon: category.icon ?? DEFAULT_CATEGORY_ICON,
           is_active: category.is_active,
         }
       : {
           name: "",
-          slug: "",
+          code: "",
           description: "",
-          icon: null,
+          icon: DEFAULT_CATEGORY_ICON,
           is_active: true,
         },
   });
 
   const nameRegister = form.register("name");
-  const slugRegister = form.register("slug");
+  const codeRegister = form.register("code");
 
   const handleSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
@@ -96,8 +97,8 @@ function CategoryFormFields({
           {...nameRegister}
           onChange={(event) => {
             void nameRegister.onChange(event);
-            if (!slugManual) {
-              form.setValue("slug", slugifyCategoryName(event.target.value), {
+            if (!codeManual) {
+              form.setValue("code", codeifyCategoryName(event.target.value), {
                 shouldValidate: form.formState.isSubmitted,
               });
             }
@@ -111,20 +112,20 @@ function CategoryFormFields({
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="category-slug">Slug</Label>
+        <Label htmlFor="category-code">Código</Label>
         <Input
-          id="category-slug"
+          id="category-code"
           spellCheck={false}
-          aria-invalid={Boolean(form.formState.errors.slug)}
-          {...slugRegister}
+          aria-invalid={Boolean(form.formState.errors.code)}
+          {...codeRegister}
           onChange={(event) => {
-            setSlugManual(true);
-            void slugRegister.onChange(event);
+            setCodeManual(true);
+            void codeRegister.onChange(event);
           }}
         />
-        {form.formState.errors.slug ? (
+        {form.formState.errors.code ? (
           <p className="text-xs text-destructive">
-            {form.formState.errors.slug.message}
+            {form.formState.errors.code.message}
           </p>
         ) : null}
       </div>
@@ -224,7 +225,7 @@ export function CategoryFormDialog({
           </DialogTitle>
           <DialogDescription>
             {category
-              ? "Actualiza el nombre, slug, icono o descripción."
+              ? "Actualiza el nombre, código, icono o descripción."
               : "Crea una categoría para organizar el catálogo."}
           </DialogDescription>
         </DialogHeader>

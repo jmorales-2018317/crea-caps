@@ -35,13 +35,11 @@ type CategoryMultiSelectProps = {
 type SelectedCategoryBadgesProps = {
   value: string[];
   onChange: (ids: string[]) => void;
-  emptyLabel?: string;
 };
 
 export function SelectedCategoryBadges({
   value,
   onChange,
-  emptyLabel = "Sin categorías",
 }: SelectedCategoryBadgesProps) {
   const selectedQuery = useCategoriesByIds(value);
 
@@ -54,7 +52,11 @@ export function SelectedCategoryBadges({
       .filter((category): category is Category => Boolean(category));
   }, [selectedQuery.data, value]);
 
-  if (value.length > 0 && selectedCategories.length === 0 && selectedQuery.isPending) {
+  if (value.length === 0) {
+    return null;
+  }
+
+  if (selectedCategories.length === 0 && selectedQuery.isPending) {
     return (
       <span className="text-sm font-normal text-muted-foreground">
         Cargando categorías…
@@ -63,11 +65,7 @@ export function SelectedCategoryBadges({
   }
 
   if (selectedCategories.length === 0) {
-    return (
-      <span className="text-sm font-normal text-muted-foreground">
-        {emptyLabel}
-      </span>
-    );
+    return null;
   }
 
   return (

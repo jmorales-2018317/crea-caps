@@ -7,6 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useStoreCategories } from "@/hooks/use-categories";
 
 const STORE_CATEGORY_LIMIT = 8;
+const CATEGORIES_LIST_CLASS =
+  "mt-10 flex flex-col items-center gap-y-10 sm:flex-row sm:flex-wrap sm:justify-around sm:gap-y-10";
+const CATEGORY_ITEM_CLASS = "w-full sm:w-1/6";
 
 export function StoreCategories() {
   const categoriesQuery = useStoreCategories(STORE_CATEGORY_LIMIT);
@@ -20,11 +23,11 @@ export function StoreCategories() {
       >
         <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
           <CategoriesHeader />
-          <ul className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 sm:gap-x-8 md:grid-cols-4 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, index) => (
+          <ul className={CATEGORIES_LIST_CLASS}>
+            {Array.from({ length: 6 }).map((_, index) => (
               <li
                 key={index}
-                className="flex flex-col items-center gap-3"
+                className={`flex flex-col items-center gap-3 ${CATEGORY_ITEM_CLASS}`}
               >
                 <Skeleton className="size-20 rounded-full sm:size-24" />
                 <Skeleton className="h-4 w-24 rounded-md" />
@@ -73,15 +76,15 @@ export function StoreCategories() {
     >
       <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
         <CategoriesHeader />
-        <ul className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 sm:gap-x-8 md:grid-cols-4">
+        <ul className={CATEGORIES_LIST_CLASS}>
           {categories.map((category, index) => (
             <li
               key={category.id}
-              className="animate-hero-enter"
+              className={`animate-hero-enter ${CATEGORY_ITEM_CLASS}`}
               style={{ animationDelay: `${index * 60}ms` }}
             >
               <Link
-                href={`/catalogo?categories=${encodeURIComponent(category.slug)}`}
+                href={`/catalogo?categories=${encodeURIComponent(category.code)}`}
                 className="group flex flex-col items-center gap-3 text-center rounded-lg outline-none transition-opacity hover:opacity-90 focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <span

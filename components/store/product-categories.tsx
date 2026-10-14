@@ -23,7 +23,7 @@ export function ProductCategories({
       {categories.map((category) => (
         <li key={category.id}>
           <Link
-            href={`/catalogo?categories=${encodeURIComponent(category.slug)}`}
+            href={`/catalogo?categories=${encodeURIComponent(category.code)}`}
             className="inline-flex min-h-9 items-center rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {category.name}

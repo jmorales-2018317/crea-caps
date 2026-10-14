@@ -14,6 +14,7 @@ import {
 import { CategoryFormDialog } from "@/components/dashboard/category-form-dialog";
 import { DeleteCategoryDialog } from "@/components/dashboard/delete-category-dialog";
 import { CategoryLucideIcon } from "@/components/shared/category-lucide-icon";
+import { DEFAULT_CATEGORY_ICON } from "@/lib/category-icons";
 import {
   QueryEmptyState,
   QueryErrorState,
@@ -91,7 +92,7 @@ export function CategoriesAdmin() {
     return (data ?? []).filter((category) => {
       const haystack = [
         category.name,
-        category.slug,
+        category.code,
         category.description ?? "",
       ]
         .join(" ")
@@ -226,7 +227,7 @@ export function CategoriesAdmin() {
         <Input
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Buscar por nombre, slug o descripción…"
+          placeholder="Buscar por nombre, código o descripción…"
           className="sm:max-w-sm"
         />
       </div>
@@ -323,7 +324,7 @@ export function CategoriesAdmin() {
                   </TableHead>
                   <TableHead className="w-14">Icono</TableHead>
                   <TableHead>Nombre</TableHead>
-                  <TableHead>Slug</TableHead>
+                  <TableHead>Código</TableHead>
                   <TableHead className="hidden md:table-cell">
                     Descripción
                   </TableHead>
@@ -349,27 +350,21 @@ export function CategoriesAdmin() {
                         />
                       </TableCell>
                       <TableCell>
-                        {category.icon ? (
-                          <span
-                            className="inline-flex size-8 items-center justify-center rounded-md border border-border bg-muted text-foreground"
-                            title={category.icon}
-                          >
-                            <CategoryLucideIcon
-                              name={category.icon}
-                              className="size-4"
-                            />
-                          </span>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">
-                            —
-                          </span>
-                        )}
+                        <span
+                          className="inline-flex size-8 items-center justify-center rounded-md border border-border bg-muted text-foreground"
+                          title={category.icon ?? DEFAULT_CATEGORY_ICON}
+                        >
+                          <CategoryLucideIcon
+                            name={category.icon}
+                            className="size-4"
+                          />
+                        </span>
                       </TableCell>
                       <TableCell className="font-medium">
                         {category.name}
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {category.slug}
+                        {category.code}
                       </TableCell>
                       <TableCell className="hidden max-w-xs truncate text-muted-foreground md:table-cell">
                         {category.description || "—"}
