@@ -119,7 +119,7 @@ export function ProductImageGallery({
           >
             <button
               type="button"
-              className="relative aspect-[4/5] max-h-[32rem] w-full overflow-hidden rounded-xl bg-muted text-left transition-opacity hover:opacity-95 sm:aspect-auto sm:h-[32rem]"
+              className="relative aspect-square w-full overflow-hidden rounded-xl bg-muted text-left transition-opacity hover:opacity-95"
               onClick={() => {
                 if (activeUrl) {
                   setLightboxOpen(true);
@@ -183,7 +183,7 @@ export function ProductImageGallery({
 
           {count > 1 ? (
             <ul
-              className="order-2 flex flex-wrap gap-2 sm:order-1 sm:max-h-[32rem] sm:flex-col sm:flex-nowrap sm:overflow-y-auto"
+              className="order-2 flex flex-wrap gap-2 sm:order-1 sm:max-h-full sm:flex-col sm:flex-nowrap sm:overflow-y-auto"
               aria-label="Todas las fotos"
             >
               {images.map((image, index) => {
@@ -230,12 +230,12 @@ export function ProductImageGallery({
         >
           <DialogTitle className="sr-only">{activeAlt}</DialogTitle>
           {activeUrl ? (
-            <div className="relative mx-auto h-[min(80vh,36rem)] w-full overflow-hidden rounded-xl bg-background">
+            <div className="relative mx-auto aspect-square w-full max-w-[min(90vw,36rem)] overflow-hidden rounded-xl bg-background">
               <Image
                 src={activeUrl}
                 alt={activeAlt}
                 fill
-                className="object-contain"
+                className="object-cover"
                 sizes="90vw"
                 unoptimized
               />

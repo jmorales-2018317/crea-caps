@@ -777,12 +777,12 @@ export function ProductsAdmin() {
               : "Vista previa de imagen"}
           </DialogTitle>
           {previewUrl ? (
-            <div className="relative mx-auto h-[min(80vh,36rem)] w-full overflow-hidden rounded-xl bg-background">
+            <div className="relative mx-auto aspect-square w-full max-w-[min(90vw,36rem)] overflow-hidden rounded-xl bg-background">
               <Image
                 src={previewUrl}
                 alt={previewing ? `Imagen de ${previewing.name}` : ""}
                 fill
-                className="object-contain"
+                className="object-cover"
                 sizes="90vw"
                 unoptimized
               />
