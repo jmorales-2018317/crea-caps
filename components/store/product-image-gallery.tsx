@@ -200,10 +200,10 @@ export function ProductImageGallery({
                       aria-label={`Ver imagen ${index + 1} de ${count}`}
                       aria-current={isActive ? "true" : undefined}
                       className={cn(
-                        "relative size-14 overflow-hidden rounded-md bg-muted outline-none transition-shadow focus-visible:ring-3 focus-visible:ring-ring/50 sm:size-[4.5rem]",
+                        "relative size-14 overflow-hidden rounded-md border bg-muted outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:size-[4.5rem]",
                         isActive
-                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                          : "ring-1 ring-border hover:ring-primary/40",
+                          ? "border-primary"
+                          : "border-border/70 hover:border-primary/50",
                       )}
                     >
                       <Image
