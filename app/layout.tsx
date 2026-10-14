@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Crea Caps",
-  description: "Gorras personalizadas",
+  title: "Crea Caps | Gorras personalizadas",
+  description: "Personaliza tu gorra con diseños únicos y crea tu propia colección",
   icons: {
     icon: "/logos/logo-favicon.png",
     apple: "/logos/logo-favicon.png",

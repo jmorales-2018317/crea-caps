@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ProductForm } from "@/components/dashboard/product-form";
 import { Skeleton } from "@/components/ui/skeleton";
+
+export const metadata: Metadata = {
+  title: "Editar producto",
+};
 
 type EditProductoPageProps = {
   params: Promise<{ id: string }>;

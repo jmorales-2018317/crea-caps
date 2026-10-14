@@ -1,9 +1,24 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminClaims } from "@/lib/auth/admin";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DEFAULT_STORE_NAME } from "@/lib/constants/store";
+import { getStoreSettings } from "@/services/store-settings.server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getStoreSettings().catch(() => null);
+  const storeName = settings?.store_name?.trim() || DEFAULT_STORE_NAME;
+
+  return {
+    title: {
+      default: `Admin | ${storeName}`,
+      template: `%s | ${storeName}`,
+    },
+  };
+}
 
 export default function DashboardLayout({
   children,

@@ -221,8 +221,8 @@
       opacity: 0;
       transform: translateY(40px);
     }
-    40% {
-      opacity: 0.45;
+    58% {
+      opacity: 0.8;
     }
     100% {
       opacity: 1;
