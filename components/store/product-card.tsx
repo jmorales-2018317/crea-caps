@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ImageIcon } from "lucide-react";
+import { BookmarkButton } from "@/features/bookmarks/components/bookmark-button";
 import { getCatalogImagePublicUrl } from "@/lib/catalog-images";
 import { formatGtq } from "@/lib/format-currency";
 import {
@@ -27,75 +28,86 @@ export function ProductCard({ product }: ProductCardProps) {
   const attributes = product.attributes ?? null;
 
   return (
-    <Link
-      href={`/productos/${product.code}`}
-      className="group block min-w-0 space-y-2.5 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-    >
-      <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-muted">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={alt}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            unoptimized
-          />
-        ) : (
-          <span className="flex size-full items-center justify-center text-muted-foreground">
-            <ImageIcon className="size-8" aria-hidden />
-          </span>
-        )}
-      </div>
+    <div className="group relative min-w-0 space-y-2.5">
+      <Link
+        href={`/productos/${product.code}`}
+        className="block min-w-0 space-y-2.5 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={alt}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              unoptimized
+            />
+          ) : (
+            <span className="flex size-full items-center justify-center text-muted-foreground">
+              <ImageIcon className="size-8" aria-hidden />
+            </span>
+          )}
+        </div>
 
-      <div className="space-y-1.5">
-        <h2 className="truncate text-sm font-medium tracking-tight group-hover:text-foreground">
-          {product.name}
-        </h2>
+        <div className="space-y-1.5">
+          <h2 className="truncate text-sm font-medium tracking-tight group-hover:text-foreground">
+            {product.name}
+          </h2>
 
-        <p className="text-sm font-semibold tabular-nums tracking-tight text-text-strong">
-          {formatGtq(product.price)}
-        </p>
-
-        {categories.length > 0 ? (
-          <p className="truncate text-xs text-text-secondary">
-            {categories.map((category) => category.name).join(" · ")}
+          <p className="text-sm font-semibold tabular-nums tracking-tight text-text-strong">
+            {formatGtq(product.price)}
           </p>
-        ) : null}
 
-        {colors.length > 0 ? (
-          <ul className="flex flex-wrap items-center gap-1" aria-label="Colores">
-            {colors.slice(0, 6).map((color) => (
-              <li key={color.id}>
-                <span
-                  className="block size-3 rounded-full border border-border"
-                  style={{ backgroundColor: color.hex_code }}
-                  title={color.name}
-                >
-                  <span className="sr-only">{color.name}</span>
-                </span>
-              </li>
-            ))}
-            {colors.length > 6 ? (
-              <li className="text-[10px] text-muted-foreground">
-                +{colors.length - 6}
-              </li>
-            ) : null}
-          </ul>
-        ) : null}
+          {categories.length > 0 ? (
+            <p className="truncate text-xs text-text-secondary">
+              {categories.map((category) => category.name).join(" · ")}
+            </p>
+          ) : null}
 
-        {attributes ? (
-          <p className="truncate text-[11px] text-muted-foreground">
-            {[
-              VISOR_LABELS[attributes.visor_type],
-              CONSTRUCTION_LABELS[attributes.construction_type],
-              attributes.has_front_logo ? "Con logo" : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        ) : null}
+          {colors.length > 0 ? (
+            <ul className="flex flex-wrap items-center gap-1" aria-label="Colores">
+              {colors.slice(0, 6).map((color) => (
+                <li key={color.id}>
+                  <span
+                    className="block size-3 rounded-full border border-border"
+                    style={{ backgroundColor: color.hex_code }}
+                    title={color.name}
+                  >
+                    <span className="sr-only">{color.name}</span>
+                  </span>
+                </li>
+              ))}
+              {colors.length > 6 ? (
+                <li className="text-[10px] text-muted-foreground">
+                  +{colors.length - 6}
+                </li>
+              ) : null}
+            </ul>
+          ) : null}
+
+          {attributes ? (
+            <p className="truncate text-[11px] text-muted-foreground">
+              {[
+                VISOR_LABELS[attributes.visor_type],
+                CONSTRUCTION_LABELS[attributes.construction_type],
+                attributes.has_front_logo ? "Con logo" : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          ) : null}
+        </div>
+      </Link>
+
+      <div className="absolute top-1.5 right-1.5 z-10 sm:top-2.5 sm:right-2.5">
+        <BookmarkButton
+          className="size-8 rounded-full sm:size-10 [&_svg]:size-3.5 sm:[&_svg]:size-5"
+          productId={product.id}
+          size="md"
+          variant="overlay"
+        />
       </div>
-    </Link>
+    </div>
   );
 }

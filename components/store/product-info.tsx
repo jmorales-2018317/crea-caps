@@ -1,24 +1,24 @@
 import Link from "next/link";
 import { ProductCategories } from "@/components/store/product-categories";
+import { BookmarkButton } from "@/features/bookmarks/components/bookmark-button";
 import { formatGtq } from "@/lib/format-currency";
 import type { PublishedProductCategory } from "@/types/products";
 
 type ProductInfoProps = {
+  productId: string;
   name: string;
-  code: string;
   price: number;
   description: string | null;
   categories: PublishedProductCategory[];
 };
 
 export function ProductInfo({
+  productId,
   name,
-  code,
   price,
   description,
   categories,
 }: ProductInfoProps) {
-  const trimmedCode = code.trim() || null;
   const trimmedDescription = description?.trim() || null;
 
   return (
@@ -42,37 +42,30 @@ export function ProductInfo({
         </nav>
 
         <div className="space-y-2">
-          <h1 className="text-balance text-2xl font-semibold tracking-tight text-text-strong sm:text-3xl">
-            {name}
-          </h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="min-w-0 text-balance text-2xl font-semibold tracking-tight text-text-strong sm:text-3xl">
+              {name}
+            </h1>
+            <BookmarkButton
+              productId={productId}
+              size="lg"
+              variant="outline"
+              className="size-9 shrink-0 rounded-lg sm:size-11 [&_svg]:size-4 sm:[&_svg]:size-6"
+            />
+          </div>
           <p className="text-xl font-semibold tabular-nums tracking-tight text-text-strong sm:text-2xl">
             {formatGtq(price)}
           </p>
-          {trimmedCode ? (
-            <p className="text-sm text-text-secondary">
-              <span className="text-muted-foreground">Código</span>{" "}
-              <span className="font-medium text-foreground">{trimmedCode}</span>
-            </p>
-          ) : null}
         </div>
 
         <ProductCategories categories={categories} variant="inline" />
       </div>
 
-      <div className="border-t border-divider pt-5">
-        <h2 className="mb-2 text-sm font-semibold tracking-tight text-text-strong">
-          Descripción
-        </h2>
-        {trimmedDescription ? (
-          <p className="max-w-prose whitespace-pre-wrap text-sm leading-relaxed text-text-secondary sm:text-base">
-            {trimmedDescription}
-          </p>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Este producto no tiene descripción.
-          </p>
-        )}
-      </div>
+      {trimmedDescription ? (
+        <p className="max-w-prose whitespace-pre-wrap text-sm leading-relaxed text-text-secondary sm:text-base">
+          {trimmedDescription}
+        </p>
+      ) : null}
     </div>
   );
 }

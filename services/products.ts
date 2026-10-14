@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { toPriceNumber } from "@/lib/format-currency";
 import {
   sortListImages,
   sortProductImages,
@@ -13,6 +14,9 @@ import type {
   AdminProductsListParams,
   AdminProductsListResult,
   ProductStatus,
+  PublishedProductCard,
+  PublishedProductCardAttributes,
+  PublishedProductCardColor,
   PublishedProductsFilters,
   SaveAdminProductPayload,
 } from "@/types/products";
@@ -247,6 +251,138 @@ export async function getPublishedProducts(
     ...product,
     product_images: sortProductImages(product.product_images ?? []),
   }));
+}
+
+const BOOKMARKED_CARD_SELECT = `
+  id,
+  name,
+  code,
+  price,
+  created_at,
+  product_images (
+    id,
+    storage_path,
+    alt_text,
+    is_primary,
+    sort_order,
+    created_at
+  ),
+  product_attributes (
+    visor_type,
+    construction_type,
+    has_strap,
+    strap_type,
+    has_front_logo
+  ),
+  product_categories (
+    categories ( id, name, code )
+  ),
+  product_part_colors (
+    part,
+    color_id,
+    colors ( id, name, hex_code )
+  )
+` as const;
+
+type BookmarkedCardRow = {
+  id: string;
+  name: string;
+  code: string;
+  price: number | string;
+  created_at: string;
+  product_images: PublishedProductCard["product_images"] | null;
+  product_attributes:
+    | PublishedProductCardAttributes
+    | PublishedProductCardAttributes[]
+    | null;
+  product_categories:
+    | Array<{
+        categories: {
+          id: string;
+          name: string;
+          code: string;
+        } | null;
+      }>
+    | null;
+  product_part_colors:
+    | Array<{
+        part: string;
+        color_id: string;
+        colors: {
+          id: string;
+          name: string;
+          hex_code: string;
+        } | null;
+      }>
+    | null;
+};
+
+function mapBookmarkedCard(row: BookmarkedCardRow): PublishedProductCard {
+  const attributesRaw = Array.isArray(row.product_attributes)
+    ? (row.product_attributes[0] ?? null)
+    : row.product_attributes;
+
+  const categories =
+    row.product_categories
+      ?.map((entry) => entry.categories)
+      .filter(
+        (category): category is NonNullable<typeof category> =>
+          category !== null,
+      ) ?? [];
+
+  const colorMap = new Map<string, PublishedProductCardColor>();
+  for (const entry of row.product_part_colors ?? []) {
+    if (!entry.colors) continue;
+    colorMap.set(entry.colors.id, {
+      id: entry.colors.id,
+      name: entry.colors.name,
+      hex_code: entry.colors.hex_code,
+      slug: "",
+    });
+  }
+
+  return {
+    id: row.id,
+    name: row.name,
+    code: row.code,
+    price: toPriceNumber(row.price),
+    created_at: row.created_at,
+    product_images: sortProductImages(row.product_images ?? []),
+    categories,
+    colors: [...colorMap.values()],
+    attributes: attributesRaw,
+  };
+}
+
+/** Published products by id for local bookmarks. Preserves request order. */
+export async function getPublishedProductsByIds(
+  productIds: string[],
+): Promise<PublishedProductCard[]> {
+  const ids = [...new Set(productIds.map((id) => id.trim()).filter(Boolean))];
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await createClient()
+    .from("products")
+    .select(BOOKMARKED_CARD_SELECT)
+    .in("id", ids)
+    .eq("status", "published");
+
+  if (error) {
+    throw error;
+  }
+
+  const byId = new Map(
+    ((data ?? []) as BookmarkedCardRow[]).map((row) => [
+      row.id,
+      mapBookmarkedCard(row),
+    ]),
+  );
+
+  return ids
+    .map((id) => byId.get(id))
+    .filter((product): product is PublishedProductCard => product != null);
 }
 
 export async function listAdminProducts(

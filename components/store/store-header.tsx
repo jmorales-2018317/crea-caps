@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { StoreNav } from "@/components/store/store-nav";
@@ -14,23 +15,19 @@ type StoreHeaderProps = {
   settings?: StoreSettingsPublic | null;
 };
 
-export async function StoreHeader({ settings }: StoreHeaderProps) {
+export function StoreHeader({ settings }: StoreHeaderProps) {
   const storeName = settings?.store_name?.trim() || DEFAULT_STORE_NAME;
   const logoSrc =
     settings?.logo_path && settings.logo_path.trim().length > 0
       ? getCatalogImagePublicUrl(settings.logo_path) || FALLBACK_LOGO
       : FALLBACK_LOGO;
 
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const showAdminLink = isAdminClaims(data?.claims);
-
   return (
     <header className="sticky top-0 z-20 bg-background/70 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-4 px-4 py-3 md:grid-cols-[1fr_auto_1fr] sm:px-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-2.5 transition-opacity duration-200 hover:opacity-90"
+          className="inline-flex items-center gap-2.5 justify-self-start transition-opacity duration-200 hover:opacity-90"
           aria-label={storeName}
         >
           <Image
@@ -45,8 +42,18 @@ export async function StoreHeader({ settings }: StoreHeaderProps) {
             {storeName}
           </span>
         </Link>
-        <StoreNav showAdminLink={showAdminLink} />
+        <Suspense fallback={<StoreNav />}>
+          <StoreNavWithAuth />
+        </Suspense>
       </div>
     </header>
   );
+}
+
+async function StoreNavWithAuth() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const showAdminLink = isAdminClaims(data?.claims);
+
+  return <StoreNav showAdminLink={showAdminLink} />;
 }

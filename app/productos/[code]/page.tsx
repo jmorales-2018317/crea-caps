@@ -100,7 +100,7 @@ function ProductFallback() {
     <div className="flex min-h-full flex-col bg-background">
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
-          <Skeleton className="aspect-[4/5] w-full rounded-lg" />
+          <Skeleton className="aspect-square w-full rounded-lg" />
           <div className="space-y-4">
             <Skeleton className="h-9 w-2/3" />
             <Skeleton className="h-4 w-1/3" />
@@ -147,8 +147,8 @@ async function ProductContent({
           </div>
           <div className="min-w-0">
             <ProductInfo
+              productId={product.id}
               name={product.name}
-              code={product.code}
               price={product.price}
               description={product.description}
               categories={product.categories}
