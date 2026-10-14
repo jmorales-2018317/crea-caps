@@ -35,13 +35,12 @@ export default async function CatalogPage() {
     <div className="flex min-h-full flex-col bg-background">
       <StoreHeader settings={settings} />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
-        <div className="mb-8 space-y-2">
+        <div className="mb-4 space-y-2">
           <h1 className="text-balance text-2xl font-semibold tracking-tight text-text-strong">
             Catálogo
           </h1>
-          <p className="max-w-lg text-sm leading-relaxed text-text-secondary sm:text-base">
-            Busca gorras por nombre y combina filtros de categoría, color y
-            características.
+          <p className="text-sm leading-relaxed text-text-secondary sm:text-base">
+            Busca gorras por nombre y combina filtros de categoría, color y características.
           </p>
         </div>
         <Suspense fallback={<CatalogFallback />}>

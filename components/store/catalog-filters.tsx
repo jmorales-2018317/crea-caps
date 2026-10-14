@@ -1,10 +1,21 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { Check, Search, X } from "lucide-react";
+import { useMemo, type ReactNode } from "react";
+import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+  useComboboxAnchor,
+} from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countActiveCatalogFilters } from "@/lib/catalog-search-params";
@@ -22,9 +33,10 @@ import type { Category } from "@/types/categories";
 import type { Color } from "@/types/colors";
 import { cn } from "cn";
 
-const CATEGORY_PREVIEW_COUNT = 6;
-const COLOR_PREVIEW_COUNT = 18;
-const SEARCHABLE_THRESHOLD = 10;
+/** Above this count, categories switch from checkboxes to a searchable combobox. */
+const CATEGORY_COMBOBOX_THRESHOLD = 8;
+/** Above this count, colors switch from swatches to a searchable combobox. */
+const COLOR_COMBOBOX_THRESHOLD = 18;
 
 type CatalogFiltersProps = {
   params: CatalogSearchParams;
@@ -44,29 +56,24 @@ function toggleInList<T extends string>(list: T[], value: T): T[] {
     : [...list, value];
 }
 
-function sortSelectedFirst<T>(
-  items: T[],
-  isSelected: (item: T) => boolean,
-): T[] {
-  return [...items].sort((a, b) => {
-    const aSelected = isSelected(a);
-    const bSelected = isSelected(b);
-    if (aSelected === bSelected) return 0;
-    return aSelected ? -1 : 1;
-  });
-}
-
 function FilterSection({
   title,
   children,
+  count,
 }: {
   title: string;
   children: ReactNode;
+  count?: number;
 }) {
   return (
     <section className="space-y-3">
-      <h3 className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
-        {title}
+      <h3 className="flex items-baseline justify-between gap-2 text-xs font-semibold tracking-wide text-text-secondary uppercase">
+        <span>{title}</span>
+        {count !== undefined && count > 0 ? (
+          <span className="font-medium normal-case text-foreground tabular-nums">
+            {count}
+          </span>
+        ) : null}
       </h3>
       <div className="space-y-2">{children}</div>
     </section>
@@ -105,56 +112,22 @@ function CheckboxRow({
   );
 }
 
-function FilterSearch({
-  id,
-  value,
-  onChange,
-  placeholder,
+function ColorSwatch({
+  hex,
+  className,
 }: {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
+  hex: string;
+  className?: string;
 }) {
   return (
-    <div className="relative">
-      <Search
-        className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
-        aria-hidden
-      />
-      <Input
-        id={id}
-        type="search"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="h-8 pl-8 text-sm"
-      />
-    </div>
-  );
-}
-
-function ExpandToggle({
-  expanded,
-  hiddenCount,
-  onToggle,
-}: {
-  expanded: boolean;
-  hiddenCount: number;
-  onToggle: () => void;
-}) {
-  if (hiddenCount <= 0 && !expanded) return null;
-
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="xs"
-      className="mt-1 h-7 px-1.5 text-xs text-text-secondary hover:text-foreground"
-      onClick={onToggle}
-    >
-      {expanded ? "Ver menos" : `Ver ${hiddenCount} más`}
-    </Button>
+    <span
+      className={cn(
+        "inline-block size-3.5 shrink-0 rounded-full border border-border",
+        className,
+      )}
+      style={{ backgroundColor: hex }}
+      aria-hidden
+    />
   );
 }
 
@@ -162,32 +135,21 @@ function CategoryFilterList({
   categories,
   selected,
   idPrefix,
-  onToggle,
+  onChange,
 }: {
   categories: Category[];
   selected: string[];
   idPrefix: string;
-  onToggle: (slug: string) => void;
+  onChange: (codes: string[]) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const [query, setQuery] = useState("");
-  const showSearch = categories.length > SEARCHABLE_THRESHOLD;
-  const normalizedQuery = query.trim().toLowerCase();
-
-  const filtered = sortSelectedFirst(
-    categories.filter((category) =>
-      normalizedQuery
-        ? category.name.toLowerCase().includes(normalizedQuery)
-        : true,
-    ),
-    (category) => selected.includes(category.slug),
+  const chipsRef = useComboboxAnchor();
+  const selectedCategories = useMemo(
+    () =>
+      selected
+        .map((code) => categories.find((category) => category.code === code))
+        .filter((category): category is Category => Boolean(category)),
+    [categories, selected],
   );
-
-  const visible =
-    expanded || normalizedQuery
-      ? filtered
-      : filtered.slice(0, CATEGORY_PREVIEW_COUNT);
-  const hiddenCount = Math.max(0, filtered.length - CATEGORY_PREVIEW_COUNT);
 
   if (categories.length === 0) {
     return (
@@ -195,48 +157,61 @@ function CategoryFilterList({
     );
   }
 
+  if (categories.length <= CATEGORY_COMBOBOX_THRESHOLD) {
+    return (
+      <div className="space-y-2">
+        {categories.map((category) => (
+          <CheckboxRow
+            key={category.id}
+            id={`${idPrefix}-category-${category.code}`}
+            checked={selected.includes(category.code)}
+            label={category.name}
+            onCheckedChange={() =>
+              onChange(toggleInList(selected, category.code))
+            }
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-2">
-      {showSearch ? (
-        <FilterSearch
-          id={`${idPrefix}-category-search`}
-          value={query}
-          onChange={setQuery}
-          placeholder="Buscar categoría…"
-        />
-      ) : null}
-
-      {filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Sin coincidencias.</p>
-      ) : (
-        <div
-          className={cn(
-            "space-y-2",
-            expanded &&
-              filtered.length > CATEGORY_PREVIEW_COUNT &&
-              "max-h-56 overflow-y-auto overscroll-contain pr-1",
+    <Combobox
+      multiple
+      items={categories}
+      value={selectedCategories}
+      onValueChange={(next) => onChange(next.map((category) => category.code))}
+      itemToStringLabel={(category: Category) => category.name}
+      isItemEqualToValue={(a: Category, b: Category) => a.id === b.id}
+    >
+      <ComboboxChips ref={chipsRef} className="w-full bg-background">
+        <ComboboxValue>
+          {(value: Category[]) => (
+            <>
+              {value.map((category) => (
+                <ComboboxChip key={category.id}>{category.name}</ComboboxChip>
+              ))}
+              <ComboboxChipsInput
+                id={`${idPrefix}-category-search`}
+                placeholder={
+                  value.length > 0 ? "Añadir…" : "Buscar categoría…"
+                }
+              />
+            </>
           )}
-        >
-          {visible.map((category) => (
-            <CheckboxRow
-              key={category.id}
-              id={`${idPrefix}-category-${category.slug}`}
-              checked={selected.includes(category.slug)}
-              label={category.name}
-              onCheckedChange={() => onToggle(category.slug)}
-            />
-          ))}
-        </div>
-      )}
-
-      {!normalizedQuery ? (
-        <ExpandToggle
-          expanded={expanded}
-          hiddenCount={hiddenCount}
-          onToggle={() => setExpanded((current) => !current)}
-        />
-      ) : null}
-    </div>
+        </ComboboxValue>
+      </ComboboxChips>
+      <ComboboxContent anchor={chipsRef} className="w-(--anchor-width)">
+        <ComboboxEmpty>Sin coincidencias.</ComboboxEmpty>
+        <ComboboxList>
+          {(category: Category) => (
+            <ComboboxItem key={category.id} value={category}>
+              {category.name}
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
   );
 }
 
@@ -244,32 +219,32 @@ function ColorFilterGrid({
   colors,
   selected,
   idPrefix,
-  onToggle,
+  onChange,
 }: {
   colors: Color[];
   selected: string[];
   idPrefix: string;
-  onToggle: (slug: string) => void;
+  onChange: (slugs: string[]) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const [query, setQuery] = useState("");
-  const showSearch = colors.length > SEARCHABLE_THRESHOLD;
-  const normalizedQuery = query.trim().toLowerCase();
-
-  const filtered = sortSelectedFirst(
-    colors.filter((color) =>
-      normalizedQuery
-        ? color.name.toLowerCase().includes(normalizedQuery)
-        : true,
-    ),
-    (color) => selected.includes(slugifyName(color.name)),
+  const chipsRef = useComboboxAnchor();
+  const colorsWithSlug = useMemo(
+    () =>
+      colors.map((color) => ({
+        color,
+        slug: slugifyName(color.name),
+      })),
+    [colors],
   );
-
-  const visible =
-    expanded || normalizedQuery
-      ? filtered
-      : filtered.slice(0, COLOR_PREVIEW_COUNT);
-  const hiddenCount = Math.max(0, filtered.length - COLOR_PREVIEW_COUNT);
+  const selectedColors = useMemo(
+    () =>
+      selected
+        .map(
+          (slug) =>
+            colorsWithSlug.find((entry) => entry.slug === slug)?.color,
+        )
+        .filter((color): color is Color => Boolean(color)),
+    [colorsWithSlug, selected],
+  );
 
   if (colors.length === 0) {
     return (
@@ -277,77 +252,93 @@ function ColorFilterGrid({
     );
   }
 
+  if (colors.length <= COLOR_COMBOBOX_THRESHOLD) {
+    return (
+      <div
+        className="grid grid-cols-6 gap-2"
+        role="group"
+        aria-label="Colores"
+      >
+        {colorsWithSlug.map(({ color, slug }) => {
+          const isChecked = selected.includes(slug);
+          return (
+            <button
+              key={color.id}
+              type="button"
+              id={`${idPrefix}-color-${slug}`}
+              title={color.name}
+              aria-label={color.name}
+              aria-pressed={isChecked}
+              onClick={() => onChange(toggleInList(selected, slug))}
+              className={cn(
+                "relative flex aspect-square items-center justify-center rounded-full border outline-none transition-[box-shadow,transform] focus-visible:ring-3 focus-visible:ring-ring/50",
+                isChecked
+                  ? "scale-105 border-foreground shadow-[0_0_0_2px_var(--background),0_0_0_4px_var(--foreground)]"
+                  : "border-border hover:scale-105",
+              )}
+              style={{ backgroundColor: color.hex_code }}
+            >
+              {isChecked ? (
+                <Check
+                  className="size-3.5 drop-shadow-[0_1px_1px_rgb(0_0_0_/_0.55)]"
+                  style={{
+                    color:
+                      relativeLuminance(color.hex_code) > 0.55
+                        ? "#171717"
+                        : "#fafafa",
+                  }}
+                  aria-hidden
+                />
+              ) : null}
+              <span className="sr-only">{color.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-2">
-      {showSearch ? (
-        <FilterSearch
-          id={`${idPrefix}-color-search`}
-          value={query}
-          onChange={setQuery}
-          placeholder="Buscar color…"
-        />
-      ) : null}
-
-      {filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Sin coincidencias.</p>
-      ) : (
-        <div
-          className={cn(
-            "grid grid-cols-6 gap-2",
-            expanded &&
-              filtered.length > COLOR_PREVIEW_COUNT &&
-              "max-h-44 overflow-y-auto overscroll-contain pr-1",
+    <Combobox
+      multiple
+      items={colors}
+      value={selectedColors}
+      onValueChange={(next) =>
+        onChange(next.map((color) => slugifyName(color.name)))
+      }
+      itemToStringLabel={(color: Color) => color.name}
+      isItemEqualToValue={(a: Color, b: Color) => a.id === b.id}
+    >
+      <ComboboxChips ref={chipsRef} className="w-full bg-background">
+        <ComboboxValue>
+          {(value: Color[]) => (
+            <>
+              {value.map((color) => (
+                <ComboboxChip key={color.id} className="gap-1.5">
+                  <ColorSwatch hex={color.hex_code} />
+                  {color.name}
+                </ComboboxChip>
+              ))}
+              <ComboboxChipsInput
+                id={`${idPrefix}-color-search`}
+                placeholder={value.length > 0 ? "Añadir…" : "Buscar color…"}
+              />
+            </>
           )}
-          role="group"
-          aria-label="Colores"
-        >
-          {visible.map((color) => {
-            const slug = slugifyName(color.name);
-            const isChecked = selected.includes(slug);
-            return (
-              <button
-                key={color.id}
-                type="button"
-                id={`${idPrefix}-color-${slug}`}
-                title={color.name}
-                aria-label={color.name}
-                aria-pressed={isChecked}
-                onClick={() => onToggle(slug)}
-                className={cn(
-                  "relative flex aspect-square items-center justify-center rounded-full border outline-none transition-[box-shadow,transform] focus-visible:ring-3 focus-visible:ring-ring/50",
-                  isChecked
-                    ? "scale-105 border-foreground shadow-[0_0_0_2px_var(--background),0_0_0_4px_var(--foreground)]"
-                    : "border-border hover:scale-105",
-                )}
-                style={{ backgroundColor: color.hex_code }}
-              >
-                {isChecked ? (
-                  <Check
-                    className="size-3.5 drop-shadow-[0_1px_1px_rgb(0_0_0_/_0.55)]"
-                    style={{
-                      color:
-                        relativeLuminance(color.hex_code) > 0.55
-                          ? "#171717"
-                          : "#fafafa",
-                    }}
-                    aria-hidden
-                  />
-                ) : null}
-                <span className="sr-only">{color.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {!normalizedQuery ? (
-        <ExpandToggle
-          expanded={expanded}
-          hiddenCount={hiddenCount}
-          onToggle={() => setExpanded((current) => !current)}
-        />
-      ) : null}
-    </div>
+        </ComboboxValue>
+      </ComboboxChips>
+      <ComboboxContent anchor={chipsRef} className="w-(--anchor-width)">
+        <ComboboxEmpty>Sin coincidencias.</ComboboxEmpty>
+        <ComboboxList>
+          {(color: Color) => (
+            <ComboboxItem key={color.id} value={color}>
+              <ColorSwatch hex={color.hex_code} />
+              <span className="truncate">{color.name}</span>
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
   );
 }
 
@@ -395,15 +386,15 @@ export function CatalogFilters({
       clear: () => onChange((current) => ({ ...current, q: "" })),
     });
   }
-  for (const slug of params.categories) {
-    const category = categories.find((item) => item.slug === slug);
+  for (const code of params.categories) {
+    const category = categories.find((item) => item.code === code);
     chips.push({
-      key: `cat-${slug}`,
-      label: category?.name ?? slug,
+      key: `cat-${code}`,
+      label: category?.name ?? code,
       clear: () =>
         onChange((current) => ({
           ...current,
-          categories: current.categories.filter((item) => item !== slug),
+          categories: current.categories.filter((item) => item !== code),
         })),
     });
   }
@@ -515,29 +506,29 @@ export function CatalogFilters({
         </div>
       ) : null}
 
-      <FilterSection title="Categorías">
+      <FilterSection title="Categorías" count={params.categories.length}>
         <CategoryFilterList
           categories={categories}
           selected={params.categories}
           idPrefix={idPrefix}
-          onToggle={(slug) =>
+          onChange={(slugs) =>
             onChange((current) => ({
               ...current,
-              categories: toggleInList(current.categories, slug),
+              categories: slugs,
             }))
           }
         />
       </FilterSection>
 
-      <FilterSection title="Colores">
+      <FilterSection title="Colores" count={params.colors.length}>
         <ColorFilterGrid
           colors={colors}
           selected={params.colors}
           idPrefix={idPrefix}
-          onToggle={(slug) =>
+          onChange={(slugs) =>
             onChange((current) => ({
               ...current,
-              colors: toggleInList(current.colors, slug),
+              colors: slugs,
             }))
           }
         />

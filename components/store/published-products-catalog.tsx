@@ -9,14 +9,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useProducts } from "@/hooks/use-products";
 
 type PublishedProductsCatalogProps = {
-  categorySlug?: string;
+  categoryCode?: string;
 };
 
 export function PublishedProductsCatalog({
-  categorySlug,
+  categoryCode,
 }: PublishedProductsCatalogProps) {
   const productsQuery = useProducts(
-    categorySlug ? { categorySlug } : {},
+    categoryCode ? { categoryCode } : {},
   );
 
   if (productsQuery.isPending) {
@@ -48,7 +48,7 @@ export function PublishedProductsCatalog({
       <QueryEmptyState
         title="Catálogo vacío"
         description={
-          categorySlug
+          categoryCode
             ? "No hay productos publicados en esta categoría."
             : "Pronto verás aquí las gorras publicadas."
         }
@@ -64,7 +64,8 @@ export function PublishedProductsCatalog({
             product={{
               id: product.id,
               name: product.name,
-              slug: product.slug,
+              code: product.code,
+              price: product.price,
               product_images: product.product_images,
             }}
           />
