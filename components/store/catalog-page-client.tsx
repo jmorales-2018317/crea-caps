@@ -105,16 +105,6 @@ export function CatalogPageClient() {
         </aside>
 
         <div className="min-w-0 space-y-6">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="text-sm text-text-secondary">
-              {searchQuery.isFetching && !showInitialLoading
-                ? "Actualizando…"
-                : total === 1
-                  ? "1 producto"
-                  : `${total} productos`}
-            </p>
-          </div>
-
           {showInitialLoading ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
               {Array.from({ length: 8 }).map((_, index) => (

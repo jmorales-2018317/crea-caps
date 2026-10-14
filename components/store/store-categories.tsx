@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { QueryErrorState } from "@/components/dashboard/query-state";
 import { CategoryLucideIcon } from "@/components/shared/category-lucide-icon";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,9 +80,12 @@ export function StoreCategories() {
               className="animate-hero-enter"
               style={{ animationDelay: `${index * 60}ms` }}
             >
-              <article className="flex flex-col items-center gap-3 text-center">
+              <Link
+                href={`/catalogo?categories=${encodeURIComponent(category.slug)}`}
+                className="group flex flex-col items-center gap-3 text-center rounded-lg outline-none transition-opacity hover:opacity-90 focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
                 <span
-                  className="flex size-20 items-center justify-center rounded-full border border-primary/55 bg-[rgb(184_154_85_/_0.08)] text-gold-soft shadow-[inset_0_0_24px_rgb(184_154_85_/_0.06)] sm:size-24"
+                  className="flex size-20 items-center justify-center rounded-full border border-primary/55 bg-[rgb(184_154_85_/_0.08)] text-gold-soft shadow-[inset_0_0_24px_rgb(184_154_85_/_0.06)] transition-colors group-hover:border-primary/80 sm:size-24"
                   aria-hidden="true"
                 >
                   <CategoryLucideIcon
@@ -89,10 +93,10 @@ export function StoreCategories() {
                     className="size-7 text-gold-soft sm:size-8"
                   />
                 </span>
-                <h3 className="max-w-[10rem] text-sm font-semibold tracking-tight text-gold-soft sm:text-base">
+                <span className="max-w-[10rem] text-sm font-semibold tracking-tight text-gold-soft sm:text-base">
                   {category.name}
-                </h3>
-              </article>
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
@@ -110,8 +114,8 @@ function CategoriesHeader() {
       >
         Categorías
       </h2>
-      <p className="max-w-md text-sm leading-relaxed text-text-secondary sm:text-base">
-        Explora algunos estilos del catálogo Caps Store.
+      <p className="text-sm leading-relaxed text-text-secondary sm:text-base">
+        Explora algunos estilos del catálogo Crea Caps.
       </p>
     </div>
   );
