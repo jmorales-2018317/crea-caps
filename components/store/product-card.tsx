@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ImageIcon } from "lucide-react";
-import { BookmarkButton } from "@/features/bookmarks/components/bookmark-button";
+import { BookmarkButton } from "@/components/store/bookmark-button";
 import { getCatalogImagePublicUrl } from "@/lib/catalog-images";
 import { formatGtq } from "@/lib/format-currency";
 import {

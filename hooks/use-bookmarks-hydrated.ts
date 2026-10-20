@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useBookmarksStore } from "@/features/bookmarks/stores/bookmarks.store";
+import { useBookmarksStore } from "@/hooks/use-bookmarks-store";
 
 /** True only after localStorage rehydration — safe for bookmark UI state. */
 export function useBookmarksHydrated() {

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useBookmarksHydrated } from "@/features/bookmarks/hooks/use-bookmarks-hydrated";
-import { useBookmarksStore } from "@/features/bookmarks/stores/bookmarks.store";
+import { useBookmarksHydrated } from "@/hooks/use-bookmarks-hydrated";
+import { useBookmarksStore } from "@/hooks/use-bookmarks-store";
 import { getPublishedProductsByIds } from "@/services/products";
 
 export const bookmarkedProductsQueryKey = ["products", "bookmarked"] as const;

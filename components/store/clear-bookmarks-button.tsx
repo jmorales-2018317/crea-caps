@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useBookmarksStore } from "@/features/bookmarks/stores/bookmarks.store";
+import { useBookmarksStore } from "@/hooks/use-bookmarks-store";
 import { toastSuccess } from "@/lib/toast";
 
 type ClearBookmarksButtonProps = {

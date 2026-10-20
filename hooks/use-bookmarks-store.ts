@@ -5,7 +5,7 @@ import { persist } from "zustand/middleware";
 import {
   BOOKMARKS_STORAGE_KEY,
   type BookmarksStore,
-} from "@/features/bookmarks/types/bookmarks.types";
+} from "@/types/bookmarks";
 
 export const useBookmarksStore = create<BookmarksStore>()(
   persist(

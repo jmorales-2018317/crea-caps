@@ -20,7 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { BookmarksCounter } from "@/features/bookmarks/components/bookmarks-counter";
+import { BookmarksCounter } from "@/components/store/bookmarks-counter";
 import { cn } from "cn";
 
 const NAV_LINKS = [

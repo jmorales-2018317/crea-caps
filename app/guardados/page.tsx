@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { StoreFooter } from "@/components/store/store-footer";
 import { StoreHeader } from "@/components/store/store-header";
-import { BookmarksGrid } from "@/features/bookmarks/components/bookmarks-grid";
+import { BookmarksGrid } from "@/components/store/bookmarks-grid";
 import {
   DEFAULT_STORE_DESCRIPTION,
   DEFAULT_STORE_NAME,

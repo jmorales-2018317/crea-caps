@@ -1,7 +1,7 @@
 "use client";
 
-import { useBookmarksHydrated } from "@/features/bookmarks/hooks/use-bookmarks-hydrated";
-import { useBookmarksStore } from "@/features/bookmarks/stores/bookmarks.store";
+import { useBookmarksHydrated } from "@/hooks/use-bookmarks-hydrated";
+import { useBookmarksStore } from "@/hooks/use-bookmarks-store";
 import { cn } from "cn";
 
 type BookmarksCounterProps = {

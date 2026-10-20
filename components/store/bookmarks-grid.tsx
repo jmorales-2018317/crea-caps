@@ -3,9 +3,9 @@
 import { ProductCard } from "@/components/store/product-card";
 import { QueryErrorState } from "@/components/dashboard/query-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookmarksEmptyState } from "@/features/bookmarks/components/bookmarks-empty-state";
-import { ClearBookmarksButton } from "@/features/bookmarks/components/clear-bookmarks-button";
-import { useBookmarkedProducts } from "@/features/bookmarks/hooks/use-bookmarked-products";
+import { BookmarksEmptyState } from "@/components/store/bookmarks-empty-state";
+import { ClearBookmarksButton } from "@/components/store/clear-bookmarks-button";
+import { useBookmarkedProducts } from "@/hooks/use-bookmarked-products";
 
 export function BookmarksGrid() {
   const {

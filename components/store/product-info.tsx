@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ProductCategories } from "@/components/store/product-categories";
-import { BookmarkButton } from "@/features/bookmarks/components/bookmark-button";
+import { BookmarkButton } from "@/components/store/bookmark-button";
 import { formatGtq } from "@/lib/format-currency";
 import type { PublishedProductCategory } from "@/types/products";
 

@@ -8,8 +8,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useBookmarksHydrated } from "@/features/bookmarks/hooks/use-bookmarks-hydrated";
-import { useBookmarksStore } from "@/features/bookmarks/stores/bookmarks.store";
+import { useBookmarksHydrated } from "@/hooks/use-bookmarks-hydrated";
+import { useBookmarksStore } from "@/hooks/use-bookmarks-store";
 import { toastSuccess } from "@/lib/toast";
 import { cn } from "cn";
 
