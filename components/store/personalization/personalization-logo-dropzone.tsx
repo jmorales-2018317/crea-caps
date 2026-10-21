@@ -154,7 +154,7 @@ export function PersonalizationLogoDropzone({
         >
           {previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img>
+            <img
               src={previewUrl}
               alt=""
               className="mb-2 max-h-16 max-w-full object-contain"
