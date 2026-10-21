@@ -67,6 +67,7 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --animate-hero-dot: hero-dot 700ms ease-in-out infinite;
 }
 
 /* Obsidian Gold 2.1 — Deep Black / Restrained Gold
@@ -250,5 +251,18 @@
 
   .animate-hero-drift {
     animation: hero-drift 14s ease-in-out infinite;
+  }
+}
+
+@keyframes hero-dot {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-3px);
+    opacity: 1;
   }
 }
