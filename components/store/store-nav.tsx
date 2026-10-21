@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Mail,
   Menu,
+  Palette,
   Search,
   Star,
   Tags,
@@ -70,6 +71,13 @@ export function StoreNav({ showAdminLink = false }: StoreNavProps) {
             Buscar
           </Link>
           <Link
+            href="/personalizacion"
+            className={cn(linkClassName, "inline-flex items-center gap-1.5")}
+          >
+            <Palette className="size-3.5" aria-hidden />
+            Personalizar
+          </Link>
+          <Link
             href="/guardados"
             className={cn(linkClassName, "inline-flex items-center gap-1.5")}
           >
@@ -86,7 +94,7 @@ export function StoreNav({ showAdminLink = false }: StoreNavProps) {
               )}
             >
               <LayoutDashboard className="size-3.5" aria-hidden />
-              Administración
+              Admin
             </Link>
           ) : null}
         </nav>
@@ -130,6 +138,17 @@ export function StoreNav({ showAdminLink = false }: StoreNavProps) {
                   Buscar
                 </Link>
                 <Link
+                  href="/personalizacion"
+                  className={cn(
+                    mobileLinkClassName,
+                    "inline-flex items-center gap-2",
+                  )}
+                  onClick={() => setOpen(false)}
+                >
+                  <Palette className="size-3.5" aria-hidden />
+                  Personalizar
+                </Link>
+                <Link
                   href="/guardados"
                   className={cn(
                     mobileLinkClassName,
@@ -171,11 +190,11 @@ export function StoreNav({ showAdminLink = false }: StoreNavProps) {
 
               {showAdminLink ? (
                 <nav
-                  aria-label="Administración"
+                  aria-label="Admin"
                   className="flex flex-col gap-1 border-t border-border pt-4"
                 >
                   <p className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Administración
+                    Admin
                   </p>
                   <Link
                     href="/dashboard"
@@ -186,7 +205,7 @@ export function StoreNav({ showAdminLink = false }: StoreNavProps) {
                     onClick={() => setOpen(false)}
                   >
                     <LayoutDashboard className="size-3.5" aria-hidden />
-                    Administración
+                    Admin
                   </Link>
                 </nav>
               ) : null}
