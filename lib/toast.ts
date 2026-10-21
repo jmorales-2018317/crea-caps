@@ -8,6 +8,10 @@ export function toastSuccess(message: string) {
   toast.success(message);
 }
 
+export function toastError(message: string) {
+  toast.error(message);
+}
+
 export function toastMutationError(error: unknown, context?: ErrorContext) {
   toast.error(getSupabaseErrorMessage(error, context));
 }
