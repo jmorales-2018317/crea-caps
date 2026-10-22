@@ -8,26 +8,19 @@ import {
   createHeroLogoTextureFromUrl,
 } from "@/components/store/hero-cap-logo";
 import { HeroCapScene } from "@/components/store/hero-cap-scene";
+import { DEFAULT_CAP_PART_COLORS } from "@/types/personalization";
 
 const CANVAS_ARIA_LABEL =
   "Visor 3D de gorra Crea Caps. Arrastra hacia los lados para rotar.";
 const INITIAL_ROTATION_Y = -0.45;
 const ROTATION_SPEED = 0.008;
-const LOGO_APPLY_ERROR = "No se pudo aplicar el logo. Prueba con otra imagen.";
 
 type HeroCapViewerProps = {
   logoUrl: string | null;
-  onLogoReady?: () => void;
-  onLogoError?: (message: string) => void;
   onModelReady?: () => void;
 };
 
-export function HeroCapViewer({
-  logoUrl,
-  onLogoReady,
-  onLogoError,
-  onModelReady,
-}: HeroCapViewerProps) {
+export function HeroCapViewer({ logoUrl, onModelReady }: HeroCapViewerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [logoTexture, setLogoTexture] = useState<Texture | null>(null);
   const rotationYRef = useRef(INITIAL_ROTATION_Y);
@@ -36,16 +29,9 @@ export function HeroCapViewer({
   const lastXRef = useRef(0);
   const requestIdRef = useRef(0);
   const logoTextureRef = useRef<Texture | null>(null);
-  const onLogoReadyRef = useRef(onLogoReady);
-  const onLogoErrorRef = useRef(onLogoError);
   const onModelReadyRef = useRef(onModelReady ?? null);
 
   onModelReadyRef.current = onModelReady ?? null;
-
-  useEffect(() => {
-    onLogoReadyRef.current = onLogoReady;
-    onLogoErrorRef.current = onLogoError;
-  }, [onLogoError, onLogoReady]);
 
   useEffect(() => {
     const requestId = ++requestIdRef.current;
@@ -59,7 +45,6 @@ export function HeroCapViewer({
 
     if (!logoUrl) {
       replaceTexture(null);
-      onLogoReadyRef.current?.();
       return;
     }
 
@@ -71,10 +56,9 @@ export function HeroCapViewer({
           return;
         }
         replaceTexture(texture);
-        onLogoReadyRef.current?.();
       } catch {
         if (!cancelled && requestId === requestIdRef.current) {
-          onLogoErrorRef.current?.(LOGO_APPLY_ERROR);
+          replaceTexture(null);
         }
       }
     })();
@@ -133,6 +117,7 @@ export function HeroCapViewer({
           rotationYRef={rotationYRef}
           logoTexture={logoTexture}
           logoSize={LOGO_SIZE_DEFAULT}
+          partColors={DEFAULT_CAP_PART_COLORS}
           introSpin
           introCancelRef={userInteractedRef}
           onReadyRef={onModelReadyRef}
