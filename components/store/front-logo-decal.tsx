@@ -16,6 +16,20 @@ const SURFACE_OFFSET = 0.00022;
 const ENVELOPE_CELL = 0.0012;
 const GRID_SEGMENTS = 18;
 const MAX_RIDGE_LIFT = 0.00028;
+const FIT_SAMPLE_EXTENT = 0.022;
+const CURVE_SMALL_EXTENT = 0.018;
+const CURVE_LARGE_EXTENT = 0.054;
+const CURVE_KEEP_AT_LARGE = 0.1;
+const MAX_EDGE_SAG = 0.0016;
+
+function clamp01(value: number) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function smoothstep(edge0: number, edge1: number, value: number) {
+  const t = clamp01((value - edge0) / (edge1 - edge0));
+  return t * t * (3 - 2 * t);
+}
 
 type FrontLogoDecalProps = {
   map: Texture;
@@ -87,6 +101,25 @@ function solveLinearSystem(matrix: number[][], vector: number[]): number[] | nul
   }
 
   return a.map((row) => row[n] ?? 0);
+}
+
+function flattenQuadric(q: Quadric, width: number, height: number): Quadric {
+  const extent = Math.max(width, height);
+  const flatten = smoothstep(CURVE_SMALL_EXTENT, CURVE_LARGE_EXTENT, extent);
+  const keep = 1 - flatten * (1 - CURVE_KEEP_AT_LARGE);
+  let d = q.d * keep;
+  let e = q.e * keep;
+  let f = q.f * keep;
+  const hx = width / 2;
+  const hy = height / 2;
+  const sag = Math.abs(d * hx * hx + e * hy * hy) + Math.abs(f * hx * hy) * 0.5;
+  if (sag > MAX_EDGE_SAG && sag > 1e-12) {
+    const scale = MAX_EDGE_SAG / sag;
+    d *= scale;
+    e *= scale;
+    f *= scale;
+  }
+  return { ...q, d, e, f };
 }
 
 function fitQuadric(samples: Array<{ x: number; y: number; z: number }>): Quadric | null {
@@ -174,13 +207,18 @@ function createSmoothLogoGeometry(
   width: number,
   height: number,
 ): BufferGeometry {
-  const samples = collectOuterSamples(mesh, origin, width, height);
+  const samples = collectOuterSamples(
+    mesh,
+    origin,
+    Math.min(width, FIT_SAMPLE_EXTENT),
+    Math.min(height, FIT_SAMPLE_EXTENT),
+  );
   const relativeSamples = samples.map((sample) => ({
     x: sample.x - origin.x,
     y: sample.y - origin.y,
     z: sample.z,
   }));
-  const quadric =
+  const fitted =
     fitQuadric(relativeSamples) ?? {
       a: origin.z,
       b: 0,
@@ -189,6 +227,7 @@ function createSmoothLogoGeometry(
       e: 0,
       f: 0,
     };
+  const quadric = flattenQuadric(fitted, width, height);
   let maxAbove = 0;
   for (const sample of relativeSamples) {
     maxAbove = Math.max(maxAbove, sample.z - heightAt(quadric, sample.x, sample.y));
