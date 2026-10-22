@@ -3,13 +3,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
-  CAP_PART_HEX_PATTERN,
   DEFAULT_CAP_PART_COLORS,
   LOGO_SIZE_PX_DEFAULT,
   PERSONALIZATION_STORAGE_KEY,
+  constrainPartColorsToPalette,
+  sanitizeColorForPart,
   sanitizeLogoSizePx,
   sanitizePartColors,
   type CapPartId,
+  type PaletteColor,
   type PersonalizationStore,
 } from "@/types/personalization";
 
@@ -26,15 +28,26 @@ export const usePersonalizationStore = create<PersonalizationStore>()(
       },
 
       setPartColor: (part, color) => {
-        const nextColor = CAP_PART_HEX_PATTERN.test(color)
-          ? color.toUpperCase()
-          : color;
+        const nextColor = sanitizeColorForPart(part, color);
+        if (!nextColor) {
+          return;
+        }
         set((state) => ({
           partColors: {
             ...state.partColors,
             [part]: nextColor,
           },
         }));
+      },
+
+      constrainToPalette: (palette: readonly PaletteColor[]) => {
+        set((state) => {
+          const next = constrainPartColorsToPalette(state.partColors, palette);
+          if (next === state.partColors) {
+            return state;
+          }
+          return { partColors: next };
+        });
       },
 
       selectPart: (part: CapPartId | null) => {

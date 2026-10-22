@@ -7,6 +7,7 @@ import {
   DEFAULT_STORE_NAME,
 } from "@/lib/constants/store";
 import { getSiteUrl } from "@/lib/site-url";
+import { getActiveColors } from "@/services/colors.server";
 import { getStoreSettings } from "@/services/store-settings.server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -26,7 +27,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PersonalizacionPage() {
-  const settings = await getStoreSettings().catch(() => null);
+  const [settings, paletteColors] = await Promise.all([
+    getStoreSettings().catch(() => null),
+    getActiveColors().catch(() => null),
+  ]);
 
   return (
     <div className="flex min-h-full flex-col bg-background">
@@ -46,7 +50,7 @@ export default async function PersonalizacionPage() {
               se envía ni se guarda en la tienda.
             </p>
           </div>
-          <PersonalizationStudio />
+          <PersonalizationStudio paletteColors={paletteColors} />
         </div>
       </main>
       <StoreFooter settings={settings} />

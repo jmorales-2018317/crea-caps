@@ -5,6 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { revalidateActiveColorsCache } from "@/app/colors/actions";
 import {
   createColor,
   deleteColor,
@@ -34,7 +35,10 @@ function useInvalidateColors() {
   const queryClient = useQueryClient();
 
   return async () => {
-    await queryClient.invalidateQueries({ queryKey: colorsQueryKey });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: colorsQueryKey }),
+      revalidateActiveColorsCache(),
+    ]);
   };
 }
 

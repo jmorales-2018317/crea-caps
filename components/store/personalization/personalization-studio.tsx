@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Share2 } from "lucide-react";
+import { cn } from "cn";
 import {
   PersonalizationColorPopover,
   type ColorPickerOrigin,
@@ -12,10 +13,15 @@ import { PersonalizationLogoSizeControl } from "@/components/store/personalizati
 import { PersonalizationPartPicker } from "@/components/store/personalization/personalization-part-picker";
 import { ResetDesignButton } from "@/components/store/personalization/reset-design-button";
 import { ShareDesignDialog } from "@/components/store/personalization/share-design-dialog";
+import {
+  VIEWER_BACKGROUND_COLORS,
+  ViewerBackgroundToggle,
+  type ViewerBackgroundMode,
+} from "@/components/store/personalization/viewer-background-toggle";
 import { Button } from "@/components/ui/button";
 import { usePersonalizationStore } from "@/hooks/use-personalization-store";
 import { validateImageFile } from "@/lib/catalog-images";
-import type { CapPartId } from "@/types/personalization";
+import type { CapPartId, PaletteColor } from "@/types/personalization";
 
 type PickerPoint = {
   x: number;
@@ -52,12 +58,22 @@ function revokeIfBlob(url: string | null) {
   }
 }
 
-export function PersonalizationStudio() {
+type PersonalizationStudioProps = {
+  paletteColors: PaletteColor[] | null;
+};
+
+export function PersonalizationStudio({
+  paletteColors,
+}: PersonalizationStudioProps) {
   const partColors = usePersonalizationStore((state) => state.partColors);
   const selectedPart = usePersonalizationStore((state) => state.selectedPart);
   const logoSizePx = usePersonalizationStore((state) => state.logoSizePx);
+  const hasHydrated = usePersonalizationStore((state) => state.hasHydrated);
   const selectPart = usePersonalizationStore((state) => state.selectPart);
   const setPartColor = usePersonalizationStore((state) => state.setPartColor);
+  const constrainToPalette = usePersonalizationStore(
+    (state) => state.constrainToPalette,
+  );
   const setLogoSizePx = usePersonalizationStore((state) => state.setLogoSizePx);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -68,16 +84,29 @@ export function PersonalizationStudio() {
   const [pickerOrigin, setPickerOrigin] = useState<ColorPickerOrigin | null>(
     null,
   );
+  const [backgroundMode, setBackgroundMode] =
+    useState<ViewerBackgroundMode>("dark");
+  const isLightViewer = backgroundMode === "light";
+  const viewerBackground = VIEWER_BACKGROUND_COLORS[backgroundMode];
   const previewUrlRef = useRef<string | null>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
   const pickerAnchorRef = useRef<HTMLDivElement>(null);
   const partListRef = useRef<HTMLDivElement>(null);
+  const pickerOpenTimeoutRef = useRef<number>(0);
 
   useEffect(() => {
     return () => {
+      window.clearTimeout(pickerOpenTimeoutRef.current);
       revokeIfBlob(previewUrlRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!hasHydrated || paletteColors === null) {
+      return;
+    }
+    constrainToPalette(paletteColors);
+  }, [constrainToPalette, hasHydrated, paletteColors]);
 
   const replacePreview = (nextUrl: string | null) => {
     revokeIfBlob(previewUrlRef.current);
@@ -128,6 +157,7 @@ export function PersonalizationStudio() {
   };
 
   const closeColorPicker = () => {
+    window.clearTimeout(pickerOpenTimeoutRef.current);
     selectPart(null);
     setPickerOrigin(null);
   };
@@ -136,6 +166,7 @@ export function PersonalizationStudio() {
     part: CapPartId | null,
     point?: { clientX: number; clientY: number },
   ) => {
+    window.clearTimeout(pickerOpenTimeoutRef.current);
     selectPart(part);
     const viewer = viewerRef.current;
     if (!part || !viewer) {
@@ -143,22 +174,24 @@ export function PersonalizationStudio() {
       return;
     }
 
-    setPickerOrigin("viewer");
-
-    if (!point) {
-      placePickerAtViewerCenter();
-      return;
-    }
-
     const rect = viewer.getBoundingClientRect();
-    setPickerPoint(
-      clampPickerPoint(
-        point.clientX - rect.left,
-        point.clientY - rect.top,
-        rect.width,
-        rect.height,
-      ),
-    );
+    const nextPoint = point
+      ? clampPickerPoint(
+          point.clientX - rect.left,
+          point.clientY - rect.top,
+          rect.width,
+          rect.height,
+        )
+      : null;
+
+    pickerOpenTimeoutRef.current = window.setTimeout(() => {
+      setPickerOrigin("viewer");
+      if (nextPoint) {
+        setPickerPoint(nextPoint);
+        return;
+      }
+      placePickerAtViewerCenter();
+    }, 0);
   };
 
   const handleListSelect = (part: CapPartId) => {
@@ -167,11 +200,15 @@ export function PersonalizationStudio() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20.5rem] lg:items-start xl:grid-cols-[minmax(0,1fr)_22rem]">
-      <div className="space-y-3">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20.5rem] lg:items-stretch xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="flex flex-col gap-3">
         <section
           aria-label="Visor 3D de la gorra"
-          className="relative overflow-hidden rounded-2xl border border-[#e8d9a8]/20 bg-[#1a1815]"
+          className={cn(
+            "relative overflow-hidden rounded-2xl border transition-colors duration-300",
+            isLightViewer ? "border-[#c4b48a]/35" : "border-[#e8d9a8]/20",
+          )}
+          style={{ backgroundColor: viewerBackground }}
         >
           <div
             ref={viewerRef}
@@ -182,9 +219,14 @@ export function PersonalizationStudio() {
               logoSizePx={logoSizePx}
               partColors={partColors}
               selectedPart={selectedPart}
+              isLightBackground={isLightViewer}
               onLogoReady={handleLogoReady}
               onLogoError={handleLogoError}
               onPartClick={handlePartClick}
+            />
+            <ViewerBackgroundToggle
+              value={backgroundMode}
+              onChange={setBackgroundMode}
             />
             <div
               ref={pickerAnchorRef}
@@ -199,6 +241,7 @@ export function PersonalizationStudio() {
               open={pickerOrigin === "viewer" && selectedPart !== null}
               selectedPart={selectedPart}
               partColors={partColors}
+              paletteColors={paletteColors}
               anchorRef={pickerAnchorRef}
               onPartColorChange={setPartColor}
               onOpenChange={(open) => {
@@ -216,7 +259,14 @@ export function PersonalizationStudio() {
                 );
               }}
             />
-            <p className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[#1a1815] via-[#1a1815]/80 to-transparent px-4 pb-2.5 pt-8 text-center text-xs text-text-secondary/90">
+            <p
+              className={cn(
+                "pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t to-transparent px-4 pb-2.5 pt-8 text-center text-xs",
+                isLightViewer
+                  ? "from-[#f0ece4] via-[#f0ece4]/80 text-[#4a453d]"
+                  : "from-[#1a1815] via-[#1a1815]/80 text-text-secondary/90",
+              )}
+            >
               Arrastra para rotar · Rueda o pellizca para zoom · Haz clic en una
               pieza para cambiar su color
             </p>
@@ -243,7 +293,7 @@ export function PersonalizationStudio() {
         </div>
       </div>
 
-      <aside className="space-y-5 rounded-2xl border border-[#e8d9a8]/20 bg-card/80 p-4 shadow-[0_12px_36px_rgb(0_0_0_/_0.28)] backdrop-blur-md sm:p-5">
+      <aside className="flex min-h-0 flex-col gap-4 rounded-2xl border border-[#e8d9a8]/20 bg-card/80 p-4 shadow-[0_12px_36px_rgb(0_0_0_/_0.28)] backdrop-blur-md sm:p-5 lg:sticky lg:top-20 lg:max-h-[calc(100svh-6.5rem)]">
         <PersonalizationLogoDropzone
           previewUrl={previewUrl}
           isProcessing={isProcessing}
@@ -259,11 +309,15 @@ export function PersonalizationStudio() {
           />
         ) : null}
 
-        <div ref={partListRef} className="border-t border-divider pt-5">
+        <div
+          ref={partListRef}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]"
+        >
           <PersonalizationPartPicker
             selectedPart={selectedPart}
             pickerOrigin={pickerOrigin}
             partColors={partColors}
+            paletteColors={paletteColors}
             onSelectPart={handleListSelect}
             onPartColorChange={setPartColor}
             onClose={closeColorPicker}

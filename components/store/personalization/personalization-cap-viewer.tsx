@@ -62,6 +62,7 @@ type PersonalizationCapViewerProps = {
   logoSizePx?: number;
   partColors: CapPartColors;
   selectedPart: CapPartId | null;
+  isLightBackground?: boolean;
   onLogoReady?: () => void;
   onLogoError?: (message: string) => void;
   onPartClick: (
@@ -106,6 +107,7 @@ export function PersonalizationCapViewer({
   logoSizePx = LOGO_SIZE_PX_DEFAULT,
   partColors,
   selectedPart,
+  isLightBackground = false,
   onLogoReady,
   onLogoError,
   onPartClick,
@@ -402,9 +404,13 @@ export function PersonalizationCapViewer({
       : "cursor-grab";
 
   return (
-    <div className={`absolute inset-0 ${cursorClass}`}>
+    <div className={`absolute inset-0 z-0 ${cursorClass}`}>
       <Canvas
-        className="pointer-events-none relative h-full w-full drop-shadow-[0_20px_36px_rgb(0_0_0_/_0.55)] sm:drop-shadow-[0_28px_48px_rgb(0_0_0_/_0.55)]"
+        className={
+          isLightBackground
+            ? "pointer-events-none relative h-full w-full"
+            : "pointer-events-none relative h-full w-full drop-shadow-[0_20px_36px_rgb(0_0_0_/_0.55)] sm:drop-shadow-[0_28px_48px_rgb(0_0_0_/_0.55)]"
+        }
         dpr={[1, 2]}
         shadows
         gl={{ alpha: true, antialias: true }}
