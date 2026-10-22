@@ -145,10 +145,11 @@ export function PersonalizationLogoDropzone({
           onDragOver={handleFileDragOver}
           onDrop={handleFileDrop}
           className={cn(
-            "flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed px-3 py-6 text-center transition-colors duration-200 motion-reduce:transition-none",
+            "flex min-h-16 cursor-pointer items-center gap-3 rounded-lg border border-dashed px-3 py-3 text-left transition-colors duration-200 motion-reduce:transition-none",
             isFileDragOver
               ? "border-primary bg-primary/10"
               : "border-border bg-muted/30 hover:border-primary/40",
+            previewUrl && "pr-10",
             isBusy && "pointer-events-none opacity-60",
           )}
         >
@@ -157,26 +158,28 @@ export function PersonalizationLogoDropzone({
             <img
               src={previewUrl}
               alt=""
-              className="mb-2 max-h-16 max-w-full object-contain"
+              className="size-10 shrink-0 object-contain"
             />
           ) : (
             <ImagePlus
-              className="mb-2 size-7 text-muted-foreground"
+              className="size-6 shrink-0 text-muted-foreground"
               aria-hidden="true"
             />
           )}
-          <p className="text-sm font-medium text-foreground">
-            {isBusy
-              ? "Procesando…"
-              : isFileDragOver
-                ? "Suelta el logo aquí"
-                : previewUrl
-                  ? "Cambiar logo"
-                  : "Arrastra tu logo aquí"}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            o haz clic para seleccionar un archivo
-          </p>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-foreground">
+              {isBusy
+                ? "Procesando…"
+                : isFileDragOver
+                  ? "Suelta el logo aquí"
+                  : previewUrl
+                    ? "Cambiar logo"
+                    : "Arrastra tu logo aquí"}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              o haz clic para seleccionar un archivo
+            </p>
+          </div>
         </div>
         {previewUrl ? (
           <Button

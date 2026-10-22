@@ -20,7 +20,7 @@ export function PersonalizationLogoSizeControl({
   const valueId = `${labelId}-value`;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex items-baseline justify-between gap-3">
         <p id={labelId} className="text-sm font-medium text-text-strong">
           Tamaño del logo
