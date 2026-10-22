@@ -23,8 +23,8 @@ import {
   CAP_PARTS,
   DEFAULT_CAP_PART_COLOR,
   DEFAULT_CAP_PART_COLORS,
+  resolveExactCapPartId,
   resolveCapPartIdFromName,
-  VISOR_STITCH_MESH_NAMES,
   type CapPartColors,
   type CapPartId,
 } from "@/types/personalization";
@@ -38,14 +38,22 @@ const HOVERED_EMISSIVE_INTENSITY = 0.04;
 
 export function getCapPartIdFromObject(object: Object3D): CapPartId | null {
   let current: Object3D | null = object;
+  let strippedMatch: CapPartId | null = null;
   while (current) {
-    const part = resolveCapPartIdFromName(current.name);
-    if (part) {
-      return part;
+    const exact = resolveExactCapPartId(current.name);
+    if (exact) {
+      return exact;
+    }
+    if (!strippedMatch) {
+      strippedMatch = resolveCapPartIdFromName(current.name);
     }
     current = current.parent;
   }
-  return null;
+  return strippedMatch;
+}
+
+function isColorableCapMesh(object: Object3D): boolean {
+  return getCapPartIdFromObject(object) !== null;
 }
 
 function prepareCapMaterial(material: MeshStandardMaterial) {
@@ -204,9 +212,6 @@ export function HeroCapModel({
     for (const part of CAP_PARTS) {
       attachOrphanPart(scene, clone, part);
     }
-    for (const meshName of VISOR_STITCH_MESH_NAMES) {
-      attachOrphanPart(scene, clone, meshName);
-    }
 
     clone.traverse((child) => {
       if (!(child instanceof Mesh)) {
@@ -216,7 +221,7 @@ export function HeroCapModel({
       child.castShadow = true;
       child.receiveShadow = true;
 
-      if (!getCapPartIdFromObject(child)) {
+      if (!isColorableCapMesh(child)) {
         return;
       }
 

@@ -14,7 +14,7 @@ import {
 } from "@/types/personalization";
 
 export const LOGO_ANCHOR_NAME = "logo_anchor_front";
-export const CROWN_FRONT_NAME = "crown_front";
+export const CROWN_FRONT_NAME = "crown_front_outside";
 export const DEFAULT_HERO_LOGO_PATH = FALLBACK_LOGO;
 export const LOGO_TEXTURE_MAX_SIZE = 1024;
 export const LOGO_PANEL_COVERAGE = 0.36;
