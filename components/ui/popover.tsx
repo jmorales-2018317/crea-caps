@@ -87,10 +87,21 @@ function PopoverDescription({
   )
 }
 
+function PopoverClose({ className, ...props }: PopoverPrimitive.Close.Props) {
+  return (
+    <PopoverPrimitive.Close
+      data-slot="popover-close"
+      className={cn(className)}
+      {...props}
+    />
+  )
+}
+
 export {
   Popover,
   PopoverTrigger,
   PopoverContent,
   PopoverTitle,
   PopoverDescription,
+  PopoverClose,
 }

@@ -2,16 +2,18 @@
 
 import { useMemo, useState, type RefObject } from "react";
 import type { PopoverRootChangeEventDetails } from "@base-ui/react/popover";
+import { Search, XIcon } from "lucide-react";
 import { cn } from "cn";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverTitle,
 } from "@/components/ui/popover";
 import {
   CAP_PART_LABELS,
-  DEFAULT_CAP_PART_COLORS,
   getSelectableColorsForPart,
   isBlackWhiteCapPart,
   isPaletteColorForPart,
@@ -22,7 +24,7 @@ import {
 
 export type ColorPickerOrigin = "viewer" | "sidebar";
 
-const PALETTE_SEARCH_THRESHOLD = 10;
+export const COLOR_POPOVER_CONTENT_CLASS = "w-80 p-4";
 
 export function handleColorPopoverOpenChange(
   open: boolean,
@@ -77,16 +79,21 @@ export function PersonalizationColorFields({
     });
   }, [options, search]);
 
-  const selectedOption = options.find((option) => option.hex_code === color);
-  const isDefault = color === DEFAULT_CAP_PART_COLORS[part];
   const isBlackWhite = isBlackWhiteCapPart(part);
-  const showSearch = options.length >= PALETTE_SEARCH_THRESHOLD;
 
   return (
     <div className="space-y-2.5">
-      <PopoverTitle className="sr-only">
-        Color de {CAP_PART_LABELS[part]}
-      </PopoverTitle>
+      <div className="flex items-start justify-between gap-2">
+        <PopoverTitle className="min-w-0 text-xs leading-snug font-medium text-foreground">
+          Color de {CAP_PART_LABELS[part]}
+        </PopoverTitle>
+        <PopoverClose
+          aria-label="Cerrar"
+          className="mt-0.5 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted-foreground opacity-70 transition-opacity outline-none hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <XIcon className="size-3.5" aria-hidden="true" />
+        </PopoverClose>
+      </div>
       {isBlackWhite ? (
         <p className="text-xs text-text-secondary">Solo negro o blanco.</p>
       ) : null}
@@ -103,38 +110,49 @@ export function PersonalizationColorFields({
         </p>
       ) : (
         <>
-          {showSearch ? (
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar color…"
+              placeholder="Buscar nombre o hex"
               aria-label={`Buscar color para ${CAP_PART_LABELS[part]}`}
+              className="h-7 bg-muted pl-7 text-xs placeholder:text-xs"
             />
-          ) : null}
+          </div>
           <div
             role="radiogroup"
             aria-label={`Paleta de ${CAP_PART_LABELS[part]}`}
-            className="flex max-h-44 flex-wrap content-start gap-2 overflow-y-auto p-1"
+            className="grid max-h-56 grid-cols-2 content-start gap-2 overflow-y-auto"
           >
             {filtered.map((option) => {
               const selected = option.hex_code === color;
               return (
-                <button
+                <Button
                   key={option.id}
                   type="button"
+                  variant="outline"
+                  size="sm"
                   role="radio"
                   aria-checked={selected}
                   aria-label={option.name}
-                  title={`${option.name} (${option.hex_code})`}
+                  title={option.name}
                   onClick={() => onColorChange(option.hex_code)}
                   className={cn(
-                    "size-6.5 shrink-0 cursor-pointer rounded-md border outline-none transition-[box-shadow,transform] duration-150 hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100 focus-visible:ring-2 focus-visible:ring-ring",
-                    selected
-                      ? "z-10 border-transparent shadow-[0_0_0_2px_var(--popover),0_0_0_3.5px_var(--foreground)]"
-                      : "border-border",
+                    "h-auto w-full min-w-0 justify-start gap-2 bg-popover px-2 py-1.5 text-xs",
+                    selected && "bg-muted",
                   )}
-                  style={{ backgroundColor: option.hex_code }}
-                />
+                >
+                  <span
+                    className="size-5 shrink-0 rounded-md border border-border shadow-sm"
+                    style={{ backgroundColor: option.hex_code }}
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0 truncate">{option.name}</span>
+                </Button>
               );
             })}
           </div>
@@ -145,14 +163,6 @@ export function PersonalizationColorFields({
           ) : null}
         </>
       )}
-
-      <p className="text-xs text-text-secondary">
-        {selectedOption
-          ? selectedOption.name
-          : isDefault
-            ? "Color por defecto"
-            : color}
-      </p>
     </div>
   );
 }
@@ -197,12 +207,13 @@ export function PersonalizationColorPopover({
         side="top"
         align="center"
         sideOffset={14}
-        className="w-56 p-2.5"
+        className={COLOR_POPOVER_CONTENT_CLASS}
         initialFocus={false}
         finalFocus={false}
       >
         {selectedPart ? (
           <PersonalizationColorFields
+            key={selectedPart}
             part={selectedPart}
             color={partColors[selectedPart]}
             paletteColors={paletteColors}
