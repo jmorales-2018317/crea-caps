@@ -37,7 +37,7 @@ export function ResetDesignButton({
       <Button
         type="button"
         variant="outline"
-        className="h-10 w-full cursor-pointer"
+        className="h-11 w-full cursor-pointer rounded-xl"
         disabled={isDefault}
         title={
           isDefault

@@ -35,16 +35,20 @@ export default async function PersonalizacionPage() {
   return (
     <div className="flex min-h-full flex-col bg-background">
       <StoreHeader settings={settings} />
-      <main
-        className="flex-1"
-        style={{ backgroundImage: "var(--hero-gradient)" }}
-      >
+      <main className="flex-1">
         <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-          <div className="mb-6 space-y-2 sm:mb-8">
-            <h1 className="text-balance text-2xl font-semibold tracking-tight text-text-strong sm:text-3xl">
+          <div className="mb-6 max-w-3xl space-y-3 sm:mb-8">
+            <p className="flex items-center gap-2.5 text-[11px] font-medium tracking-[0.18em] text-gold-soft uppercase">
+              <span
+                aria-hidden="true"
+                className="h-px w-4 shrink-0 bg-current"
+              />
+              Tu estilo, pieza por pieza
+            </p>
+            <h1 className="text-balance text-3xl font-semibold tracking-tight text-text-strong sm:text-4xl">
               Personaliza tu gorra
             </h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-text-secondary sm:text-base">
+            <p className="max-w-3xl text-xs leading-relaxed text-text-secondary sm:text-sm">
               Sube uno o varios logos, elige si van en la visera o en el panel
               frontal, pinta cada pieza del modelo y comparte la configuración.
               El diseño se queda en tu navegador; no se envía ni se guarda en la
