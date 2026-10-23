@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import type { Texture } from "three";
 import {
@@ -12,10 +12,8 @@ import type { CapLogoInstance } from "@/components/store/hero-cap-model";
 import { HeroCapScene } from "@/components/store/hero-cap-scene";
 import { DEFAULT_CAP_PART_COLORS } from "@/types/personalization";
 
-const CANVAS_ARIA_LABEL =
-  "Visor 3D de gorra Crea Caps. Arrastra hacia los lados para rotar.";
+const CANVAS_ARIA_LABEL = "Visor 3D de gorra Crea Caps.";
 const INITIAL_ROTATION_Y = -0.45;
-const ROTATION_SPEED = 0.008;
 
 type HeroCapViewerProps = {
   logoUrl: string | null;
@@ -23,12 +21,8 @@ type HeroCapViewerProps = {
 };
 
 export function HeroCapViewer({ logoUrl, onModelReady }: HeroCapViewerProps) {
-  const [isDragging, setIsDragging] = useState(false);
   const [logoTexture, setLogoTexture] = useState<Texture | null>(null);
   const rotationYRef = useRef(INITIAL_ROTATION_Y);
-  const isDraggingRef = useRef(false);
-  const userInteractedRef = useRef(false);
-  const lastXRef = useRef(0);
   const requestIdRef = useRef(0);
   const logoTextureRef = useRef<Texture | null>(null);
   const onModelReadyRef = useRef(onModelReady ?? null);
@@ -76,31 +70,6 @@ export function HeroCapViewer({ logoUrl, onModelReady }: HeroCapViewerProps) {
     };
   }, []);
 
-  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    isDraggingRef.current = true;
-    userInteractedRef.current = true;
-    lastXRef.current = event.clientX;
-    setIsDragging(true);
-  };
-
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!isDraggingRef.current) {
-      return;
-    }
-
-    rotationYRef.current += (event.clientX - lastXRef.current) * ROTATION_SPEED;
-    lastXRef.current = event.clientX;
-  };
-
-  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    isDraggingRef.current = false;
-    setIsDragging(false);
-  };
-
   return (
     <div className="absolute inset-0 animate-hero-enter-up">
       <Canvas
@@ -130,19 +99,9 @@ export function HeroCapViewer({ logoUrl, onModelReady }: HeroCapViewerProps) {
           }
           partColors={DEFAULT_CAP_PART_COLORS}
           introSpin
-          introCancelRef={userInteractedRef}
           onReadyRef={onModelReadyRef}
         />
       </Canvas>
-      <div
-        className={`absolute inset-0 touch-none ${
-          isDragging ? "cursor-grabbing" : "cursor-grab"
-        }`}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-      />
     </div>
   );
 }

@@ -44,9 +44,6 @@ export function StoreHero() {
             aria-hidden="true"
           />
           <StoreHeroViewer />
-          <p className="relative z-10 mt-2 hidden text-center text-xs text-text-secondary/80 lg:block">
-            Arrastra para rotar
-          </p>
         </div>
 
         <div className="w-full max-w-md sm:max-w-none lg:col-start-1 lg:row-start-2 lg:w-auto lg:justify-self-start">
