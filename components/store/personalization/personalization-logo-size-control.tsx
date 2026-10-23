@@ -2,18 +2,19 @@
 
 import { useId } from "react";
 import { Slider } from "@/components/ui/slider";
-import {
-  LOGO_SIZE_PX_MAX,
-  LOGO_SIZE_PX_MIN,
-} from "@/types/personalization";
+import { LOGO_SIZE_PX_MIN } from "@/types/personalization";
 
 type PersonalizationLogoSizeControlProps = {
   value: number;
+  max: number;
+  label?: string;
   onChange: (sizePx: number) => void;
 };
 
 export function PersonalizationLogoSizeControl({
   value,
+  max,
+  label = "Tamaño del logo",
   onChange,
 }: PersonalizationLogoSizeControlProps) {
   const labelId = useId();
@@ -23,7 +24,7 @@ export function PersonalizationLogoSizeControl({
     <div className="space-y-2">
       <div className="flex items-baseline justify-between gap-3">
         <p id={labelId} className="text-sm font-medium text-text-strong">
-          Tamaño del logo
+          {label}
         </p>
         <p
           id={valueId}
@@ -35,7 +36,7 @@ export function PersonalizationLogoSizeControl({
       </div>
       <Slider
         min={LOGO_SIZE_PX_MIN}
-        max={LOGO_SIZE_PX_MAX}
+        max={max}
         step={1}
         value={[value]}
         aria-labelledby={labelId}

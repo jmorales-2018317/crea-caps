@@ -15,23 +15,24 @@ import { toastError, toastSuccess } from "@/lib/toast";
 import {
   serializeDesign,
   type CapPartColors,
+  type SerializableLogo,
 } from "@/types/personalization";
 
 type ShareDesignDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   partColors: CapPartColors;
-  logoSizePx: number;
+  logos: readonly SerializableLogo[];
 };
 
 export function ShareDesignDialog({
   open,
   onOpenChange,
   partColors,
-  logoSizePx,
+  logos,
 }: ShareDesignDialogProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const json = serializeDesign(partColors, logoSizePx);
+  const json = serializeDesign(partColors, logos);
 
   const copyJson = async () => {
     try {
@@ -60,8 +61,8 @@ export function ShareDesignDialog({
         <DialogHeader>
           <DialogTitle>Compartir diseño</DialogTitle>
           <DialogDescription>
-            Copia los colores de cada pieza y el tamaño del logo en píxeles. Es
-            un diseño local: no se guarda en la tienda.
+            Copia los colores de cada pieza y la posición y el tamaño de cada
+            logo. Es un diseño local: no se guarda en la tienda.
           </DialogDescription>
         </DialogHeader>
         <textarea

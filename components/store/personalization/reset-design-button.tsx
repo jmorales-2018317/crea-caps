@@ -15,10 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { usePersonalizationStore } from "@/hooks/use-personalization-store";
 import { toastSuccess } from "@/lib/toast";
-import {
-  isDefaultPartColors,
-  LOGO_SIZE_PX_DEFAULT,
-} from "@/types/personalization";
+import { isDefaultPartColors } from "@/types/personalization";
 
 type ResetDesignButtonProps = {
   hasLogo: boolean;
@@ -31,13 +28,9 @@ export function ResetDesignButton({
 }: ResetDesignButtonProps) {
   const [open, setOpen] = useState(false);
   const partColors = usePersonalizationStore((state) => state.partColors);
-  const logoSizePx = usePersonalizationStore((state) => state.logoSizePx);
   const resetDesign = usePersonalizationStore((state) => state.resetDesign);
 
-  const isDefault =
-    !hasLogo &&
-    logoSizePx === LOGO_SIZE_PX_DEFAULT &&
-    isDefaultPartColors(partColors);
+  const isDefault = !hasLogo && isDefaultPartColors(partColors);
 
   return (
     <>
@@ -49,7 +42,7 @@ export function ResetDesignButton({
         title={
           isDefault
             ? "El diseño ya está en los valores iniciales"
-            : "Quitar el logo y restaurar los colores"
+            : "Quitar los logos y restaurar los colores"
         }
         onClick={() => setOpen(true)}
       >
@@ -62,7 +55,8 @@ export function ResetDesignButton({
           <AlertDialogHeader>
             <AlertDialogTitle>Reiniciar diseño</AlertDialogTitle>
             <AlertDialogDescription>
-              Se quitará el logo y los colores volverán a los valores iniciales.
+              Se quitarán los logos y los colores volverán a los valores
+              iniciales.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

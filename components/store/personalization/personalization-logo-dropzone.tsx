@@ -16,18 +16,28 @@ import { CATALOG_IMAGE_MIME_TYPES } from "@/lib/catalog-images";
 const ACCEPT = CATALOG_IMAGE_MIME_TYPES.join(",");
 
 type PersonalizationLogoDropzoneProps = {
-  previewUrl: string | null;
-  isProcessing: boolean;
-  error: string | null;
-  onFileSelected: (file: File) => void;
-  onClear: () => void;
+  previewUrl?: string | null;
+  isProcessing?: boolean;
+  error?: string | null;
+  multiple?: boolean;
+  remainingSlots?: number;
+  compact?: boolean;
+  idleLabel?: string;
+  ariaLabel?: string;
+  onFilesSelected: (files: File[]) => void;
+  onClear?: () => void;
 };
 
 export function PersonalizationLogoDropzone({
-  previewUrl,
-  isProcessing,
-  error,
-  onFileSelected,
+  previewUrl = null,
+  isProcessing = false,
+  error = null,
+  multiple = false,
+  remainingSlots,
+  compact = false,
+  idleLabel,
+  ariaLabel,
+  onFilesSelected,
   onClear,
 }: PersonalizationLogoDropzoneProps) {
   const inputId = useId();
@@ -37,6 +47,8 @@ export function PersonalizationLogoDropzone({
   const [isFileDragOver, setIsFileDragOver] = useState(false);
 
   const isBusy = isProcessing;
+  const canTakeMore = remainingSlots == null || remainingSlots > 0;
+  const allowMultiple = multiple && (remainingSlots == null || remainingSlots > 1);
 
   const isFileDragEvent = (event: ReactDragEvent) =>
     Array.from(event.dataTransfer.types).includes("Files");
@@ -46,8 +58,18 @@ export function PersonalizationLogoDropzone({
     setIsFileDragOver(false);
   };
 
+  const emitFiles = (list: FileList | File[] | null) => {
+    if (!list) {
+      return;
+    }
+    const files = Array.from(list);
+    if (files.length > 0) {
+      onFilesSelected(files);
+    }
+  };
+
   const handleFileDragEnter = (event: ReactDragEvent) => {
-    if (!isFileDragEvent(event) || isBusy) {
+    if (!isFileDragEvent(event) || isBusy || !canTakeMore) {
       return;
     }
     event.preventDefault();
@@ -69,7 +91,7 @@ export function PersonalizationLogoDropzone({
   };
 
   const handleFileDragOver = (event: ReactDragEvent) => {
-    if (!isFileDragEvent(event) || isBusy) {
+    if (!isFileDragEvent(event) || isBusy || !canTakeMore) {
       return;
     }
     event.preventDefault();
@@ -84,17 +106,14 @@ export function PersonalizationLogoDropzone({
     event.preventDefault();
     event.stopPropagation();
     resetFileDragState();
-    if (isBusy) {
+    if (isBusy || !canTakeMore) {
       return;
     }
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      onFileSelected(file);
-    }
+    emitFiles(event.dataTransfer.files);
   };
 
   const openFilePicker = () => {
-    if (!isBusy) {
+    if (!isBusy && canTakeMore) {
       inputRef.current?.click();
     }
   };
@@ -107,27 +126,36 @@ export function PersonalizationLogoDropzone({
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    emitFiles(event.target.files);
     event.target.value = "";
-    if (file) {
-      onFileSelected(file);
-    }
   };
+
+  const resolvedIdleLabel =
+    idleLabel ??
+    (previewUrl
+      ? "Cambiar imagen"
+      : allowMultiple
+        ? "Arrastra tus logos aquí"
+        : "Arrastra tu logo aquí");
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-text-strong">Logo frontal</p>
-      <p className="text-xs leading-relaxed text-text-secondary">
-        JPEG, PNG, WebP o AVIF. Máximo 5 MB.
-      </p>
       <input
         ref={inputRef}
         id={inputId}
         type="file"
         accept={ACCEPT}
+        multiple={allowMultiple}
         className="sr-only"
-        disabled={isBusy}
-        aria-label="Sube un logo para el frente de la gorra"
+        disabled={isBusy || !canTakeMore}
+        aria-label={
+          ariaLabel ??
+          (previewUrl
+            ? "Cambiar esta imagen"
+            : allowMultiple
+              ? "Sube uno o varios logos"
+              : "Sube un logo")
+        }
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         onChange={handleChange}
@@ -135,9 +163,13 @@ export function PersonalizationLogoDropzone({
       <div className="relative">
         <div
           role="button"
-          tabIndex={isBusy ? -1 : 0}
-          aria-disabled={isBusy}
-          aria-label="Zona para soltar o seleccionar un logo"
+          tabIndex={isBusy || !canTakeMore ? -1 : 0}
+          aria-disabled={isBusy || !canTakeMore}
+          aria-label={
+            previewUrl
+              ? "Zona para cambiar esta imagen"
+              : "Zona para soltar o seleccionar logos"
+          }
           onClick={openFilePicker}
           onKeyDown={handleDropZoneKeyDown}
           onDragEnter={handleFileDragEnter}
@@ -145,12 +177,13 @@ export function PersonalizationLogoDropzone({
           onDragOver={handleFileDragOver}
           onDrop={handleFileDrop}
           className={cn(
-            "flex min-h-16 cursor-pointer items-center gap-3 rounded-lg border border-dashed px-3 py-3 text-left transition-colors duration-200 motion-reduce:transition-none",
+            "flex cursor-pointer items-center gap-3 rounded-lg border border-dashed text-left transition-colors duration-200 motion-reduce:transition-none",
+            compact ? "min-h-14 px-2.5 py-2" : "min-h-16 px-3 py-3",
             isFileDragOver
               ? "border-primary bg-primary/10"
               : "border-border bg-muted/30 hover:border-primary/40",
-            previewUrl && "pr-10",
-            isBusy && "pointer-events-none opacity-60",
+            previewUrl && onClear && "pr-10",
+            (isBusy || !canTakeMore) && "pointer-events-none opacity-60",
           )}
         >
           {previewUrl ? (
@@ -171,17 +204,19 @@ export function PersonalizationLogoDropzone({
               {isBusy
                 ? "Procesando…"
                 : isFileDragOver
-                  ? "Suelta el logo aquí"
-                  : previewUrl
-                    ? "Cambiar logo"
-                    : "Arrastra tu logo aquí"}
+                  ? allowMultiple
+                    ? "Suelta los logos aquí"
+                    : "Suelta el logo aquí"
+                  : resolvedIdleLabel}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              o haz clic para seleccionar un archivo
+              {allowMultiple
+                ? "o haz clic para seleccionar archivos"
+                : "o haz clic para seleccionar un archivo"}
             </p>
           </div>
         </div>
-        {previewUrl ? (
+        {previewUrl && onClear ? (
           <Button
             type="button"
             variant="ghost"
@@ -199,9 +234,6 @@ export function PersonalizationLogoDropzone({
           {error}
         </p>
       ) : null}
-      <p className="sr-only" aria-live="polite">
-        {previewUrl ? "Logo aplicado en el frente de la gorra." : ""}
-      </p>
     </div>
   );
 }

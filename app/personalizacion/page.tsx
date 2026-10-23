@@ -45,9 +45,10 @@ export default async function PersonalizacionPage() {
               Personaliza tu gorra
             </h1>
             <p className="max-w-2xl text-sm leading-relaxed text-text-secondary sm:text-base">
-              Sube un logo, ajusta su tamaño, pinta cada pieza del modelo y
-              comparte la configuración. El diseño se queda en tu navegador; no
-              se envía ni se guarda en la tienda.
+              Sube uno o varios logos, elige si van en la visera o en el panel
+              frontal, pinta cada pieza del modelo y comparte la configuración.
+              El diseño se queda en tu navegador; no se envía ni se guarda en la
+              tienda.
             </p>
           </div>
           <PersonalizationStudio paletteColors={paletteColors} />

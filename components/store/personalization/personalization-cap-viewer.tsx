@@ -16,14 +16,20 @@ import {
   type Texture,
   type WebGLRenderer,
 } from "three";
-import { getCapPartIdFromObject } from "@/components/store/hero-cap-model";
+import {
+  getCapPartIdFromObject,
+  type CapLogoInstance,
+} from "@/components/store/hero-cap-model";
 import {
   createHeroLogoTextureFromUrl,
   logoSizePxToScale,
 } from "@/components/store/hero-cap-logo";
-import { LOGO_SIZE_PX_DEFAULT } from "@/types/personalization";
 import { HeroCapScene } from "@/components/store/hero-cap-scene";
-import type { CapPartColors, CapPartId } from "@/types/personalization";
+import type {
+  CapPartColors,
+  CapPartId,
+  PersonalizationLogoDraft,
+} from "@/types/personalization";
 
 const CANVAS_ARIA_LABEL =
   "Visor 3D para personalizar la gorra. Arrastra para rotar en cualquier dirección. Usa la rueda o pellizca para hacer zoom. Haz clic en una pieza para cambiar su color.";
@@ -58,13 +64,12 @@ type ThreePickContext = {
 };
 
 type PersonalizationCapViewerProps = {
-  logoUrl: string | null;
-  logoSizePx?: number;
+  logos: PersonalizationLogoDraft[];
   partColors: CapPartColors;
   selectedPart: CapPartId | null;
   isLightBackground?: boolean;
-  onLogoReady?: () => void;
-  onLogoError?: (message: string) => void;
+  onLogoReady?: (id: string) => void;
+  onLogoError?: (id: string, message: string) => void;
   onPartClick: (
     part: CapPartId | null,
     point?: { clientX: number; clientY: number },
@@ -103,8 +108,7 @@ function pickCapPart(
 }
 
 export function PersonalizationCapViewer({
-  logoUrl,
-  logoSizePx = LOGO_SIZE_PX_DEFAULT,
+  logos,
   partColors,
   selectedPart,
   isLightBackground = false,
@@ -114,7 +118,7 @@ export function PersonalizationCapViewer({
 }: PersonalizationCapViewerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [hoveredPart, setHoveredPart] = useState<CapPartId | null>(null);
-  const [logoTexture, setLogoTexture] = useState<Texture | null>(null);
+  const [logoTextures, setLogoTextures] = useState<Record<string, Texture>>({});
   const overlayRef = useRef<HTMLDivElement>(null);
   const rotationYRef = useRef(INITIAL_ROTATION_Y);
   const rotationXRef = useRef(INITIAL_ROTATION_X);
@@ -131,7 +135,9 @@ export function PersonalizationCapViewer({
   const pinchStartDistanceRef = useRef(0);
   const pinchStartZoomRef = useRef(INITIAL_ZOOM_DISTANCE);
   const requestIdRef = useRef(0);
-  const logoTextureRef = useRef<Texture | null>(null);
+  const logoTexturesRef = useRef<Record<string, Texture>>({});
+  const logoUrlsRef = useRef<Record<string, string>>({});
+  const logosKey = logos.map((logo) => `${logo.id}:${logo.url}`).join("|");
   const onLogoReadyRef = useRef(onLogoReady);
   const onLogoErrorRef = useRef(onLogoError);
   const onPartClickRef = useRef(onPartClick);
@@ -145,43 +151,80 @@ export function PersonalizationCapViewer({
   useEffect(() => {
     const requestId = ++requestIdRef.current;
     let cancelled = false;
+    const nextIds = new Set(logos.map((logo) => logo.id));
+    const current = logoTexturesRef.current;
+    const urls = logoUrlsRef.current;
 
-    const replaceTexture = (texture: Texture | null) => {
-      logoTextureRef.current?.dispose();
-      logoTextureRef.current = texture;
-      setLogoTexture(texture);
-    };
+    for (const [id, texture] of Object.entries(current)) {
+      const nextUrl = logos.find((logo) => logo.id === id)?.url;
+      if (nextIds.has(id) && nextUrl && urls[id] === nextUrl) {
+        continue;
+      }
+      texture.dispose();
+      delete current[id];
+      delete urls[id];
+    }
 
-    if (!logoUrl) {
-      replaceTexture(null);
-      onLogoReadyRef.current?.();
+    if (logos.length === 0) {
+      logoTexturesRef.current = {};
+      logoUrlsRef.current = {};
+      setLogoTextures({});
+      return;
+    }
+
+    const pending = logos.filter((logo) => current[logo.id] == null);
+
+    if (pending.length === 0) {
+      setLogoTextures({ ...current });
       return;
     }
 
     void (async () => {
-      try {
-        const texture = await createHeroLogoTextureFromUrl(logoUrl);
-        if (cancelled || requestId !== requestIdRef.current) {
+      const loaded: Record<string, Texture> = {};
+      await Promise.all(
+        pending.map(async (logo) => {
+          try {
+            const texture = await createHeroLogoTextureFromUrl(logo.url);
+            if (cancelled || requestId !== requestIdRef.current) {
+              texture.dispose();
+              return;
+            }
+            loaded[logo.id] = texture;
+            logoUrlsRef.current[logo.id] = logo.url;
+            onLogoReadyRef.current?.(logo.id);
+          } catch {
+            if (!cancelled && requestId === requestIdRef.current) {
+              onLogoErrorRef.current?.(logo.id, LOGO_APPLY_ERROR);
+            }
+          }
+        }),
+      );
+
+      if (cancelled || requestId !== requestIdRef.current) {
+        for (const texture of Object.values(loaded)) {
           texture.dispose();
-          return;
         }
-        replaceTexture(texture);
-        onLogoReadyRef.current?.();
-      } catch {
-        if (!cancelled && requestId === requestIdRef.current) {
-          onLogoErrorRef.current?.(LOGO_APPLY_ERROR);
-        }
+        return;
       }
+
+      logoTexturesRef.current = { ...logoTexturesRef.current, ...loaded };
+      setLogoTextures({ ...logoTexturesRef.current });
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [logoUrl]);
+    // logosKey captures id+url identity without depending on size/placement.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [logosKey]);
 
   useEffect(() => {
     return () => {
-      logoTextureRef.current?.dispose();
+      for (const texture of Object.values(logoTexturesRef.current)) {
+        texture.dispose();
+      }
+      logoTexturesRef.current = {};
+      logoUrlsRef.current = {};
     };
   }, []);
 
@@ -432,8 +475,20 @@ export function PersonalizationCapViewer({
           rotationXRef={rotationXRef}
           zoomDistanceRef={zoomDistanceRef}
           lookAtY={CAMERA_LOOK_AT_Y}
-          logoTexture={logoTexture}
-          logoSize={logoSizePxToScale(logoSizePx)}
+          logos={logos.flatMap((logo) => {
+            const texture = logoTextures[logo.id];
+            if (!texture) {
+              return [];
+            }
+            return [
+              {
+                id: logo.id,
+                placement: logo.placement,
+                texture,
+                size: logoSizePxToScale(logo.sizePx, logo.placement),
+              } satisfies CapLogoInstance,
+            ];
+          })}
           partColors={partColors}
           selectedPart={selectedPart}
           hoveredPart={hoveredPart}

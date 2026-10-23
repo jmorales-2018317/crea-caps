@@ -2,14 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { Share2 } from "lucide-react";
+import { ImagePlus, Palette, Share2 } from "lucide-react";
 import { cn } from "cn";
 import {
   PersonalizationColorPopover,
   type ColorPickerOrigin,
 } from "@/components/store/personalization/personalization-color-popover";
-import { PersonalizationLogoDropzone } from "@/components/store/personalization/personalization-logo-dropzone";
-import { PersonalizationLogoSizeControl } from "@/components/store/personalization/personalization-logo-size-control";
+import {
+  PersonalizationLogosField,
+  revokeLogoUrls,
+  type PersonalizationLogoItem,
+} from "@/components/store/personalization/personalization-logos-field";
 import { PersonalizationPartPicker } from "@/components/store/personalization/personalization-part-picker";
 import { ResetDesignButton } from "@/components/store/personalization/reset-design-button";
 import { ShareDesignDialog } from "@/components/store/personalization/share-design-dialog";
@@ -19,9 +22,15 @@ import {
   type ViewerBackgroundMode,
 } from "@/components/store/personalization/viewer-background-toggle";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePersonalizationStore } from "@/hooks/use-personalization-store";
-import { validateImageFile } from "@/lib/catalog-images";
 import type { CapPartId, PaletteColor } from "@/types/personalization";
+
+type StudioSidebarTab = "colores" | "logos";
+
+function isStudioSidebarTab(value: string): value is StudioSidebarTab {
+  return value === "colores" || value === "logos";
+}
 
 type PickerPoint = {
   x: number;
@@ -52,12 +61,6 @@ const PersonalizationCapCanvas = dynamic(
   },
 );
 
-function revokeIfBlob(url: string | null) {
-  if (url?.startsWith("blob:")) {
-    URL.revokeObjectURL(url);
-  }
-}
-
 type PersonalizationStudioProps = {
   paletteColors: PaletteColor[] | null;
 };
@@ -67,18 +70,15 @@ export function PersonalizationStudio({
 }: PersonalizationStudioProps) {
   const partColors = usePersonalizationStore((state) => state.partColors);
   const selectedPart = usePersonalizationStore((state) => state.selectedPart);
-  const logoSizePx = usePersonalizationStore((state) => state.logoSizePx);
   const hasHydrated = usePersonalizationStore((state) => state.hasHydrated);
   const selectPart = usePersonalizationStore((state) => state.selectPart);
   const setPartColor = usePersonalizationStore((state) => state.setPartColor);
   const constrainToPalette = usePersonalizationStore(
     (state) => state.constrainToPalette,
   );
-  const setLogoSizePx = usePersonalizationStore((state) => state.setLogoSizePx);
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [logos, setLogos] = useState<PersonalizationLogoItem[]>([]);
+  const [sidebarTab, setSidebarTab] = useState<StudioSidebarTab>("colores");
   const [shareOpen, setShareOpen] = useState(false);
   const [pickerPoint, setPickerPoint] = useState<PickerPoint | null>(null);
   const [pickerOrigin, setPickerOrigin] = useState<ColorPickerOrigin | null>(
@@ -88,16 +88,20 @@ export function PersonalizationStudio({
     useState<ViewerBackgroundMode>("dark");
   const isLightViewer = backgroundMode === "light";
   const viewerBackground = VIEWER_BACKGROUND_COLORS[backgroundMode];
-  const previewUrlRef = useRef<string | null>(null);
+  const logosRef = useRef<PersonalizationLogoItem[]>([]);
   const viewerRef = useRef<HTMLDivElement>(null);
   const pickerAnchorRef = useRef<HTMLDivElement>(null);
   const partListRef = useRef<HTMLDivElement>(null);
   const pickerOpenTimeoutRef = useRef<number>(0);
 
   useEffect(() => {
+    logosRef.current = logos;
+  }, [logos]);
+
+  useEffect(() => {
     return () => {
       window.clearTimeout(pickerOpenTimeoutRef.current);
-      revokeIfBlob(previewUrlRef.current);
+      revokeLogoUrls(logosRef.current);
     };
   }, []);
 
@@ -108,39 +112,26 @@ export function PersonalizationStudio({
     constrainToPalette(paletteColors);
   }, [constrainToPalette, hasHydrated, paletteColors]);
 
-  const replacePreview = (nextUrl: string | null) => {
-    revokeIfBlob(previewUrlRef.current);
-    previewUrlRef.current = nextUrl;
-    setPreviewUrl(nextUrl);
-  };
-
-  const handleLogoReady = useCallback(() => {
-    setIsProcessing(false);
+  const handleLogoReady = useCallback((id: string) => {
+    setLogos((current) =>
+      current.map((logo) =>
+        logo.id === id ? { ...logo, isProcessing: false, error: null } : logo,
+      ),
+    );
   }, []);
 
-  const handleLogoError = useCallback((message: string) => {
-    setIsProcessing(false);
-    if (previewUrlRef.current) {
-      setError(message);
-    }
+  const handleLogoError = useCallback((id: string, message: string) => {
+    setLogos((current) =>
+      current.map((logo) =>
+        logo.id === id ? { ...logo, isProcessing: false, error: message } : logo,
+      ),
+    );
   }, []);
 
-  const clearLogo = () => {
-    replacePreview(null);
-    setError(null);
-    setIsProcessing(false);
-  };
-
-  const handleFileSelected = (file: File) => {
-    const validationError = validateImageFile(file);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setIsProcessing(true);
-    setError(null);
-    replacePreview(URL.createObjectURL(file));
+  const clearLogos = () => {
+    revokeLogoUrls(logosRef.current);
+    logosRef.current = [];
+    setLogos([]);
   };
 
   const placePickerAtViewerCenter = () => {
@@ -199,6 +190,16 @@ export function PersonalizationStudio({
     setPickerOrigin("sidebar");
   };
 
+  const handleSidebarTabChange = (value: string) => {
+    if (!isStudioSidebarTab(value)) {
+      return;
+    }
+    if (value !== "colores" && pickerOrigin === "sidebar") {
+      closeColorPicker();
+    }
+    setSidebarTab(value);
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20.5rem] lg:items-stretch xl:grid-cols-[minmax(0,1fr)_22rem]">
       <div className="flex flex-col gap-3">
@@ -215,8 +216,7 @@ export function PersonalizationStudio({
             className="relative h-[min(62svh,26rem)] w-full sm:h-[min(64svh,32rem)] lg:h-[min(70vh,40rem)]"
           >
             <PersonalizationCapCanvas
-              logoUrl={previewUrl}
-              logoSizePx={logoSizePx}
+              logos={logos}
               partColors={partColors}
               selectedPart={selectedPart}
               isLightBackground={isLightViewer}
@@ -287,55 +287,81 @@ export function PersonalizationStudio({
             Compartir diseño
           </Button>
           <ResetDesignButton
-            hasLogo={Boolean(previewUrl)}
-            onResetLogo={clearLogo}
+            hasLogo={logos.length > 0}
+            onResetLogo={clearLogos}
           />
         </div>
       </div>
 
-      <aside className="flex min-h-0 flex-col gap-4 rounded-2xl border border-[#e8d9a8]/20 bg-card/80 p-4 shadow-[0_12px_36px_rgb(0_0_0_/_0.28)] backdrop-blur-md sm:p-5 lg:sticky lg:top-20 lg:max-h-[calc(100svh-6.5rem)]">
-        <PersonalizationLogoDropzone
-          previewUrl={previewUrl}
-          isProcessing={isProcessing}
-          error={error}
-          onFileSelected={handleFileSelected}
-          onClear={clearLogo}
-        />
-
-        {previewUrl ? (
-          <PersonalizationLogoSizeControl
-            value={logoSizePx}
-            onChange={setLogoSizePx}
-          />
-        ) : null}
-
-        <div
-          ref={partListRef}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]"
+      <aside className="flex flex-col rounded-2xl border border-[#e8d9a8]/20 bg-card/80 p-4 shadow-[0_12px_36px_rgb(0_0_0_/_0.28)] backdrop-blur-md sm:p-5 lg:sticky lg:top-20 lg:max-h-[calc(100svh-6.5rem)] lg:min-h-0 lg:overflow-hidden">
+        <Tabs
+          value={sidebarTab}
+          onValueChange={handleSidebarTabChange}
+          className="flex flex-1 flex-col gap-4 lg:min-h-0"
         >
-          <PersonalizationPartPicker
-            selectedPart={selectedPart}
-            pickerOrigin={pickerOrigin}
-            partColors={partColors}
-            paletteColors={paletteColors}
-            onSelectPart={handleListSelect}
-            onPartColorChange={setPartColor}
-            onClose={closeColorPicker}
-            shouldIgnoreOutsidePress={(target) => {
-              if (!(target instanceof Node)) {
-                return false;
-              }
-              return Boolean(viewerRef.current?.contains(target));
-            }}
-          />
-        </div>
+          <TabsList
+            aria-label="Secciones de personalización"
+            className="h-10 w-full min-w-0 shrink-0"
+          >
+            <TabsTrigger
+              value="colores"
+              className="min-w-0 cursor-pointer gap-1.5"
+            >
+              <Palette aria-hidden="true" />
+              Colores
+            </TabsTrigger>
+            <TabsTrigger
+              value="logos"
+              className="min-w-0 cursor-pointer gap-1.5"
+            >
+              <ImagePlus aria-hidden="true" />
+              Logos
+              {logos.length > 0 ? (
+                <span className="tabular-nums text-xs text-muted-foreground">
+                  {logos.length}
+                </span>
+              ) : null}
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent
+            value="colores"
+            className="flex-1 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-gutter:stable]"
+          >
+            <div ref={partListRef} className="min-h-0">
+              <PersonalizationPartPicker
+                selectedPart={selectedPart}
+                pickerOrigin={pickerOrigin}
+                partColors={partColors}
+                paletteColors={paletteColors}
+                onSelectPart={handleListSelect}
+                onPartColorChange={setPartColor}
+                onClose={closeColorPicker}
+                shouldIgnoreOutsidePress={(target) => {
+                  if (!(target instanceof Node)) {
+                    return false;
+                  }
+                  return Boolean(viewerRef.current?.contains(target));
+                }}
+              />
+            </div>
+          </TabsContent>
+          <TabsContent
+            value="logos"
+            className="flex-1 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-gutter:stable]"
+          >
+            <PersonalizationLogosField logos={logos} onLogosChange={setLogos} />
+          </TabsContent>
+        </Tabs>
       </aside>
 
       <ShareDesignDialog
         open={shareOpen}
         onOpenChange={setShareOpen}
         partColors={partColors}
-        logoSizePx={logoSizePx}
+        logos={logos.map((logo) => ({
+          placement: logo.placement,
+          size: logo.sizePx,
+        }))}
       />
     </div>
   );
