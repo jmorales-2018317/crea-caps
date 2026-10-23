@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2, Trash2 } from "lucide-react";
 import { PersonalizationLogoDropzone } from "@/components/store/personalization/personalization-logo-dropzone";
 import { PersonalizationLogoPlacement } from "@/components/store/personalization/personalization-logo-placement";
 import { PersonalizationLogoSizeControl } from "@/components/store/personalization/personalization-logo-size-control";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { validateImageFile } from "@/lib/catalog-images";
 import {
   LOGO_PLACEMENT_FULL_LABELS,
@@ -47,7 +55,7 @@ export function appendLogoFiles(
   if (remaining <= 0) {
     return {
       logos: current,
-      error: "Ya usaste las 5 posiciones disponibles.",
+      error: `Ya usaste las ${MAX_PERSONALIZATION_LOGOS} posiciones disponibles.`,
     };
   }
 
@@ -99,38 +107,6 @@ export function appendLogoFiles(
   return { logos: next, error: overflowError ?? fileError };
 }
 
-export function replaceLogoFile(
-  current: PersonalizationLogoItem[],
-  logoId: string,
-  file: File,
-): PersonalizationLogoItem[] | null {
-  const validationError = validateImageFile(file);
-  const target = current.find((logo) => logo.id === logoId);
-  if (!target) {
-    return null;
-  }
-  if (validationError) {
-    return current.map((logo) =>
-      logo.id === logoId ? { ...logo, error: validationError } : logo,
-    );
-  }
-
-  if (target.url.startsWith("blob:")) {
-    URL.revokeObjectURL(target.url);
-  }
-
-  return current.map((logo) =>
-    logo.id === logoId
-      ? {
-          ...logo,
-          url: URL.createObjectURL(file),
-          isProcessing: true,
-          error: null,
-        }
-      : logo,
-  );
-}
-
 export function revokeLogoUrls(logos: readonly PersonalizationLogoItem[]) {
   for (const logo of logos) {
     if (logo.url.startsWith("blob:")) {
@@ -144,24 +120,20 @@ export function PersonalizationLogosField({
   onLogosChange,
 }: PersonalizationLogosFieldProps) {
   const [addError, setAddError] = useState<string | null>(null);
+  const [openLogoIds, setOpenLogoIds] = useState<string[]>([]);
   const remaining = MAX_PERSONALIZATION_LOGOS - logos.length;
 
   const handleAddFiles = (files: File[]) => {
     const { logos: next, error } = appendLogoFiles(logos, files);
     setAddError(error);
+    const previousIds = new Set(logos.map((logo) => logo.id));
+    const addedIds = next
+      .filter((logo) => !previousIds.has(logo.id))
+      .map((logo) => logo.id);
+    if (addedIds.length > 0) {
+      setOpenLogoIds((current) => [...current, ...addedIds]);
+    }
     onLogosChange(next);
-  };
-
-  const handleReplace = (logoId: string, files: File[]) => {
-    const file = files[0];
-    if (!file) {
-      return;
-    }
-    const next = replaceLogoFile(logos, logoId, file);
-    if (next) {
-      setAddError(null);
-      onLogosChange(next);
-    }
   };
 
   const handleClear = (logoId: string) => {
@@ -170,111 +142,128 @@ export function PersonalizationLogosField({
       URL.revokeObjectURL(target.url);
     }
     setAddError(null);
+    setOpenLogoIds((current) => current.filter((id) => id !== logoId));
     onLogosChange(logos.filter((logo) => logo.id !== logoId));
   };
 
   return (
     <div className="space-y-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-xs leading-relaxed text-text-secondary">
-          JPEG, PNG, WebP o AVIF. Máximo 5 MB. Una imagen por posición: visera o
-          panel frontal.
-        </p>
-        <p className="shrink-0 text-xs tabular-nums text-text-secondary">
-          {logos.length}/{MAX_PERSONALIZATION_LOGOS}
-        </p>
-      </div>
+      <PersonalizationLogoDropzone
+        multiple
+        remainingSlots={remaining}
+        error={addError}
+        idleLabel={remaining <= 0 ? "Sin posiciones libres" : undefined}
+        onFilesSelected={handleAddFiles}
+      />
 
-      {logos.length === 0 ? (
-        <PersonalizationLogoDropzone
+      {logos.length > 0 ? (
+        <Accordion
           multiple
-          remainingSlots={remaining}
-          error={addError}
-          onFilesSelected={handleAddFiles}
-        />
-      ) : (
-        <>
-          <ul className="space-y-3">
-            {logos.map((logo, index) => (
-              <li
+          value={openLogoIds}
+          onValueChange={(next) => setOpenLogoIds(next.map(String))}
+          className="gap-2"
+        >
+          {logos.map((logo) => {
+            const placementLabel = LOGO_PLACEMENT_FULL_LABELS[logo.placement];
+            return (
+              <AccordionItem
                 key={logo.id}
-                className="space-y-3 rounded-xl border border-border/80 bg-muted/20 p-3"
+                value={logo.id}
+                className="overflow-hidden rounded-xl border border-border/80 bg-muted/20 px-4"
               >
-                <PersonalizationLogoDropzone
-                  compact
-                  previewUrl={logo.url}
-                  isProcessing={logo.isProcessing}
-                  error={logo.error ?? null}
-                  ariaLabel={`Cambiar logo ${index + 1} en ${LOGO_PLACEMENT_FULL_LABELS[logo.placement]}`}
-                  onFilesSelected={(files) => handleReplace(logo.id, files)}
-                  onClear={() => handleClear(logo.id)}
-                />
-                <PersonalizationLogoPlacement
-                  logoId={logo.id}
-                  value={logo.placement}
-                  occupied={occupiedPlacements(logos, logo.id)}
-                  onChange={(placement) => {
-                    onLogosChange(
-                      logos.map((item) =>
-                        item.id === logo.id
-                          ? {
-                              ...item,
-                              placement,
-                              sizePx: sanitizeLogoSizePx(item.sizePx, placement),
-                            }
-                          : item,
-                      ),
-                    );
-                  }}
-                />
-                <PersonalizationLogoSizeControl
-                  value={sanitizeLogoSizePx(logo.sizePx, logo.placement)}
-                  max={getLogoSizePxMax(logo.placement)}
-                  label="Tamaño"
-                  onChange={(sizePx) => {
-                    onLogosChange(
-                      logos.map((item) =>
-                        item.id === logo.id
-                          ? {
-                              ...item,
-                              sizePx: sanitizeLogoSizePx(
-                                sizePx,
-                                item.placement,
-                              ),
-                            }
-                          : item,
-                      ),
-                    );
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
-          {remaining > 0 ? (
-            <PersonalizationLogoDropzone
-              compact
-              multiple
-              remainingSlots={remaining}
-              error={addError}
-              idleLabel="Añadir otro logo"
-              ariaLabel="Añadir otro logo"
-              onFilesSelected={handleAddFiles}
-            />
-          ) : addError ? (
-            <p role="alert" className="text-sm text-destructive">
-              {addError}
-            </p>
-          ) : null}
-        </>
-      )}
-
-      <p className="sr-only" aria-live="polite">
-        {logos.length > 0
-          ? `${logos.length} logo${logos.length === 1 ? "" : "s"} ${
-              logos.length === 1 ? "aplicado" : "aplicados"
-            }.`
-          : "Ningún logo aplicado."}
-      </p>
+                <div className="flex items-center gap-1">
+                  <div className="min-w-0 flex-1">
+                    <AccordionTrigger
+                      className="cursor-pointer items-center gap-3 py-2 hover:no-underline"
+                      aria-label={`Editar posición y tamaño: ${placementLabel}`}
+                    >
+                      <span className="relative size-10 shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={logo.url}
+                          alt=""
+                          className="size-10 object-contain"
+                        />
+                        {logo.isProcessing ? (
+                          <span className="absolute inset-0 flex items-center justify-center bg-background/70">
+                            <Loader2
+                              className="size-4 animate-spin text-muted-foreground"
+                              aria-hidden="true"
+                            />
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-left">
+                        {logo.isProcessing ? "Procesando…" : placementLabel}
+                      </span>
+                    </AccordionTrigger>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="shrink-0 cursor-pointer text-text-secondary hover:bg-destructive/15 hover:text-destructive"
+                    aria-label={`Quitar logo de ${placementLabel}`}
+                    onClick={() => handleClear(logo.id)}
+                  >
+                    <Trash2 className="size-3.5" aria-hidden="true" />
+                  </Button>
+                </div>
+                {logo.error ? (
+                  <p role="alert" className="pb-2 text-sm text-destructive">
+                    {logo.error}
+                  </p>
+                ) : null}
+                <AccordionContent className="border-t border-border/60 pt-3 pb-3 [&_p:not(:last-child)]:mb-0">
+                  <div className="grid grid-cols-[minmax(0,1fr)_5.5rem] items-end gap-x-2 gap-y-3">
+                    <PersonalizationLogoPlacement
+                      logoId={logo.id}
+                      value={logo.placement}
+                      occupied={occupiedPlacements(logos, logo.id)}
+                      onChange={(placement) => {
+                        onLogosChange(
+                          logos.map((item) =>
+                            item.id === logo.id
+                              ? {
+                                  ...item,
+                                  placement,
+                                  sizePx: sanitizeLogoSizePx(
+                                    item.sizePx,
+                                    placement,
+                                  ),
+                                }
+                              : item,
+                          ),
+                        );
+                      }}
+                    />
+                    <PersonalizationLogoSizeControl
+                      value={sanitizeLogoSizePx(logo.sizePx, logo.placement)}
+                      max={getLogoSizePxMax(logo.placement)}
+                      label="Tamaño"
+                      onChange={(sizePx) => {
+                        onLogosChange(
+                          logos.map((item) =>
+                            item.id === logo.id
+                              ? {
+                                  ...item,
+                                  sizePx: sanitizeLogoSizePx(
+                                    sizePx,
+                                    item.placement,
+                                  ),
+                                }
+                              : item,
+                          ),
+                        );
+                      }}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      ) : null}
     </div>
   );
 }
