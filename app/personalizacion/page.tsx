@@ -37,7 +37,7 @@ export default async function PersonalizacionPage() {
       <StoreHeader settings={settings} />
       <main className="flex-1">
         <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-          <div className="mb-6 max-w-3xl space-y-3 sm:mb-8">
+          <div className="mb-6 max-w-4xl space-y-3 sm:mb-8">
             <p className="flex items-center gap-2.5 text-[11px] font-medium tracking-[0.18em] text-gold-soft uppercase">
               <span
                 aria-hidden="true"
@@ -48,11 +48,9 @@ export default async function PersonalizacionPage() {
             <h1 className="text-balance text-3xl font-semibold tracking-tight text-text-strong sm:text-4xl">
               Personaliza tu gorra
             </h1>
-            <p className="max-w-3xl text-xs leading-relaxed text-text-secondary sm:text-sm">
-              Sube uno o varios logos, elige si van en la visera o en el panel
-              frontal, pinta cada pieza del modelo y comparte la configuración.
-              El diseño se queda en tu navegador; no se envía ni se guarda en la
-              tienda.
+            <p className="text-xs leading-relaxed text-text-secondary sm:text-sm">
+              Prueba colores y logos sobre el modelo 3D hasta dar con tu pieza.
+              Es una vista previa: el diseño se queda en tu navegador.
             </p>
           </div>
           <PersonalizationStudio paletteColors={paletteColors} />
