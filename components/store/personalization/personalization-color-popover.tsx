@@ -114,7 +114,7 @@ export function PersonalizationColorFields({
           <div
             role="radiogroup"
             aria-label={`Paleta de ${CAP_PART_LABELS[part]}`}
-            className="grid max-h-48 grid-cols-5 gap-1.5 overflow-y-auto pr-0.5"
+            className="flex max-h-44 flex-wrap content-start gap-2 overflow-y-auto p-1"
           >
             {filtered.map((option) => {
               const selected = option.hex_code === color;
@@ -128,9 +128,10 @@ export function PersonalizationColorFields({
                   title={`${option.name} (${option.hex_code})`}
                   onClick={() => onColorChange(option.hex_code)}
                   className={cn(
-                    "aspect-square min-h-10 cursor-pointer rounded-lg border border-border shadow-sm outline-none transition-transform hover:scale-[1.04] focus-visible:ring-2 focus-visible:ring-ring",
-                    selected &&
-                      "ring-2 ring-primary ring-offset-2 ring-offset-popover",
+                    "size-6.5 shrink-0 cursor-pointer rounded-md border outline-none transition-[box-shadow,transform] duration-150 hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100 focus-visible:ring-2 focus-visible:ring-ring",
+                    selected
+                      ? "z-10 border-transparent shadow-[0_0_0_2px_var(--popover),0_0_0_3.5px_var(--foreground)]"
+                      : "border-border",
                   )}
                   style={{ backgroundColor: option.hex_code }}
                 />
@@ -196,7 +197,7 @@ export function PersonalizationColorPopover({
         side="top"
         align="center"
         sideOffset={14}
-        className="w-72 p-3"
+        className="w-56 p-2.5"
         initialFocus={false}
         finalFocus={false}
       >

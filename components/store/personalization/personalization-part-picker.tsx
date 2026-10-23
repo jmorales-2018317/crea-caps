@@ -69,12 +69,9 @@ export function PersonalizationPartPicker({
 
   return (
     <div className="space-y-3">
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-text-strong">Piezas</p>
-        <p className="text-xs leading-relaxed text-text-secondary">
-          Elige un grupo o haz clic en la gorra para pintar una pieza.
-        </p>
-      </div>
+      <p className="text-xs leading-relaxed text-text-secondary">
+        Elige un grupo o haz clic en la gorra para pintar una pieza.
+      </p>
       <p className="sr-only" aria-live="polite">
         {selectedPart && selectedLabel
           ? `Pieza seleccionada: ${selectedLabel}`
@@ -162,7 +159,7 @@ export function PersonalizationPartPicker({
                         align="center"
                         sideOffset={10}
                         collisionPadding={12}
-                        className="w-72 p-3"
+                        className="w-56 p-2.5"
                       >
                         <PersonalizationColorFields
                           part={part}
