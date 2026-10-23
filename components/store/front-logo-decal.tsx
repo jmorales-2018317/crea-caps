@@ -24,8 +24,10 @@ const RAY_START = 0.02;
 const RAY_FAR = 0.08;
 const CURVE_SMALL_EXTENT = 0.02;
 const CURVE_LARGE_EXTENT = 0.09;
-const CURVE_KEEP_AT_LARGE = 0.68;
+const CURVE_KEEP_AT_LARGE = 0.86;
+const FIT_SAMPLE_SCALE = 0.8;
 const MAX_EDGE_SAG = 0.0052;
+const MAX_EDGE_SAG_AT_LARGE = 0.0076;
 
 function clamp01(value: number) {
   return Math.min(1, Math.max(0, value));
@@ -131,8 +133,10 @@ function flattenQuadric(q: Quadric, width: number, height: number): Quadric {
   const hx = width / 2;
   const hy = height / 2;
   const sag = Math.abs(d * hx * hx + e * hy * hy) + Math.abs(f * hx * hy) * 0.5;
-  if (sag > MAX_EDGE_SAG && sag > 1e-12) {
-    const scale = MAX_EDGE_SAG / sag;
+  const maxSag =
+    MAX_EDGE_SAG + flatten * (MAX_EDGE_SAG_AT_LARGE - MAX_EDGE_SAG);
+  if (sag > maxSag && sag > 1e-12) {
+    const scale = maxSag / sag;
     d *= scale;
     e *= scale;
     f *= scale;
@@ -319,14 +323,16 @@ function createSmoothLogoGeometry(
   width: number,
   height: number,
 ): BufferGeometry {
+  const fitWidth = width * FIT_SAMPLE_SCALE;
+  const fitHeight = height * FIT_SAMPLE_SCALE;
   const vertexSamples = collectOuterSamples(
     mesh,
     origin,
     axisX,
     axisY,
     axisZ,
-    width,
-    height,
+    fitWidth,
+    fitHeight,
   );
   const raySamples = collectRaySamples(
     mesh,
@@ -334,8 +340,8 @@ function createSmoothLogoGeometry(
     axisX,
     axisY,
     axisZ,
-    width,
-    height,
+    fitWidth,
+    fitHeight,
   );
   const samples = raySamples.length >= 8 ? raySamples : vertexSamples;
   const envelope = vertexSamples.length >= 8 ? vertexSamples : samples;
