@@ -4,11 +4,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
   DEFAULT_CAP_PART_COLORS,
-  LOGO_SIZE_PX_DEFAULT,
   PERSONALIZATION_STORAGE_KEY,
   constrainPartColorsToPalette,
   sanitizeColorForPart,
-  sanitizeLogoSizePx,
   sanitizePartColors,
   type CapPartId,
   type PaletteColor,
@@ -20,7 +18,6 @@ export const usePersonalizationStore = create<PersonalizationStore>()(
     (set) => ({
       partColors: { ...DEFAULT_CAP_PART_COLORS },
       selectedPart: null,
-      logoSizePx: LOGO_SIZE_PX_DEFAULT,
       hasHydrated: false,
 
       setHasHydrated: (value) => {
@@ -54,15 +51,10 @@ export const usePersonalizationStore = create<PersonalizationStore>()(
         set({ selectedPart: part });
       },
 
-      setLogoSizePx: (sizePx) => {
-        set({ logoSizePx: sanitizeLogoSizePx(sizePx) });
-      },
-
       resetDesign: () => {
         set({
           partColors: { ...DEFAULT_CAP_PART_COLORS },
           selectedPart: null,
-          logoSizePx: LOGO_SIZE_PX_DEFAULT,
         });
       },
     }),
@@ -70,16 +62,14 @@ export const usePersonalizationStore = create<PersonalizationStore>()(
       name: PERSONALIZATION_STORAGE_KEY,
       partialize: (state) => ({
         partColors: state.partColors,
-        logoSizePx: state.logoSizePx,
       }),
       merge: (persistedState, currentState) => {
         const persisted = persistedState as
-          | { partColors?: unknown; logoSizePx?: unknown }
+          | { partColors?: unknown }
           | undefined;
         return {
           ...currentState,
           partColors: sanitizePartColors(persisted?.partColors),
-          logoSizePx: sanitizeLogoSizePx(persisted?.logoSizePx),
         };
       },
       onRehydrateStorage: () => (state) => {

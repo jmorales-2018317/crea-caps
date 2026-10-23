@@ -4,9 +4,11 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { Canvas } from "@react-three/fiber";
 import type { Texture } from "three";
 import {
+  DEFAULT_HERO_LOGO_PLACEMENT,
   LOGO_SIZE_DEFAULT,
   createHeroLogoTextureFromUrl,
 } from "@/components/store/hero-cap-logo";
+import type { CapLogoInstance } from "@/components/store/hero-cap-model";
 import { HeroCapScene } from "@/components/store/hero-cap-scene";
 import { DEFAULT_CAP_PART_COLORS } from "@/types/personalization";
 
@@ -115,8 +117,17 @@ export function HeroCapViewer({ logoUrl, onModelReady }: HeroCapViewerProps) {
       >
         <HeroCapScene
           rotationYRef={rotationYRef}
-          logoTexture={logoTexture}
-          logoSize={LOGO_SIZE_DEFAULT}
+          logos={
+            logoTexture
+              ? [
+                  {
+                    placement: DEFAULT_HERO_LOGO_PLACEMENT,
+                    texture: logoTexture,
+                    size: LOGO_SIZE_DEFAULT,
+                  } satisfies CapLogoInstance,
+                ]
+              : []
+          }
           partColors={DEFAULT_CAP_PART_COLORS}
           introSpin
           introCancelRef={userInteractedRef}

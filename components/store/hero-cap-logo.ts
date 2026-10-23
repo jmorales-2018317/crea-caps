@@ -11,19 +11,42 @@ import {
   LOGO_SIZE_PX_MAX,
   LOGO_SIZE_PX_MIN,
   sanitizeLogoSizePx,
+  type LogoPlacement,
 } from "@/types/personalization";
 
-export const LOGO_ANCHOR_NAME = "logo_anchor_front";
 export const CROWN_FRONT_NAME = "crown_front_outside";
+export const VISOR_UP_NAME = "visor_up";
 export const DEFAULT_HERO_LOGO_PATH = FALLBACK_LOGO;
+export const DEFAULT_HERO_LOGO_PLACEMENT: LogoPlacement = "front_center";
 export const LOGO_TEXTURE_MAX_SIZE = 1024;
 export const LOGO_PANEL_COVERAGE = 0.36;
+export const LOGO_FRONT_PAIR_COVERAGE = 0.52;
+export const LOGO_VISOR_PAIR_COVERAGE = 0.46;
 export const LOGO_SIZE_MIN = 0.55;
 export const LOGO_SIZE_MAX = 1.7;
 export const LOGO_SIZE_DEFAULT = 1;
 
-export function logoSizePxToScale(px: number): number {
-  const clamped = sanitizeLogoSizePx(px);
+export const LOGO_ANCHOR_NAMES: Record<LogoPlacement, string> = {
+  front_left: "logo_anchor_left",
+  front_center: "logo_anchor_center",
+  front_right: "logo_anchor_right",
+  visor_left: "logo_anchor_visor_left",
+  visor_right: "logo_anchor_visor_right",
+};
+
+export const LOGO_TARGET_MESH_NAMES: Record<LogoPlacement, string> = {
+  front_left: CROWN_FRONT_NAME,
+  front_center: CROWN_FRONT_NAME,
+  front_right: CROWN_FRONT_NAME,
+  visor_left: VISOR_UP_NAME,
+  visor_right: VISOR_UP_NAME,
+};
+
+export function logoSizePxToScale(
+  px: number,
+  placement?: LogoPlacement,
+): number {
+  const clamped = sanitizeLogoSizePx(px, placement);
   const t =
     (clamped - LOGO_SIZE_PX_MIN) / (LOGO_SIZE_PX_MAX - LOGO_SIZE_PX_MIN);
   return LOGO_SIZE_MIN + t * (LOGO_SIZE_MAX - LOGO_SIZE_MIN);

@@ -3,8 +3,11 @@
 import { Suspense, useRef, type ReactNode, type RefObject } from "react";
 import { ContactShadows } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { Vector3, type Group, type Texture } from "three";
-import { HeroCapModel } from "@/components/store/hero-cap-model";
+import { Vector3, type Group } from "three";
+import {
+  HeroCapModel,
+  type CapLogoInstance,
+} from "@/components/store/hero-cap-model";
 import type { CapPartColors, CapPartId } from "@/types/personalization";
 
 const CAMERA_LOOK_AT_Y = 0.08;
@@ -152,8 +155,7 @@ type HeroCapSceneProps = {
   rotationXRef?: RefObject<number>;
   zoomDistanceRef?: RefObject<number>;
   lookAtY?: number;
-  logoTexture: Texture | null;
-  logoSize: number;
+  logos?: CapLogoInstance[];
   partColors?: CapPartColors;
   selectedPart?: CapPartId | null;
   hoveredPart?: CapPartId | null;
@@ -168,8 +170,7 @@ export function HeroCapScene({
   rotationXRef,
   zoomDistanceRef,
   lookAtY,
-  logoTexture,
-  logoSize,
+  logos = [],
   partColors,
   selectedPart = null,
   hoveredPart = null,
@@ -199,8 +200,7 @@ export function HeroCapScene({
           onReadyRef={onReadyRef}
         >
           <HeroCapModel
-            logoTexture={logoTexture}
-            logoSize={logoSize}
+            logos={logos}
             partColors={partColors}
             selectedPart={selectedPart}
             hoveredPart={hoveredPart}

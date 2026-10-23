@@ -13,6 +13,8 @@ export const CAP_PART_GROUPS = [
       "crown_right",
       "crown_back_left",
       "crown_back_right",
+      "visor_up",
+      "visor_under",
     ],
   },
   {
@@ -21,7 +23,7 @@ export const CAP_PART_GROUPS = [
     parts: [
       "visor_stitch_up",
       "visor_stitch_under",
-      "crown_stitch_front_001",
+      "crown_stitch_front",
       "crown_stitch_left_001",
       "crown_stitch_left_002",
       "crown_stitch_right_001",
@@ -33,13 +35,7 @@ export const CAP_PART_GROUPS = [
   {
     id: "details",
     label: "Detalles",
-    parts: [
-      "visor_up",
-      "visor_under",
-      "squatchee",
-      "sweatband",
-      "snapback",
-    ],
+    parts: ["squatchee", "sweatband", "snapback"],
   },
 ] as const;
 
@@ -69,7 +65,7 @@ export const CAP_PART_LABELS: Record<CapPartId, string> = {
   crown_right: "Corona derecha",
   crown_back_left: "Corona trasera izquierda",
   crown_back_right: "Corona trasera derecha",
-  crown_stitch_front_001: "Costura frontal",
+  crown_stitch_front: "Costura frontal",
   crown_stitch_left_001: "Costura izquierda 1",
   crown_stitch_left_002: "Costura izquierda 2",
   crown_stitch_right_001: "Costura derecha 1",
@@ -87,7 +83,8 @@ export const CAP_PART_LABELS: Record<CapPartId, string> = {
 
 const LEGACY_PART_ALIASES: Record<string, CapPartId> = {
   crown_front: "crown_front_outside",
-  crown_front_stitch: "crown_stitch_front_001",
+  crown_front_stitch: "crown_stitch_front",
+  crown_stitch_front_001: "crown_stitch_front",
   visor_stitch: "visor_stitch_up",
 };
 
@@ -119,7 +116,7 @@ export const DEFAULT_CAP_PART_COLORS: CapPartColors = {
   crown_right: DEFAULT_CAP_PART_COLOR,
   crown_back_left: DEFAULT_CAP_PART_COLOR,
   crown_back_right: DEFAULT_CAP_PART_COLOR,
-  crown_stitch_front_001: DEFAULT_VISOR_STITCH_COLOR,
+  crown_stitch_front: DEFAULT_VISOR_STITCH_COLOR,
   crown_stitch_left_001: DEFAULT_VISOR_STITCH_COLOR,
   crown_stitch_left_002: DEFAULT_VISOR_STITCH_COLOR,
   crown_stitch_right_001: DEFAULT_VISOR_STITCH_COLOR,
@@ -140,6 +137,100 @@ export const PERSONALIZATION_STORAGE_KEY = "caps-store-personalization-v2";
 export const LOGO_SIZE_PX_MIN = 40;
 export const LOGO_SIZE_PX_MAX = 140;
 export const LOGO_SIZE_PX_DEFAULT = 80;
+export const LOGO_SIZE_PX_MAX_COMPACT = 70;
+export const LOGO_SIZE_PX_DEFAULT_COMPACT = 55;
+
+export const LOGO_PLACEMENTS = [
+  "front_left",
+  "front_center",
+  "front_right",
+  "visor_left",
+  "visor_right",
+] as const;
+
+export type LogoPlacement = (typeof LOGO_PLACEMENTS)[number];
+
+export const DEFAULT_LOGO_PLACEMENT: LogoPlacement = "front_center";
+
+export const LOGO_PLACEMENT_LABELS: Record<LogoPlacement, string> = {
+  front_left: "Izquierda",
+  front_center: "Centro",
+  front_right: "Derecha",
+  visor_left: "Izquierda",
+  visor_right: "Derecha",
+};
+
+export const LOGO_PLACEMENT_FULL_LABELS: Record<LogoPlacement, string> = {
+  front_left: "Panel frontal · izquierda",
+  front_center: "Panel frontal · centro",
+  front_right: "Panel frontal · derecha",
+  visor_left: "Visera · izquierda",
+  visor_right: "Visera · derecha",
+};
+
+export const LOGO_PLACEMENT_GROUPS = [
+  {
+    id: "front",
+    label: "Panel frontal",
+    placements: ["front_left", "front_center", "front_right"],
+  },
+  {
+    id: "visor",
+    label: "Visera",
+    placements: ["visor_left", "visor_right"],
+  },
+] as const;
+
+export type LogoPlacementGroupId = (typeof LOGO_PLACEMENT_GROUPS)[number]["id"];
+
+export const MAX_PERSONALIZATION_LOGOS = LOGO_PLACEMENTS.length;
+
+export type PersonalizationLogoDraft = {
+  id: string;
+  url: string;
+  placement: LogoPlacement;
+  sizePx: number;
+};
+
+export type SerializableLogo = {
+  placement: LogoPlacement;
+  size: number;
+};
+
+export const LOGO_ASSIGNMENT_ORDER: readonly LogoPlacement[] = [
+  "front_center",
+  "front_left",
+  "front_right",
+  "visor_left",
+  "visor_right",
+];
+
+export function isLogoPlacement(value: unknown): value is LogoPlacement {
+  return (
+    typeof value === "string" &&
+    (LOGO_PLACEMENTS as readonly string[]).includes(value)
+  );
+}
+
+export function nextAvailableLogoPlacement(
+  used: readonly LogoPlacement[],
+): LogoPlacement | null {
+  return (
+    LOGO_ASSIGNMENT_ORDER.find((placement) => !used.includes(placement)) ?? null
+  );
+}
+
+export function takeAvailableLogoPlacements(
+  used: readonly LogoPlacement[],
+  count: number,
+): LogoPlacement[] {
+  if (count <= 0) {
+    return [];
+  }
+  return LOGO_ASSIGNMENT_ORDER.filter(
+    (placement) => !used.includes(placement),
+  ).slice(0, count);
+}
 
 export function isCapPartId(value: string): value is CapPartId {
   return (CAP_PARTS as readonly string[]).includes(value);
@@ -315,37 +406,55 @@ export function isDefaultPartColors(colors: CapPartColors): boolean {
   );
 }
 
-export function sanitizeLogoSizePx(value: unknown): number {
+export function getLogoSizePxMax(placement: LogoPlacement): number {
+  return placement === "front_center"
+    ? LOGO_SIZE_PX_MAX
+    : LOGO_SIZE_PX_MAX_COMPACT;
+}
+
+export function getLogoSizePxDefault(placement: LogoPlacement): number {
+  return placement === "front_center"
+    ? LOGO_SIZE_PX_DEFAULT
+    : LOGO_SIZE_PX_DEFAULT_COMPACT;
+}
+
+export function sanitizeLogoSizePx(
+  value: unknown,
+  placement?: LogoPlacement,
+): number {
+  const max = placement ? getLogoSizePxMax(placement) : LOGO_SIZE_PX_MAX;
+  const fallback = placement
+    ? getLogoSizePxDefault(placement)
+    : LOGO_SIZE_PX_DEFAULT;
   if (typeof value !== "number" || !Number.isFinite(value)) {
-    return LOGO_SIZE_PX_DEFAULT;
+    return fallback;
   }
-  return Math.round(
-    Math.min(LOGO_SIZE_PX_MAX, Math.max(LOGO_SIZE_PX_MIN, value)),
-  );
+  return Math.round(Math.min(max, Math.max(LOGO_SIZE_PX_MIN, value)));
 }
 
 export function serializeDesign(
   colors: CapPartColors,
-  sizePx: number,
+  logos: readonly SerializableLogo[],
 ): string {
-  const ordered: Record<string, string | number> = {};
+  const ordered: Record<string, string | SerializableLogo[]> = {};
   for (const part of CAP_PARTS) {
     ordered[part] = colors[part].toUpperCase();
   }
-  ordered.size = sanitizeLogoSizePx(sizePx);
+  ordered.logos = logos.map((logo) => ({
+    placement: logo.placement,
+    size: sanitizeLogoSizePx(logo.size, logo.placement),
+  }));
   return JSON.stringify(ordered, null, 2);
 }
 
 export type PersonalizationState = {
   partColors: CapPartColors;
   selectedPart: CapPartId | null;
-  logoSizePx: number;
 };
 
 export type PersonalizationActions = {
   setPartColor: (part: CapPartId, color: string) => void;
   selectPart: (part: CapPartId | null) => void;
-  setLogoSizePx: (sizePx: number) => void;
   constrainToPalette: (palette: readonly PaletteColor[]) => void;
   resetDesign: () => void;
 };

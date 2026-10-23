@@ -5,22 +5,27 @@ import {
   BufferGeometry,
   Float32BufferAttribute,
   FrontSide,
+  Matrix4,
   Mesh,
+  Raycaster,
   Vector3,
+  type Intersection,
   type Texture,
 } from "three";
 import { getLogoAspect } from "@/components/store/hero-cap-logo";
 
-const MIN_OUTWARD_DOT = 0.35;
-const SURFACE_OFFSET = 0.00022;
-const ENVELOPE_CELL = 0.0012;
-const GRID_SEGMENTS = 18;
-const MAX_RIDGE_LIFT = 0.00028;
-const FIT_SAMPLE_EXTENT = 0.022;
-const CURVE_SMALL_EXTENT = 0.018;
-const CURVE_LARGE_EXTENT = 0.054;
-const CURVE_KEEP_AT_LARGE = 0.1;
-const MAX_EDGE_SAG = 0.0016;
+const MIN_OUTWARD_DOT = 0.28;
+const SURFACE_OFFSET = 0.00028;
+const ENVELOPE_CELL = 0.001;
+const GRID_SEGMENTS = 24;
+const MAX_RIDGE_LIFT = 0.0007;
+const RAY_SAMPLE_GRID = 16;
+const RAY_START = 0.02;
+const RAY_FAR = 0.08;
+const CURVE_SMALL_EXTENT = 0.02;
+const CURVE_LARGE_EXTENT = 0.09;
+const CURVE_KEEP_AT_LARGE = 0.68;
+const MAX_EDGE_SAG = 0.0052;
 
 function clamp01(value: number) {
   return Math.min(1, Math.max(0, value));
@@ -31,9 +36,22 @@ function smoothstep(edge0: number, edge1: number, value: number) {
   return t * t * (3 - 2 * t);
 }
 
+export type LogoDecalAxes = {
+  x: [number, number, number];
+  y: [number, number, number];
+  z: [number, number, number];
+};
+
+const IDENTITY_AXES: LogoDecalAxes = {
+  x: [1, 0, 0],
+  y: [0, 1, 0],
+  z: [0, 0, 1],
+};
+
 type FrontLogoDecalProps = {
   map: Texture;
   position: [number, number, number];
+  axes?: LogoDecalAxes;
   size: number;
 };
 
@@ -165,9 +183,31 @@ function fitQuadric(samples: Array<{ x: number; y: number; z: number }>): Quadri
   };
 }
 
+function toLocal(
+  x: number,
+  y: number,
+  z: number,
+  origin: Vector3,
+  axisX: Vector3,
+  axisY: Vector3,
+  axisZ: Vector3,
+) {
+  const dx = x - origin.x;
+  const dy = y - origin.y;
+  const dz = z - origin.z;
+  return {
+    x: dx * axisX.x + dy * axisX.y + dz * axisX.z,
+    y: dx * axisY.x + dy * axisY.y + dz * axisY.z,
+    z: dx * axisZ.x + dy * axisZ.y + dz * axisZ.z,
+  };
+}
+
 function collectOuterSamples(
   mesh: Mesh,
   origin: Vector3,
+  axisX: Vector3,
+  axisY: Vector3,
+  axisZ: Vector3,
   width: number,
   height: number,
 ): Array<{ x: number; y: number; z: number }> {
@@ -180,47 +220,128 @@ function collectOuterSamples(
   const maxZ = new Map<string, { x: number; y: number; z: number }>();
   const pad = Math.max(width, height) * 0.12;
   for (let i = 0; i < position.count; i += 1) {
-    if (normal && normal.getZ(i) < MIN_OUTWARD_DOT) {
+    if (normal) {
+      const outward =
+        normal.getX(i) * axisZ.x +
+        normal.getY(i) * axisZ.y +
+        normal.getZ(i) * axisZ.z;
+      if (outward < MIN_OUTWARD_DOT) {
+        continue;
+      }
+    }
+    const local = toLocal(
+      position.getX(i),
+      position.getY(i),
+      position.getZ(i),
+      origin,
+      axisX,
+      axisY,
+      axisZ,
+    );
+    if (Math.abs(local.x) > width / 2 + pad || Math.abs(local.y) > height / 2 + pad) {
       continue;
     }
-    const x = position.getX(i);
-    const y = position.getY(i);
-    if (
-      Math.abs(x - origin.x) > width / 2 + pad ||
-      Math.abs(y - origin.y) > height / 2 + pad
-    ) {
-      continue;
-    }
-    const z = position.getZ(i);
-    const key = `${Math.round(x / ENVELOPE_CELL)}:${Math.round(y / ENVELOPE_CELL)}`;
+    const key = `${Math.round(local.x / ENVELOPE_CELL)}:${Math.round(local.y / ENVELOPE_CELL)}`;
     const current = maxZ.get(key);
-    if (!current || z > current.z) {
-      maxZ.set(key, { x, y, z });
+    if (!current || local.z > current.z) {
+      maxZ.set(key, local);
     }
   }
   return [...maxZ.values()];
 }
 
+function collectRaySamples(
+  mesh: Mesh,
+  origin: Vector3,
+  axisX: Vector3,
+  axisY: Vector3,
+  axisZ: Vector3,
+  width: number,
+  height: number,
+): Array<{ x: number; y: number; z: number }> {
+  mesh.updateMatrixWorld(true);
+  const raycaster = new Raycaster();
+  const invWorld = new Matrix4().copy(mesh.matrixWorld).invert();
+  const worldDir = axisZ.clone().negate().transformDirection(mesh.matrixWorld);
+  const localPoint = new Vector3();
+  const worldOrigin = new Vector3();
+  const hits: Intersection[] = [];
+  const samples: Array<{ x: number; y: number; z: number }> = [];
+  const pad = 1.06;
+
+  for (let row = 0; row <= RAY_SAMPLE_GRID; row += 1) {
+    for (let col = 0; col <= RAY_SAMPLE_GRID; col += 1) {
+      const lx = (col / RAY_SAMPLE_GRID - 0.5) * width * pad;
+      const ly = (row / RAY_SAMPLE_GRID - 0.5) * height * pad;
+      localPoint
+        .copy(origin)
+        .addScaledVector(axisX, lx)
+        .addScaledVector(axisY, ly)
+        .addScaledVector(axisZ, RAY_START);
+      worldOrigin.copy(localPoint).applyMatrix4(mesh.matrixWorld);
+      raycaster.set(worldOrigin, worldDir);
+      raycaster.near = 0;
+      raycaster.far = RAY_START + RAY_FAR;
+      hits.length = 0;
+      mesh.raycast(raycaster, hits);
+      if (hits.length === 0) {
+        continue;
+      }
+      hits.sort((a, b) => a.distance - b.distance);
+      const hit = hits[0];
+      if (!hit) {
+        continue;
+      }
+      const localHit = hit.point.clone().applyMatrix4(invWorld);
+      samples.push(
+        toLocal(
+          localHit.x,
+          localHit.y,
+          localHit.z,
+          origin,
+          axisX,
+          axisY,
+          axisZ,
+        ),
+      );
+    }
+  }
+
+  return samples;
+}
+
 function createSmoothLogoGeometry(
   mesh: Mesh,
   origin: Vector3,
+  axisX: Vector3,
+  axisY: Vector3,
+  axisZ: Vector3,
   width: number,
   height: number,
 ): BufferGeometry {
-  const samples = collectOuterSamples(
+  const vertexSamples = collectOuterSamples(
     mesh,
     origin,
-    Math.min(width, FIT_SAMPLE_EXTENT),
-    Math.min(height, FIT_SAMPLE_EXTENT),
+    axisX,
+    axisY,
+    axisZ,
+    width,
+    height,
   );
-  const relativeSamples = samples.map((sample) => ({
-    x: sample.x - origin.x,
-    y: sample.y - origin.y,
-    z: sample.z,
-  }));
+  const raySamples = collectRaySamples(
+    mesh,
+    origin,
+    axisX,
+    axisY,
+    axisZ,
+    width,
+    height,
+  );
+  const samples = raySamples.length >= 8 ? raySamples : vertexSamples;
+  const envelope = vertexSamples.length >= 8 ? vertexSamples : samples;
   const fitted =
-    fitQuadric(relativeSamples) ?? {
-      a: origin.z,
+    fitQuadric(samples) ?? {
+      a: 0,
       b: 0,
       c: 0,
       d: 0,
@@ -229,7 +350,7 @@ function createSmoothLogoGeometry(
     };
   const quadric = flattenQuadric(fitted, width, height);
   let maxAbove = 0;
-  for (const sample of relativeSamples) {
+  for (const sample of envelope) {
     maxAbove = Math.max(maxAbove, sample.z - heightAt(quadric, sample.x, sample.y));
   }
   const lift = SURFACE_OFFSET + Math.min(Math.max(maxAbove, 0), MAX_RIDGE_LIFT);
@@ -240,23 +361,30 @@ function createSmoothLogoGeometry(
   const uvs: number[] = [];
 
   const pushVertex = (u: number, v: number) => {
-    const x = origin.x + (u - 0.5) * width;
-    const y = origin.y + (v - 0.5) * height;
-    const lx = x - origin.x;
-    const ly = y - origin.y;
-    const z = heightAt(quadric, lx, ly);
+    const lx = (u - 0.5) * width;
+    const ly = (v - 0.5) * height;
+    const lz = heightAt(quadric, lx, ly);
     const dzdx = quadric.b + 2 * quadric.d * lx + quadric.f * ly;
     const dzdy = quadric.c + 2 * quadric.e * ly + quadric.f * lx;
-    const nx = -dzdx;
-    const ny = -dzdy;
-    const nz = 1;
-    const length = Math.hypot(nx, ny, nz) || 1;
-    positions.push(
-      x + (nx / length) * lift,
-      y + (ny / length) * lift,
-      z + (nz / length) * lift,
-    );
-    normals.push(nx / length, ny / length, nz / length);
+    const localNx = -dzdx;
+    const localNy = -dzdy;
+    const localNz = 1;
+    const localLength = Math.hypot(localNx, localNy, localNz) || 1;
+    const nnx = localNx / localLength;
+    const nny = localNy / localLength;
+    const nnz = localNz / localLength;
+    const wx = nnx * axisX.x + nny * axisY.x + nnz * axisZ.x;
+    const wy = nnx * axisX.y + nny * axisY.y + nnz * axisZ.y;
+    const wz = nnx * axisX.z + nny * axisY.z + nnz * axisZ.z;
+    const worldLength = Math.hypot(wx, wy, wz) || 1;
+    const nx = wx / worldLength;
+    const ny = wy / worldLength;
+    const nz = wz / worldLength;
+    const x = origin.x + lx * axisX.x + ly * axisY.x + lz * axisZ.x;
+    const y = origin.y + lx * axisX.y + ly * axisY.y + lz * axisZ.y;
+    const z = origin.z + lx * axisX.z + ly * axisY.z + lz * axisZ.z;
+    positions.push(x + nx * lift, y + ny * lift, z + nz * lift);
+    normals.push(nx, ny, nz);
     uvs.push(u, v);
   };
 
@@ -282,7 +410,12 @@ function createSmoothLogoGeometry(
   return geometry;
 }
 
-export function FrontLogoDecal({ map, position, size }: FrontLogoDecalProps) {
+export function FrontLogoDecal({
+  map,
+  position,
+  axes = IDENTITY_AXES,
+  size,
+}: FrontLogoDecalProps) {
   const meshRef = useRef<Mesh>(null);
   const aspect = getLogoAspect(map);
   const width = aspect >= 1 ? size : size * aspect;
@@ -291,6 +424,9 @@ export function FrontLogoDecal({ map, position, size }: FrontLogoDecalProps) {
     () => new Vector3(position[0], position[1], position[2]),
     [position],
   );
+  const axisX = useMemo(() => new Vector3(...axes.x).normalize(), [axes.x]);
+  const axisY = useMemo(() => new Vector3(...axes.y).normalize(), [axes.y]);
+  const axisZ = useMemo(() => new Vector3(...axes.z).normalize(), [axes.z]);
 
   useLayoutEffect(() => {
     const decalMesh = meshRef.current;
@@ -299,7 +435,15 @@ export function FrontLogoDecal({ map, position, size }: FrontLogoDecalProps) {
       return;
     }
 
-    const nextGeometry = createSmoothLogoGeometry(parent, origin, width, height);
+    const nextGeometry = createSmoothLogoGeometry(
+      parent,
+      origin,
+      axisX,
+      axisY,
+      axisZ,
+      width,
+      height,
+    );
     const previous = decalMesh.geometry;
     decalMesh.geometry = nextGeometry;
     previous.dispose();
@@ -307,7 +451,7 @@ export function FrontLogoDecal({ map, position, size }: FrontLogoDecalProps) {
     return () => {
       nextGeometry.dispose();
     };
-  }, [height, origin, width]);
+  }, [axisX, axisY, axisZ, height, origin, width]);
 
   return (
     <mesh ref={meshRef} frustumCulled={false} renderOrder={2}>
