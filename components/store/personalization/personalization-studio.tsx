@@ -8,12 +8,13 @@ import {
   type ReactNode,
 } from "react";
 import dynamic from "next/dynamic";
-import { CircleHelp, Info, Share2 } from "lucide-react";
+import { Info, Share2 } from "lucide-react";
 import { cn } from "cn";
 import {
   PersonalizationColorPopover,
   type ColorPickerOrigin,
 } from "@/components/store/personalization/personalization-color-popover";
+import { PersonalizationLogoPositionsHelp } from "@/components/store/personalization/personalization-logo-positions-help";
 import {
   PersonalizationLogosField,
   revokeLogoUrls,
@@ -29,14 +30,7 @@ import {
 } from "@/components/store/personalization/viewer-background-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { usePersonalizationStore } from "@/hooks/use-personalization-store";
 import {
   CAP_PARTS,
@@ -238,11 +232,11 @@ export function PersonalizationStudio({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22.5rem] lg:items-start xl:grid-cols-[minmax(0,1fr)_24rem]">
-      <div className="flex flex-col gap-3 lg:sticky lg:top-20 lg:self-start">
+      <div className="z-0 flex flex-col gap-3 lg:sticky lg:top-20 lg:self-start">
         <section
           aria-label="Visor 3D de la gorra"
           className={cn(
-            "relative overflow-hidden rounded-2xl border transition-colors duration-300",
+            "relative isolate overflow-hidden rounded-2xl border transition-colors duration-300",
             isLightViewer
               ? "border-[#b7ad9c]/40"
               : "border-[#e8d9a8]/20 shadow-[inset_0_0_88px_rgb(184_154_85_/_0.08)]",
@@ -273,7 +267,7 @@ export function PersonalizationStudio({
             />
             <p
               className={cn(
-                "pointer-events-none absolute left-3 top-3 z-20 flex items-center gap-2 pr-28 text-[11px] font-medium tracking-[0.16em] uppercase sm:left-4 sm:top-4 sm:pr-40",
+                "pointer-events-none absolute left-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] items-center gap-2 text-[11px] font-medium tracking-[0.16em] uppercase sm:left-4 sm:top-4",
                 isLightViewer ? "text-primary" : "text-gold-soft",
               )}
             >
@@ -375,32 +369,18 @@ export function PersonalizationStudio({
           }
         >
           <div className="mb-4 flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-1.5">
-              <TooltipProvider delay={200}>
-                <Tooltip>
-                  <TooltipTrigger
-                    type="button"
-                    className="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-subtle transition-colors hover:text-text-strong focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-                    aria-label="Qué significan las posiciones disponibles"
-                  >
-                    <CircleHelp className="size-3.5" aria-hidden="true" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-[240px] text-pretty">
-                    Los puntos amarillos en la gorra marcan las posiciones
-                    disponibles para colocar una imagen.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <Label
-                htmlFor="show-logo-anchors"
-                className="cursor-pointer text-xs font-medium text-text-strong"
+            <div className="flex min-w-0 items-center">
+              <PersonalizationLogoPositionsHelp />
+              <span
+                id="show-logo-anchors-label"
+                className="text-xs font-medium text-text-strong"
               >
                 Mostrar posiciones disponibles
-              </Label>
+              </span>
             </div>
             <Switch
               id="show-logo-anchors"
-              size="sm"
+              aria-labelledby="show-logo-anchors-label"
               checked={showLogoAnchors}
               onCheckedChange={setShowLogoAnchors}
             />

@@ -23,7 +23,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
       : FALLBACK_LOGO;
 
   return (
-    <header className="sticky top-0 z-20 bg-background/70 backdrop-blur-md">
+    <header className="sticky top-0 z-40 bg-background/70 backdrop-blur-md">
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-4 px-4 py-3 md:grid-cols-[1fr_auto_1fr] sm:px-6">
         <Link
           href="/"
