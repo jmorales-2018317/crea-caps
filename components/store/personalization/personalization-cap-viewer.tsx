@@ -25,20 +25,23 @@ import {
   logoSizePxToScale,
 } from "@/components/store/hero-cap-logo";
 import { HeroCapScene } from "@/components/store/hero-cap-scene";
+import { ViewerOrbitControls } from "@/components/store/personalization/viewer-orbit-controls";
 import type {
   CapPartColors,
   CapPartId,
+  LogoPlacement,
   PersonalizationLogoDraft,
 } from "@/types/personalization";
 
 const CANVAS_ARIA_LABEL =
-  "Visor 3D para personalizar la gorra. Arrastra para rotar en cualquier dirección. Usa la rueda o pellizca para hacer zoom. Haz clic en una pieza para cambiar su color.";
+  "Visor 3D para personalizar la gorra. Activa la rotación para girar el modelo. Usa los botones o la rueda para hacer zoom. Haz clic en una pieza para cambiar su color.";
 const INITIAL_ROTATION_Y = -0.45;
 const INITIAL_ROTATION_X = 0;
 const INITIAL_ZOOM_DISTANCE = 2.5;
 const CAMERA_LOOK_AT_Y = -0.14;
 const MIN_ZOOM_DISTANCE = 1.35;
 const MAX_ZOOM_DISTANCE = 4.6;
+const ZOOM_STEP = 0.32;
 const PITCH_MIN = -0.85;
 const PITCH_MAX = 0.72;
 const AXIS_LOCK_RATIO = 1.25;
@@ -49,6 +52,13 @@ const LOGO_APPLY_ERROR = "No se pudo aplicar el logo. Prueba con otra imagen.";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function getDefaultRotationEnabled() {
+  if (typeof window === "undefined") {
+    return true;
+  }
+  return window.matchMedia("(pointer: fine)").matches;
 }
 
 function pointerDistance(
@@ -74,6 +84,7 @@ type PersonalizationCapViewerProps = {
     part: CapPartId | null,
     point?: { clientX: number; clientY: number },
   ) => void;
+  logoAnchorMarkers?: readonly LogoPlacement[];
 };
 
 function pickCapPart(
@@ -115,8 +126,12 @@ export function PersonalizationCapViewer({
   onLogoReady,
   onLogoError,
   onPartClick,
+  logoAnchorMarkers = [],
 }: PersonalizationCapViewerProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [rotationEnabled, setRotationEnabled] = useState(
+    getDefaultRotationEnabled,
+  );
   const [hoveredPart, setHoveredPart] = useState<CapPartId | null>(null);
   const [logoTextures, setLogoTextures] = useState<Record<string, Texture>>({});
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -249,6 +264,37 @@ export function PersonalizationCapViewer({
     };
   }, []);
 
+  const zoomBy = useCallback((delta: number) => {
+    zoomDistanceRef.current = clamp(
+      zoomDistanceRef.current + delta,
+      MIN_ZOOM_DISTANCE,
+      MAX_ZOOM_DISTANCE,
+    );
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    zoomBy(-ZOOM_STEP);
+  }, [zoomBy]);
+
+  const handleZoomOut = useCallback(() => {
+    zoomBy(ZOOM_STEP);
+  }, [zoomBy]);
+
+  const handleToggleRotation = useCallback(() => {
+    setRotationEnabled((current) => !current);
+  }, []);
+
+  useEffect(() => {
+    if (rotationEnabled) {
+      return;
+    }
+    pointersRef.current.clear();
+    pinchStartDistanceRef.current = 0;
+    pointerDownRef.current = false;
+    hasDraggedRef.current = false;
+    setIsDragging(false);
+  }, [rotationEnabled]);
+
   const updateHover = useCallback(
     (clientX: number, clientY: number, rect: DOMRect) => {
       const three = threeRef.current;
@@ -268,14 +314,22 @@ export function PersonalizationCapViewer({
   );
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId);
-    } catch {}
-
     pointersRef.current.set(event.pointerId, {
       x: event.clientX,
       y: event.clientY,
     });
+
+    if (!rotationEnabled) {
+      pointerDownRef.current = true;
+      hasDraggedRef.current = false;
+      startXRef.current = event.clientX;
+      startYRef.current = event.clientY;
+      return;
+    }
+
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {}
 
     if (pointersRef.current.size >= 2) {
       const points = [...pointersRef.current.values()];
@@ -309,6 +363,9 @@ export function PersonalizationCapViewer({
     }
 
     if (pointersRef.current.size >= 2) {
+      if (!rotationEnabled) {
+        return;
+      }
       const points = [...pointersRef.current.values()];
       const first = points[0];
       const second = points[1];
@@ -344,8 +401,14 @@ export function PersonalizationCapViewer({
       Math.hypot(deltaX, deltaY) >= DRAG_THRESHOLD_PX
     ) {
       hasDraggedRef.current = true;
-      setIsDragging(true);
-      setHoveredPart(null);
+      if (rotationEnabled) {
+        setIsDragging(true);
+        setHoveredPart(null);
+      }
+    }
+
+    if (!rotationEnabled) {
+      return;
     }
 
     if (hasDraggedRef.current) {
@@ -440,11 +503,15 @@ export function PersonalizationCapViewer({
     }
   };
 
-  const cursorClass = isDragging
-    ? "cursor-grabbing"
-    : hoveredPart
+  const cursorClass = !rotationEnabled
+    ? hoveredPart
       ? "cursor-pointer"
-      : "cursor-grab";
+      : "cursor-default"
+    : isDragging
+      ? "cursor-grabbing"
+      : hoveredPart
+        ? "cursor-pointer"
+        : "cursor-grab";
 
   return (
     <div className={`absolute inset-0 z-0 ${cursorClass}`}>
@@ -475,6 +542,7 @@ export function PersonalizationCapViewer({
           rotationXRef={rotationXRef}
           zoomDistanceRef={zoomDistanceRef}
           lookAtY={CAMERA_LOOK_AT_Y}
+          isLightBackground={isLightBackground}
           logos={logos.flatMap((logo) => {
             const texture = logoTextures[logo.id];
             if (!texture) {
@@ -493,16 +561,28 @@ export function PersonalizationCapViewer({
           selectedPart={selectedPart}
           hoveredPart={hoveredPart}
           capRootRef={capRootRef}
+          logoAnchorMarkers={logoAnchorMarkers}
         />
       </Canvas>
       <div
         ref={overlayRef}
-        className="absolute inset-0 touch-none"
+        className={
+          rotationEnabled
+            ? "absolute inset-0 z-10 touch-none"
+            : "absolute inset-0 z-10 touch-pan-y"
+        }
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
         onPointerLeave={handlePointerLeave}
+      />
+      <ViewerOrbitControls
+        isLight={isLightBackground}
+        rotationEnabled={rotationEnabled}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onToggleRotation={handleToggleRotation}
       />
     </div>
   );

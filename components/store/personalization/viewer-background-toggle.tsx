@@ -7,7 +7,7 @@ export type ViewerBackgroundMode = "dark" | "light";
 
 export const VIEWER_BACKGROUND_COLORS: Record<ViewerBackgroundMode, string> = {
   dark: "#1a1815",
-  light: "#f0ece4",
+  light: "#f3f0ed",
 };
 
 const OPTIONS = [
@@ -33,7 +33,7 @@ export function ViewerBackgroundToggle({
       className={cn(
         "absolute right-3 top-3 z-30 flex rounded-full border p-0.5 shadow-sm backdrop-blur-md",
         isLight
-          ? "border-[#3d3830]/18 bg-white/75"
+          ? "border-[#3d3830]/14 bg-[#f3f0ed]/80"
           : "border-[#e8d9a8]/20 bg-[#090807]/55",
       )}
     >

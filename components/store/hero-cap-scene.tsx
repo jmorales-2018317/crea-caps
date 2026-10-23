@@ -1,14 +1,24 @@
 "use client";
 
-import { Suspense, useRef, type ReactNode, type RefObject } from "react";
+import {
+  Suspense,
+  useLayoutEffect,
+  useRef,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { ContactShadows } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { Vector3, type Group } from "three";
 import {
   HeroCapModel,
   type CapLogoInstance,
 } from "@/components/store/hero-cap-model";
-import type { CapPartColors, CapPartId } from "@/types/personalization";
+import type {
+  CapPartColors,
+  CapPartId,
+  LogoPlacement,
+} from "@/types/personalization";
 
 const CAMERA_LOOK_AT_Y = 0.08;
 const CAMERA_BASE_Y = 0.12;
@@ -26,6 +36,8 @@ const INTRO_START_RADIANS_PER_SECOND =
   ((INTRO_SPIN_RADIANS - IDLE_SPIN_RADIANS_PER_SECOND * INTRO_SPIN_DURATION_S) *
     4) /
     INTRO_SPIN_DURATION_S;
+const DARK_TONE_EXPOSURE = 1;
+const LIGHT_TONE_EXPOSURE = 0.78;
 
 function introSpinSpeed(progress: number) {
   const extra =
@@ -150,6 +162,55 @@ function CameraRig({
   return null;
 }
 
+function SceneExposure({ isLightBackground }: { isLightBackground: boolean }) {
+  const { gl } = useThree();
+
+  useLayoutEffect(() => {
+    const previous = gl.toneMappingExposure;
+    gl.toneMappingExposure = isLightBackground
+      ? LIGHT_TONE_EXPOSURE
+      : DARK_TONE_EXPOSURE;
+    return () => {
+      gl.toneMappingExposure = previous;
+    };
+  }, [gl, isLightBackground]);
+
+  return null;
+}
+
+function CapStudioLights({
+  isLightBackground,
+}: {
+  isLightBackground: boolean;
+}) {
+  if (isLightBackground) {
+    return (
+      <>
+        <ambientLight intensity={0.38} color="#efe8de" />
+        <hemisphereLight args={["#d8d2c8", "#8a847a", 0.36]} />
+        <directionalLight
+          position={[3, 4, 4]}
+          intensity={0.28}
+          color="#fff4ea"
+        />
+        <directionalLight
+          position={[-2.4, 1.6, 2.2]}
+          intensity={0.14}
+          color="#ebe4da"
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <ambientLight intensity={0.65} />
+      <hemisphereLight args={["#e4d3a4", "#1a1610", 0.95]} />
+      <directionalLight position={[3, 4, 4]} intensity={0.6} />
+    </>
+  );
+}
+
 type HeroCapSceneProps = {
   rotationYRef: RefObject<number>;
   rotationXRef?: RefObject<number>;
@@ -163,6 +224,8 @@ type HeroCapSceneProps = {
   introSpin?: boolean;
   introCancelRef?: RefObject<boolean>;
   onReadyRef?: RefObject<(() => void) | null>;
+  isLightBackground?: boolean;
+  logoAnchorMarkers?: readonly LogoPlacement[];
 };
 
 export function HeroCapScene({
@@ -178,6 +241,8 @@ export function HeroCapScene({
   introSpin = false,
   introCancelRef,
   onReadyRef,
+  isLightBackground = false,
+  logoAnchorMarkers = [],
 }: HeroCapSceneProps) {
   return (
     <>
@@ -188,9 +253,8 @@ export function HeroCapScene({
           lookAtY={lookAtY}
         />
       ) : null}
-      <ambientLight intensity={0.65} />
-      <hemisphereLight args={["#e4d3a4", "#1a1610", 0.95]} />
-      <directionalLight position={[3, 4, 4]} intensity={0.6} />
+      <SceneExposure isLightBackground={isLightBackground} />
+      <CapStudioLights isLightBackground={isLightBackground} />
       <Suspense fallback={null}>
         <CapYTurntable
           rotationYRef={rotationYRef}
@@ -204,14 +268,16 @@ export function HeroCapScene({
             partColors={partColors}
             selectedPart={selectedPart}
             hoveredPart={hoveredPart}
+            logoAnchorMarkers={logoAnchorMarkers}
           />
         </CapYTurntable>
       </Suspense>
       <ContactShadows
         position={[0, -0.77, 0]}
-        opacity={0.38}
+        opacity={isLightBackground ? 0.16 : 0.38}
+        color={isLightBackground ? "#5c564e" : "#000000"}
         scale={6}
-        blur={2.4}
+        blur={isLightBackground ? 3.4 : 2.4}
         far={3}
       />
     </>
