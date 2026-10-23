@@ -120,7 +120,7 @@ export function PersonalizationColorFields({
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar nombre o hex"
               aria-label={`Buscar color para ${CAP_PART_LABELS[part]}`}
-              className="h-7 bg-muted pl-7 text-xs placeholder:text-xs"
+              className="h-8 bg-muted pl-7 text-base md:h-7 md:text-sm"
             />
           </div>
           <div
@@ -131,20 +131,24 @@ export function PersonalizationColorFields({
             {filtered.map((option) => {
               const selected = option.hex_code === color;
               return (
-                <Button
+                <PopoverClose
                   key={option.id}
-                  type="button"
-                  variant="outline"
-                  size="sm"
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "h-auto w-full min-w-0 justify-start gap-2 bg-popover px-2 py-1.5 text-xs",
+                        selected && "bg-muted",
+                      )}
+                    />
+                  }
                   role="radio"
                   aria-checked={selected}
                   aria-label={option.name}
                   title={option.name}
                   onClick={() => onColorChange(option.hex_code)}
-                  className={cn(
-                    "h-auto w-full min-w-0 justify-start gap-2 bg-popover px-2 py-1.5 text-xs",
-                    selected && "bg-muted",
-                  )}
                 >
                   <span
                     className="size-5 shrink-0 rounded-md border border-border shadow-sm"
@@ -152,7 +156,7 @@ export function PersonalizationColorFields({
                     aria-hidden="true"
                   />
                   <span className="min-w-0 truncate">{option.name}</span>
-                </Button>
+                </PopoverClose>
               );
             })}
           </div>
