@@ -54,13 +54,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function getDefaultRotationEnabled() {
-  if (typeof window === "undefined") {
-    return true;
-  }
-  return window.matchMedia("(pointer: fine)").matches;
-}
-
 function pointerDistance(
   a: { x: number; y: number },
   b: { x: number; y: number },
@@ -129,9 +122,7 @@ export function PersonalizationCapViewer({
   logoAnchorMarkers = [],
 }: PersonalizationCapViewerProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [rotationEnabled, setRotationEnabled] = useState(
-    getDefaultRotationEnabled,
-  );
+  const [rotationEnabled, setRotationEnabled] = useState(true);
   const [hoveredPart, setHoveredPart] = useState<CapPartId | null>(null);
   const [logoTextures, setLogoTextures] = useState<Record<string, Texture>>({});
   const overlayRef = useRef<HTMLDivElement>(null);

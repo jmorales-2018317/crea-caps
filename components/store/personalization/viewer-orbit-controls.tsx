@@ -35,7 +35,7 @@ export function ViewerOrbitControls({
       <div
         role="toolbar"
         aria-label="Controles del visor 3D"
-        className="absolute right-3 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-2"
+        className="absolute right-3 bottom-3 z-30 flex flex-col gap-2 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2"
       >
         <ControlButton
           isLight={isLight}

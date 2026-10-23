@@ -31,7 +31,7 @@ export function ViewerBackgroundToggle({
       role="radiogroup"
       aria-label="Color de fondo del visor"
       className={cn(
-        "absolute right-3 top-3 z-30 flex rounded-full border p-0.5 shadow-sm backdrop-blur-md",
+        "absolute bottom-3 left-3 z-30 flex rounded-full border p-0.5 shadow-sm backdrop-blur-md sm:bottom-4 sm:left-4",
         isLight
           ? "border-[#3d3830]/14 bg-[#f3f0ed]/80"
           : "border-[#e8d9a8]/20 bg-[#090807]/55",
