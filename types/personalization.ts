@@ -5,7 +5,7 @@ export type { PaletteColor };
 export const CAP_PART_GROUPS = [
   {
     id: "panels",
-    label: "Paneles",
+    label: "Paneles y corona",
     parts: [
       "crown_front_outside",
       "crown_front_inside",
@@ -13,16 +13,17 @@ export const CAP_PART_GROUPS = [
       "crown_right",
       "crown_back_left",
       "crown_back_right",
-      "visor_up",
-      "visor_under",
     ],
   },
   {
-    id: "stitches",
-    label: "Costuras",
+    id: "visor",
+    label: "Visera y costuras",
+    parts: ["visor_up", "visor_under", "visor_stitch_up", "visor_stitch_under"],
+  },
+  {
+    id: "crown_stitches",
+    label: "Costuras de corona",
     parts: [
-      "visor_stitch_up",
-      "visor_stitch_under",
       "crown_stitch_front",
       "crown_stitch_left_001",
       "crown_stitch_left_002",
@@ -135,10 +136,12 @@ export const DEFAULT_CAP_PART_COLORS: CapPartColors = {
 export const PERSONALIZATION_STORAGE_KEY = "caps-store-personalization-v2";
 
 export const LOGO_SIZE_PX_MIN = 40;
-export const LOGO_SIZE_PX_MAX = 140;
+export const LOGO_SIZE_PX_MAX = 110;
 export const LOGO_SIZE_PX_DEFAULT = 80;
 export const LOGO_SIZE_PX_MAX_COMPACT = 70;
 export const LOGO_SIZE_PX_DEFAULT_COMPACT = 55;
+export const LOGO_SIZE_PX_MAX_SWEATBAND = 50;
+export const LOGO_SIZE_PX_DEFAULT_SWEATBAND = 50;
 
 export const LOGO_PLACEMENTS = [
   "front_left",
@@ -146,6 +149,8 @@ export const LOGO_PLACEMENTS = [
   "front_right",
   "visor_left",
   "visor_right",
+  "sweatband_left",
+  "sweatband_right",
 ] as const;
 
 export type LogoPlacement = (typeof LOGO_PLACEMENTS)[number];
@@ -158,6 +163,8 @@ export const LOGO_PLACEMENT_LABELS: Record<LogoPlacement, string> = {
   front_right: "Derecha",
   visor_left: "Izquierda",
   visor_right: "Derecha",
+  sweatband_left: "Izquierda",
+  sweatband_right: "Derecha",
 };
 
 export const LOGO_PLACEMENT_FULL_LABELS: Record<LogoPlacement, string> = {
@@ -166,6 +173,8 @@ export const LOGO_PLACEMENT_FULL_LABELS: Record<LogoPlacement, string> = {
   front_right: "Panel frontal · derecha",
   visor_left: "Visera · izquierda",
   visor_right: "Visera · derecha",
+  sweatband_left: "Banda interior · izquierda",
+  sweatband_right: "Banda interior · derecha",
 };
 
 export const LOGO_PLACEMENT_GROUPS = [
@@ -178,6 +187,11 @@ export const LOGO_PLACEMENT_GROUPS = [
     id: "visor",
     label: "Visera",
     placements: ["visor_left", "visor_right"],
+  },
+  {
+    id: "sweatband",
+    label: "Banda interior",
+    placements: ["sweatband_left", "sweatband_right"],
   },
 ] as const;
 
@@ -203,6 +217,8 @@ export const LOGO_ASSIGNMENT_ORDER: readonly LogoPlacement[] = [
   "front_right",
   "visor_left",
   "visor_right",
+  "sweatband_left",
+  "sweatband_right",
 ];
 
 export function isLogoPlacement(value: unknown): value is LogoPlacement {
@@ -406,16 +422,28 @@ export function isDefaultPartColors(colors: CapPartColors): boolean {
   );
 }
 
+export function isSweatbandLogoPlacement(placement: LogoPlacement): boolean {
+  return placement === "sweatband_left" || placement === "sweatband_right";
+}
+
 export function getLogoSizePxMax(placement: LogoPlacement): number {
-  return placement === "front_center"
-    ? LOGO_SIZE_PX_MAX
-    : LOGO_SIZE_PX_MAX_COMPACT;
+  if (placement === "front_center") {
+    return LOGO_SIZE_PX_MAX;
+  }
+  if (isSweatbandLogoPlacement(placement)) {
+    return LOGO_SIZE_PX_MAX_SWEATBAND;
+  }
+  return LOGO_SIZE_PX_MAX_COMPACT;
 }
 
 export function getLogoSizePxDefault(placement: LogoPlacement): number {
-  return placement === "front_center"
-    ? LOGO_SIZE_PX_DEFAULT
-    : LOGO_SIZE_PX_DEFAULT_COMPACT;
+  if (placement === "front_center") {
+    return LOGO_SIZE_PX_DEFAULT;
+  }
+  if (isSweatbandLogoPlacement(placement)) {
+    return LOGO_SIZE_PX_DEFAULT_SWEATBAND;
+  }
+  return LOGO_SIZE_PX_DEFAULT_COMPACT;
 }
 
 export function sanitizeLogoSizePx(

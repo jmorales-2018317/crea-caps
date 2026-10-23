@@ -16,15 +16,20 @@ import {
 
 export const CROWN_FRONT_NAME = "crown_front_outside";
 export const VISOR_UP_NAME = "visor_up";
+export const SWEATBAND_NAME = "sweatband";
 export const DEFAULT_HERO_LOGO_PATH = FALLBACK_LOGO;
 export const DEFAULT_HERO_LOGO_PLACEMENT: LogoPlacement = "front_center";
 export const LOGO_TEXTURE_MAX_SIZE = 1024;
 export const LOGO_PANEL_COVERAGE = 0.36;
 export const LOGO_FRONT_PAIR_COVERAGE = 0.52;
 export const LOGO_VISOR_PAIR_COVERAGE = 0.46;
+export const LOGO_SWEATBAND_PAIR_COVERAGE = 0.26;
 export const LOGO_SIZE_MIN = 0.55;
-export const LOGO_SIZE_MAX = 1.7;
+export const LOGO_SIZE_MAX = 1.355;
 export const LOGO_SIZE_DEFAULT = 1;
+export const HERO_LOGO_SIZE = 0.76;
+
+export type LogoSlotTarget = "front" | "visor" | "sweatband";
 
 export const LOGO_ANCHOR_NAMES: Record<LogoPlacement, string> = {
   front_left: "logo_anchor_left",
@@ -32,6 +37,8 @@ export const LOGO_ANCHOR_NAMES: Record<LogoPlacement, string> = {
   front_right: "logo_anchor_right",
   visor_left: "logo_anchor_visor_left",
   visor_right: "logo_anchor_visor_right",
+  sweatband_left: "logo_anchor_sweatband_left",
+  sweatband_right: "logo_anchor_sweatband_right",
 };
 
 export const LOGO_TARGET_MESH_NAMES: Record<LogoPlacement, string> = {
@@ -40,7 +47,20 @@ export const LOGO_TARGET_MESH_NAMES: Record<LogoPlacement, string> = {
   front_right: CROWN_FRONT_NAME,
   visor_left: VISOR_UP_NAME,
   visor_right: VISOR_UP_NAME,
+  sweatband_left: SWEATBAND_NAME,
+  sweatband_right: SWEATBAND_NAME,
 };
+
+export function getLogoSlotTarget(placement: LogoPlacement): LogoSlotTarget {
+  const meshName = LOGO_TARGET_MESH_NAMES[placement];
+  if (meshName === VISOR_UP_NAME) {
+    return "visor";
+  }
+  if (meshName === SWEATBAND_NAME) {
+    return "sweatband";
+  }
+  return "front";
+}
 
 export function logoSizePxToScale(
   px: number,

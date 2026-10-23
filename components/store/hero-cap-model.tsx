@@ -23,9 +23,12 @@ import {
   LOGO_ANCHOR_NAMES,
   LOGO_FRONT_PAIR_COVERAGE,
   LOGO_PANEL_COVERAGE,
-  LOGO_TARGET_MESH_NAMES,
+  LOGO_SWEATBAND_PAIR_COVERAGE,
   LOGO_VISOR_PAIR_COVERAGE,
+  SWEATBAND_NAME,
   VISOR_UP_NAME,
+  getLogoSlotTarget,
+  type LogoSlotTarget,
 } from "@/components/store/hero-cap-logo";
 import {
   CAP_PART_HEX_PATTERN,
@@ -177,7 +180,7 @@ const IDENTITY_AXES: LogoDecalAxes = {
 
 type LogoSlotFrame = {
   placement: LogoPlacement;
-  target: "front" | "visor";
+  target: LogoSlotTarget;
   position: [number, number, number];
   axes: LogoDecalAxes;
   projectorSize: number;
@@ -249,11 +252,15 @@ function getAnchorFrame(
 
 function buildLogoSlots(
   scene: Object3D,
-  frontMesh: Mesh | null,
-  visorMesh: Mesh | null,
+  meshes: Record<LogoSlotTarget, Mesh | null>,
 ): LogoSlotFrame[] {
-  const frontFallback = frontMesh ? meshFallbackSize(frontMesh) : 0.05;
-  const visorFallback = visorMesh ? meshFallbackSize(visorMesh) : frontFallback;
+  const frontFallback = meshes.front ? meshFallbackSize(meshes.front) : 0.05;
+  const visorFallback = meshes.visor
+    ? meshFallbackSize(meshes.visor)
+    : frontFallback;
+  const sweatbandFallback = meshes.sweatband
+    ? meshFallbackSize(meshes.sweatband)
+    : frontFallback;
   const frontPair = pairDistance(
     scene,
     LOGO_ANCHOR_NAMES.front_left,
@@ -264,14 +271,25 @@ function buildLogoSlots(
     LOGO_ANCHOR_NAMES.visor_left,
     LOGO_ANCHOR_NAMES.visor_right,
   );
-  const frontSize =
-    frontPair > 0.002 ? frontPair * LOGO_FRONT_PAIR_COVERAGE : frontFallback;
-  const visorSize =
-    visorPair > 0.002 ? visorPair * LOGO_VISOR_PAIR_COVERAGE : visorFallback;
+  const sweatbandPair = pairDistance(
+    scene,
+    LOGO_ANCHOR_NAMES.sweatband_left,
+    LOGO_ANCHOR_NAMES.sweatband_right,
+  );
+  const sizes: Record<LogoSlotTarget, number> = {
+    front:
+      frontPair > 0.002 ? frontPair * LOGO_FRONT_PAIR_COVERAGE : frontFallback,
+    visor:
+      visorPair > 0.002 ? visorPair * LOGO_VISOR_PAIR_COVERAGE : visorFallback,
+    sweatband:
+      sweatbandPair > 0.002
+        ? sweatbandPair * LOGO_SWEATBAND_PAIR_COVERAGE
+        : sweatbandFallback,
+  };
 
   return LOGO_PLACEMENTS.flatMap((placement) => {
-    const targetName = LOGO_TARGET_MESH_NAMES[placement];
-    const targetMesh = targetName === VISOR_UP_NAME ? visorMesh : frontMesh;
+    const target = getLogoSlotTarget(placement);
+    const targetMesh = meshes[target];
     if (!targetMesh) {
       return [];
     }
@@ -279,10 +297,10 @@ function buildLogoSlots(
     return [
       {
         placement,
-        target: targetName === VISOR_UP_NAME ? "visor" : "front",
+        target,
         position: tuple3(frame.position),
         axes: frame.axes,
-        projectorSize: targetName === VISOR_UP_NAME ? visorSize : frontSize,
+        projectorSize: sizes[target],
       },
     ];
   });
@@ -293,6 +311,7 @@ type HeroCapModelProps = {
   partColors?: CapPartColors;
   selectedPart?: CapPartId | null;
   hoveredPart?: CapPartId | null;
+  logoAnchorMarkers?: readonly LogoPlacement[];
 };
 
 function extractNamedMesh(clone: Group, name: string): Mesh | null {
@@ -305,14 +324,70 @@ function extractNamedMesh(clone: Group, name: string): Mesh | null {
   return mesh;
 }
 
+const LOGO_ANCHOR_MARKER_COLOR = "#e8c547";
+const LOGO_ANCHOR_MARKER_WORLD_RADIUS = 0.0055;
+const LOGO_ANCHOR_MARKER_WORLD_OUTSET = 0.004;
+
+function meshUniformScale(mesh: Mesh): number {
+  return Math.max(
+    Math.abs(mesh.scale.x),
+    Math.abs(mesh.scale.y),
+    Math.abs(mesh.scale.z),
+    0.0001,
+  );
+}
+
+function offsetAlongNormal(
+  position: [number, number, number],
+  normal: [number, number, number],
+  distance: number,
+): [number, number, number] {
+  return [
+    position[0] + normal[0] * distance,
+    position[1] + normal[1] * distance,
+    position[2] + normal[2] * distance,
+  ];
+}
+
+function LogoAnchorMarker({
+  slot,
+  radius,
+  outset,
+}: {
+  slot: LogoSlotFrame;
+  radius: number;
+  outset: number;
+}) {
+  return (
+    <mesh
+      position={offsetAlongNormal(slot.position, slot.axes.z, outset)}
+      renderOrder={2}
+      raycast={() => {}}
+    >
+      <sphereGeometry args={[radius, 16, 16]} />
+      <meshBasicMaterial
+        color={LOGO_ANCHOR_MARKER_COLOR}
+        depthTest
+        toneMapped={false}
+      />
+    </mesh>
+  );
+}
+
 function LogoTargetMesh({
   mesh,
   logos,
   slots,
+  markerPlacements,
+  markerRadius,
+  markerOutset,
 }: {
   mesh: Mesh;
   logos: CapLogoInstance[];
   slots: LogoSlotFrame[];
+  markerPlacements: readonly LogoPlacement[];
+  markerRadius: number;
+  markerOutset: number;
 }) {
   return (
     <mesh
@@ -340,8 +415,29 @@ function LogoTargetMesh({
           />
         );
       })}
+      {slots.map((slot) =>
+        markerPlacements.includes(slot.placement) ? (
+          <LogoAnchorMarker
+            key={`anchor-${slot.placement}`}
+            slot={slot}
+            radius={markerRadius}
+            outset={markerOutset}
+          />
+        ) : null,
+      )}
     </mesh>
   );
+}
+
+function logoAnchorMarkerSize(
+  capScale: number,
+  mesh: Mesh,
+): { markerRadius: number; markerOutset: number } {
+  const worldScale = capScale * meshUniformScale(mesh);
+  return {
+    markerRadius: LOGO_ANCHOR_MARKER_WORLD_RADIUS / worldScale,
+    markerOutset: LOGO_ANCHOR_MARKER_WORLD_OUTSET / worldScale,
+  };
 }
 
 export function HeroCapModel({
@@ -349,6 +445,7 @@ export function HeroCapModel({
   partColors,
   selectedPart = null,
   hoveredPart = null,
+  logoAnchorMarkers = [],
 }: HeroCapModelProps) {
   const { scene } = useGLTF(HERO_CAP_GLB_PATH);
 
@@ -393,12 +490,18 @@ export function HeroCapModel({
 
     const frontMesh = extractNamedMesh(clone, CROWN_FRONT_NAME);
     const visorMesh = extractNamedMesh(clone, VISOR_UP_NAME);
-    const slots = buildLogoSlots(scene, frontMesh, visorMesh);
+    const sweatbandMesh = extractNamedMesh(clone, SWEATBAND_NAME);
+    const slots = buildLogoSlots(scene, {
+      front: frontMesh,
+      visor: visorMesh,
+      sweatband: sweatbandMesh,
+    });
 
     return {
       body: clone,
       frontMesh,
       visorMesh,
+      sweatbandMesh,
       capScale,
       slots,
     };
@@ -427,16 +530,30 @@ export function HeroCapModel({
         hoveredPart,
       );
     }
+    if (prepared.sweatbandMesh) {
+      applyCapAppearance(
+        prepared.sweatbandMesh,
+        partColors,
+        selectedPart,
+        hoveredPart,
+      );
+    }
   }, [hoveredPart, partColors, prepared, selectedPart]);
 
   const frontLogos = logos.filter(
-    (logo) => LOGO_TARGET_MESH_NAMES[logo.placement] === CROWN_FRONT_NAME,
+    (logo) => getLogoSlotTarget(logo.placement) === "front",
   );
   const visorLogos = logos.filter(
-    (logo) => LOGO_TARGET_MESH_NAMES[logo.placement] === VISOR_UP_NAME,
+    (logo) => getLogoSlotTarget(logo.placement) === "visor",
+  );
+  const sweatbandLogos = logos.filter(
+    (logo) => getLogoSlotTarget(logo.placement) === "sweatband",
   );
   const frontSlots = prepared.slots.filter((slot) => slot.target === "front");
   const visorSlots = prepared.slots.filter((slot) => slot.target === "visor");
+  const sweatbandSlots = prepared.slots.filter(
+    (slot) => slot.target === "sweatband",
+  );
 
   return (
     <Center>
@@ -447,6 +564,8 @@ export function HeroCapModel({
             mesh={prepared.frontMesh}
             logos={frontLogos}
             slots={frontSlots}
+            markerPlacements={logoAnchorMarkers}
+            {...logoAnchorMarkerSize(prepared.capScale, prepared.frontMesh)}
           />
         ) : null}
         {prepared.visorMesh ? (
@@ -454,6 +573,17 @@ export function HeroCapModel({
             mesh={prepared.visorMesh}
             logos={visorLogos}
             slots={visorSlots}
+            markerPlacements={logoAnchorMarkers}
+            {...logoAnchorMarkerSize(prepared.capScale, prepared.visorMesh)}
+          />
+        ) : null}
+        {prepared.sweatbandMesh ? (
+          <LogoTargetMesh
+            mesh={prepared.sweatbandMesh}
+            logos={sweatbandLogos}
+            slots={sweatbandSlots}
+            markerPlacements={logoAnchorMarkers}
+            {...logoAnchorMarkerSize(prepared.capScale, prepared.sweatbandMesh)}
           />
         ) : null}
       </group>

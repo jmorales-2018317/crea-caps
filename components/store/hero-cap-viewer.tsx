@@ -5,7 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import type { Texture } from "three";
 import {
   DEFAULT_HERO_LOGO_PLACEMENT,
-  LOGO_SIZE_DEFAULT,
+  HERO_LOGO_SIZE,
   createHeroLogoTextureFromUrl,
 } from "@/components/store/hero-cap-logo";
 import type { CapLogoInstance } from "@/components/store/hero-cap-model";
@@ -123,7 +123,7 @@ export function HeroCapViewer({ logoUrl, onModelReady }: HeroCapViewerProps) {
                   {
                     placement: DEFAULT_HERO_LOGO_PLACEMENT,
                     texture: logoTexture,
-                    size: LOGO_SIZE_DEFAULT,
+                    size: HERO_LOGO_SIZE,
                   } satisfies CapLogoInstance,
                 ]
               : []
