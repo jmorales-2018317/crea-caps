@@ -62,9 +62,9 @@ export function PersonalizationPartPicker({
   const [userOpenGroups, setUserOpenGroups] = useState<CapPartGroupId[]>([]);
   const openGroups = useMemo(() => {
     if (selectedGroupId && !userOpenGroups.includes(selectedGroupId)) {
-      return [...userOpenGroups, selectedGroupId];
+      return [selectedGroupId];
     }
-    return userOpenGroups;
+    return userOpenGroups.slice(-1);
   }, [selectedGroupId, userOpenGroups]);
 
   useEffect(() => {
@@ -90,10 +90,9 @@ export function PersonalizationPartPicker({
         Lista de piezas
       </p>
       <Accordion
-        multiple
         value={openGroups}
         onValueChange={(next) => {
-          const ids = toOpenGroups(next);
+          const ids = toOpenGroups(next).slice(-1);
           setUserOpenGroups(ids);
           if (selectedPart && !ids.includes(getCapPartGroupId(selectedPart))) {
             onClose();

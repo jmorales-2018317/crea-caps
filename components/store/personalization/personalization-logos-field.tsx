@@ -131,7 +131,7 @@ export function PersonalizationLogosField({
       .filter((logo) => !previousIds.has(logo.id))
       .map((logo) => logo.id);
     if (addedIds.length > 0) {
-      setOpenLogoIds((current) => [...current, ...addedIds]);
+      setOpenLogoIds([addedIds[addedIds.length - 1]!]);
     }
     onLogosChange(next);
   };
@@ -158,9 +158,8 @@ export function PersonalizationLogosField({
 
       {logos.length > 0 ? (
         <Accordion
-          multiple
           value={openLogoIds}
-          onValueChange={(next) => setOpenLogoIds(next.map(String))}
+          onValueChange={(next) => setOpenLogoIds(next.map(String).slice(-1))}
           className="gap-2"
         >
           {logos.map((logo) => {
